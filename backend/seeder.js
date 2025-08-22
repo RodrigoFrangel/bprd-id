@@ -34,7 +34,7 @@ const seedCharacter = {
   role: "Engenheiro Experimental",
   department: "Pesquisa & Desenvolvimento",
   level: "5",
-  profilePic: "https://i.postimg.cc/k4Bnc9C4/Camada-2-4.png",
+  profilePic: "https://i.postimg.cc/mg0zmcNw/gaylord-profile.png",
   origin: "Humano Verdadeiramente Excepcional",
   recruitment: "Passou da Linha",
   lifeBefore: "Profissional",
