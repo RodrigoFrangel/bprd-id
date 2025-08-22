@@ -1,5 +1,6 @@
 // Define a URL base da nossa API para não repetirmos
-const API_URL = 'http://localhost:5000/api';
+// const API_URL = 'http://localhost:5000/api';
+const API_URL = '/api';
 
 // Função para verificar se o usuário está logado
 function checkAuth() {
