@@ -1,0 +1,59 @@
+[
+  {
+    "id": 19441223,
+    "name": "Anung Un Rama (Hellboy)",
+    "age": "80",
+    "height": "213",
+    "weight": "180",
+    "role": "Field Agent / Occult Investigator",
+    "department": "Field Operations",
+    "level": "9",
+    "profilePic": "https://i.pinimg.com/originals/24/00/b0/2400b08a3e0b1e411b333652f1464624.jpg",
+    "origin": "Demonic (Cambion)",
+    "recruitment": "Discovered Dec. 23, 1944",
+    "lifeBefore": "N/A - Raised within the B.P.R.D.",
+    "drive": "Protecting humanity, defying his 'destiny'.",
+    "psych": [
+      "Gruff exterior, strong moral compass.",
+      "Prone to fits of rage when provoked.",
+      "Deep-seated issues regarding his origin.",
+      "Displays loyalty to close team members."
+    ],
+    "attributes": {
+      "str": 24,
+      "con": 22,
+      "dex": 13,
+      "int": 12,
+      "wis": 16,
+      "cha": 9
+    }
+  },
+  {
+    "id": 19781114,
+    "name": "Abraham 'Abe' Sapien",
+    "age": null,
+    "height": "191",
+    "weight": "65",
+    "role": "Field Agent / Aquatic Specialist",
+    "department": "Research & Field Operations",
+    "level": "8",
+    "profilePic": "https://comicvine.gamespot.com/a/uploads/scale_small/11112/111123579/6908581-abe.jpg",
+    "origin": "Icthyo Sapien (Amphibious Humanoid)",
+    "recruitment": "Found in suspended animation, Nov. 1978",
+    "lifeBefore": "Langdon Everett Caul, Victorian scientist.",
+    "drive": "Rediscovering his past, camaraderie with the team.",
+    "psych": [
+      "Calm, intellectual, and empathetic.",
+      "Often acts as the team's conscience.",
+      "Experiences flashes of past life memories."
+    ],
+    "attributes": {
+      "str": 14,
+      "con": 16,
+      "dex": 18,
+      "int": 20,
+      "wis": 19,
+      "cha": 12
+    }
+  }
+]

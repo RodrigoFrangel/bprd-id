@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B.P.R.D. - Registro de Agente</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            background-color: #1a1a1a; 
+            font-family: 'Roboto Condensed', sans-serif; 
+            color: #f5f5f5;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23333333' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .form-container { 
+            background-color: #2d2d2d; 
+            border: 1px solid #444; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .form-label { font-family: 'Special Elite', monospace; color: #ccc; }
+        .form-input { 
+            background-color: #1a1a1a; 
+            border: 1px solid #555; 
+            color: #f5f5f5; 
+            font-family: 'Roboto Condensed', sans-serif;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #b91c1c;
+            box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.5);
+        }
+        .btn {
+            font-family: 'Roboto Condensed', sans-serif;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            transition: background-color 0.2s;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-md">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl text-center font-bold text-red-600" style="font-family: 'Special Elite', monospace;">REGISTRO DE AGENTE</h1>
+            <p class="text-gray-400">CRIAÇÃO DE CREDENCIAIS DE ACESSO</p>
+        </div>
+
+        <div class="form-container p-8 rounded-lg">
+            <form id="register-form">
+                <div class="mb-6">
+                    <label for="email" class="form-label block mb-2">EMAIL DE AGENTE</label>
+                    <input type="email" id="email" name="email" class="w-full p-3 rounded form-input" required>
+                </div>
+                <div class="mb-6">
+                    <label for="password" class="form-label block mb-2">SENHA</label>
+                    <input type="password" id="password" name="password" class="w-full p-3 rounded form-input" minlength="6" required>
+                </div>
+                <div class="mb-6">
+                    <label for="confirm-password" class="form-label block mb-2">CONFIRMAR SENHA</label>
+                    <input type="password" id="confirm-password" name="confirm-password" class="w-full p-3 rounded form-input" required>
+                </div>
+                
+                <div id="error-message" class="text-red-500 text-center mb-4" style="display: none;"></div>
+
+                <button type="submit" class="w-full bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-4 rounded transition-colors btn">
+                    CRIAR CREDENCIAL
+                </button>
+            </form>
+            <p class="text-center text-gray-400 mt-6">
+                Já possui credenciais? 
+                <a href="login.html" class="text-red-500 hover:text-red-400 font-bold">Acesse aqui</a>.
+            </p>
+        </div>
+    </div>
+    
+    <script src="auth.js"></script>
+    <script>
+        const registerForm = document.getElementById('register-form');
+        const errorMessage = document.getElementById('error-message');
+
+        registerForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            errorMessage.style.display = 'none';
+
+            const email = this.email.value;
+            const password = this.password.value;
+            const confirmPassword = this['confirm-password'].value;
+
+            if (password !== confirmPassword) {
+                errorMessage.textContent = 'As senhas não coincidem.';
+                errorMessage.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.msg || 'Falha ao registrar.');
+                }
+
+                // Se o registro for bem-sucedido, já logamos o usuário
+                localStorage.setItem('bprd_token', data.token);
+                window.location.href = 'personagens.html';
+
+            } catch (error) {
+                errorMessage.textContent = error.message;
+                errorMessage.style.display = 'block';
+            }
+        });
+    </script>
+
+</body>
+</html>
