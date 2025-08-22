@@ -1,12 +1,23 @@
 // Define a URL base da nossa API para não repetirmos
-// const API_URL = 'http://localhost:5000/api';
-const API_URL = '/api';
+const API_URL = '/api'; // Ajustado para funcionar na Vercel e localmente
+
+// Array com as páginas que são públicas
+const publicPages = [
+    '/', // Raiz do site
+    '/index.html',
+    '/login.html',
+    '/register.html',
+    '/personagens.html',
+    '/id.html'
+];
 
 // Função para verificar se o usuário está logado
 function checkAuth() {
     const token = localStorage.getItem('bprd_token');
-    // Se não houver token e a página atual não for de login/registro, redireciona
-    if (!token && !window.location.pathname.endsWith('login.html') && !window.location.pathname.endsWith('register.html')) {
+    const currentPage = window.location.pathname;
+
+    // Se não houver token E a página atual NÃO ESTIVER na lista de páginas públicas, redireciona
+    if (!token && !publicPages.some(page => currentPage.endsWith(page))) {
         window.location.href = 'login.html';
     }
 }
@@ -16,6 +27,21 @@ function logout() {
     localStorage.removeItem('bprd_token');
     window.location.href = 'login.html';
 }
+
+// Função para pegar o ID do usuário logado a partir do token
+function getLoggedInUserId() {
+    const token = localStorage.getItem('bprd_token');
+    if (!token) return null;
+    try {
+        // Decodifica a parte do meio (payload) do token JWT
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        return payload.user.id;
+    } catch (e) {
+        console.error("Erro ao decodificar token:", e);
+        return null;
+    }
+}
+
 
 // Roda a verificação em todas as páginas que importarem este script
 checkAuth();
