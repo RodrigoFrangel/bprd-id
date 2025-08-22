@@ -34,7 +34,6 @@
     </div>
     
     <script>
-        // Não precisamos do auth.js aqui, pois é uma página pública
         const navLinksContainer = document.getElementById('nav-links');
         const token = localStorage.getItem('bprd_token');
 
@@ -42,7 +41,7 @@
             // Usuário está logado
             navLinksContainer.innerHTML = `
                 <a href="personagens.html" class="nav-btn w-64 text-white font-bold py-3 px-4 rounded">
-                    Meus Personagens
+                    Ver Personagens
                 </a>
                 <a href="create.html" class="nav-btn w-64 text-white font-bold py-3 px-4 rounded">
                     Criar Novo Personagem
@@ -54,6 +53,9 @@
         } else {
             // Usuário não está logado
             navLinksContainer.innerHTML = `
+                <a href="personagens.html" class="nav-btn w-64 text-white font-bold py-3 px-4 rounded">
+                    Ver Personagens
+                </a>
                 <a href="login.html" class="nav-btn w-64 text-white font-bold py-3 px-4 rounded">
                     Login
                 </a>
