@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B.P.R.D. - Registro de Agente</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #1a1a1a; font-family: 'Roboto Condensed', sans-serif; color: #f5f5f5; }
+        .form-container { background-color: #2d2d2d; border: 1px solid #444; }
+        .form-label { font-family: 'Special Elite', monospace; color: #ccc; }
+        .form-input { 
+            background-color: #1a1a1a; 
+            border: 1px solid #555; 
+            color: #f5f5f5; 
+            font-family: 'Roboto Condensed', sans-serif;
+        }
+        .btn {
+            font-family: 'Roboto Condensed', sans-serif;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-10">
+
+    <div class="max-w-4xl mx-auto form-container p-8 rounded-lg shadow-lg">
+        <h1 id="page-title" class="text-4xl text-center mb-2 font-bold" style="font-family: 'Special Elite', monospace;">REGISTRO DE AGENTE</h1>
+        <p class="text-center text-gray-400 mb-8">BUREAU FOR PARANORMAL RESEARCH AND DEFENSE</p>
+
+        <form id="agent-form" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            <input type="hidden" id="agentId" name="agentId">
+            
+            <!-- Coluna 1: Dados Principais e Classificação -->
+            <div>
+                <h2 class="text-2xl font-bold text-red-500 mb-4">DADOS BÁSICOS</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label for="name" class="form-label">NOME DO AGENTE</label>
+                        <input type="text" id="name" name="name" class="w-full p-2 rounded form-input" required>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <label for="age" class="form-label">IDADE</label>
+                            <input type="number" id="age" name="age" class="w-full p-2 rounded form-input">
+                        </div>
+                        <div>
+                            <label for="height" class="form-label">ALTURA (cm)</label>
+                            <input type="number" id="height" name="height" class="w-full p-2 rounded form-input">
+                        </div>
+                        <div>
+                            <label for="weight" class="form-label">PESO (kg)</label>
+                            <input type="number" id="weight" name="weight" class="w-full p-2 rounded form-input">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="role" class="form-label">FUNÇÃO (Ex: Engenheiro Experimental)</label>
+                        <input type="text" id="role" name="role" class="w-full p-2 rounded form-input" required>
+                    </div>
+                    <div>
+                        <label for="department" class="form-label">DEPARTAMENTO (Ex: R&D)</label>
+                        <input type="text" id="department" name="department" class="w-full p-2 rounded form-input" required>
+                    </div>
+                     <div>
+                        <label for="level" class="form-label">NÍVEL</label>
+                        <input type="number" id="level" name="level" class="w-full p-2 rounded form-input" required>
+                    </div>
+                    <div>
+                        <label for="profilePic" class="form-label">URL DA IMAGEM DE PERFIL</label>
+                        <input type="url" id="profilePic" name="profilePic" class="w-full p-2 rounded form-input" placeholder="https://exemplo.com/imagem.png">
+                    </div>
+                </div>
+                 <h2 class="text-2xl font-bold text-red-500 mt-6 mb-4">CLASSIFICAÇÃO</h2>
+                 <div class="space-y-4">
+                    <div>
+                        <label for="origin" class="form-label">CLASSIFICAÇÃO DE ORIGEM</label>
+                        <input type="text" id="origin" name="origin" class="w-full p-2 rounded form-input" required>
+                    </div>
+                    <div>
+                        <label for="recruitment" class="form-label">RECRUTAMENTO</label>
+                        <input type="text" id="recruitment" name="recruitment" class="w-full p-2 rounded form-input" required>
+                    </div>
+                    <div>
+                        <label for="lifeBefore" class="form-label">VIDA PREGRESSA</label>
+                        <input type="text" id="lifeBefore" name="lifeBefore" class="w-full p-2 rounded form-input">
+                    </div>
+                    <div>
+                        <label for="drive" class="form-label">MOTIVAÇÃO (DRIVE)</label>
+                        <input type="text" id="drive" name="drive" class="w-full p-2 rounded form-input">
+                    </div>
+                    <div>
+                        <label for="psych" class="form-label">AVALIAÇÃO PSICOLÓGICA (um por linha)</label>
+                        <textarea id="psych" name="psych" rows="3" class="w-full p-2 rounded form-input"></textarea>
+                    </div>
+                 </div>
+            </div>
+
+            <!-- Coluna 2: Habilidades -->
+            <div>
+                 <h2 class="text-2xl font-bold text-red-500 mb-4">ÍNDICE DE HABILIDADES</h2>
+                 <div class="grid grid-cols-2 gap-4">
+                     <div><label for="str" class="form-label">FORÇA (STR)</label><input type="number" id="str" name="str" class="w-full p-2 rounded form-input" required></div>
+                     <div><label for="con" class="form-label">CONSTITUIÇÃO (CON)</label><input type="number" id="con" name="con" class="w-full p-2 rounded form-input" required></div>
+                     <div><label for="dex" class="form-label">DESTREZA (DEX)</label><input type="number" id="dex" name="dex" class="w-full p-2 rounded form-input" required></div>
+                     <div><label for="int" class="form-label">INTELIGÊNCIA (INT)</label><input type="number" id="int" name="int" class="w-full p-2 rounded form-input" required></div>
+                     <div><label for="wis" class="form-label">SABEDORIA (WIS)</label><input type="number" id="wis" name="wis" class="w-full p-2 rounded form-input" required></div>
+                     <div><label for="cha" class="form-label">CARISMA (CHA)</label><input type="number" id="cha" name="cha" class="w-full p-2 rounded form-input" required></div>
+                 </div>
+            </div>
+            
+            <!-- Botões -->
+            <div class="md:col-span-2 mt-8 flex justify-between gap-4">
+                <a href="personagens.html" class="w-1/2 text-center bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded transition-colors btn">
+                    VER AGENTES SALVOS
+                </a>
+                <button id="submit-button" type="submit" class="w-1/2 bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-4 rounded transition-colors btn">
+                    SALVAR AGENTE
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const form = document.getElementById('agent-form');
+        const agentIdField = document.getElementById('agentId');
+        const pageTitle = document.getElementById('page-title');
+        const submitButton = document.getElementById('submit-button');
+
+        function populateForm(agent) {
+            agentIdField.value = agent.id;
+            form.name.value = agent.name;
+            form.age.value = agent.age;
+            form.height.value = agent.height;
+            form.weight.value = agent.weight;
+            form.role.value = agent.role;
+            form.department.value = agent.department;
+            form.level.value = agent.level;
+            form.profilePic.value = agent.profilePic;
+            form.origin.value = agent.origin;
+            form.recruitment.value = agent.recruitment;
+            form.lifeBefore.value = agent.lifeBefore;
+            form.drive.value = agent.drive;
+            form.psych.value = agent.psych.join('\n');
+            
+            for (const attr in agent.attributes) {
+                form[attr].value = agent.attributes[attr];
+            }
+
+            pageTitle.textContent = "EDITAR AGENTE";
+            submitButton.textContent = "ATUALIZAR DADOS";
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const editId = params.get('edit');
+
+            if (editId) {
+                const savedAgents = JSON.parse(localStorage.getItem('bprd_agents')) || [];
+                const agentToEdit = savedAgents.find(agent => agent.id == editId);
+                if (agentToEdit) {
+                    populateForm(agentToEdit);
+                }
+            }
+        });
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const agentData = {
+                id: agentIdField.value ? parseInt(agentIdField.value) : Date.now(),
+                name: this.name.value,
+                age: this.age.value,
+                height: this.height.value,
+                weight: this.weight.value,
+                role: this.role.value,
+                department: this.department.value,
+                level: this.level.value,
+                profilePic: this.profilePic.value,
+                origin: this.origin.value,
+                recruitment: this.recruitment.value,
+                lifeBefore: this.lifeBefore.value,
+                drive: this.drive.value,
+                psych: this.psych.value.split('\n').filter(line => line.trim() !== ''),
+                attributes: {
+                    str: parseInt(this.str.value),
+                    con: parseInt(this.con.value),
+                    dex: parseInt(this.dex.value),
+                    int: parseInt(this.int.value),
+                    wis: parseInt(this.wis.value),
+                    cha: parseInt(this.cha.value),
+                }
+            };
+
+            const savedAgents = JSON.parse(localStorage.getItem('bprd_agents')) || [];
+
+            if (agentIdField.value) {
+                const agentIndex = savedAgents.findIndex(agent => agent.id == agentIdField.value);
+                if (agentIndex !== -1) {
+                    savedAgents[agentIndex] = agentData;
+                    localStorage.setItem('bprd_agents', JSON.stringify(savedAgents));
+                    alert(`Agente ${agentData.name} atualizado com sucesso!`);
+                    window.location.href = 'personagens.html';
+                }
+            } else {
+                savedAgents.push(agentData);
+                localStorage.setItem('bprd_agents', JSON.stringify(savedAgents));
+                alert(`Agente ${agentData.name} salvo com sucesso!`);
+                this.reset();
+            }
+        });
+    </script>
+</body>
+</html>
