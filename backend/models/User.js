@@ -2,6 +2,12 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const UserSchema = new mongoose.Schema({
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true,
+  },
   email: {
     type: String,
     required: true,
@@ -11,7 +17,7 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-    select: false, // Para não retornar a senha em consultas
+    select: false,
   },
   createdAt: {
     type: Date,
@@ -19,9 +25,10 @@ const UserSchema = new mongoose.Schema({
   },
 });
 
-// Hook que é executado ANTES de um documento 'User' ser salvo
 UserSchema.pre('save', async function (next) {
-  // Criptografa a senha usando bcrypt
+  if (!this.isModified('password')) {
+    return next();
+  }
   const hash = await bcrypt.hash(this.password, 10);
   this.password = hash;
   next();

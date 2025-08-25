@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>B.P.R.D. - Personagens Salvos</title>
+    <title>B.P.R.D. - Personagens da Comunidade</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="../public/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
@@ -13,14 +14,22 @@
         .agent-card { background-color: #2d2d2d; border-left: 5px solid #444; transition: all 0.2s ease-in-out; }
         .agent-card:hover { border-left-color: #b91c1c; }
         .btn { font-family: 'Roboto Condensed', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; }
-        .action-btn { padding: 0.5rem 1rem; font-size: 0.8rem; border-radius: 0.25rem; transition: background-color 0.2s; }
+        .action-btn { padding: 0.5rem 1rem; font-size: 0.8rem; border-radius: 0.25rem; transition: background-color: 0.2s; }
+        .private-badge { font-size: 0.7rem; background-color: #4b5563; color: #e5e7eb; padding: 2px 8px; border-radius: 12px; font-family: 'Special Elite', monospace; }
+        .agent-thumb {
+            width: 64px;
+            height: 64px;
+            object-fit: cover;
+            border-radius: 0.25rem;
+            border: 2px solid #4b5563;
+        }
     </style>
 </head>
 <body class="p-4 sm:p-10">
 
     <div class="max-w-4xl mx-auto">
         <div id="header-container" class="flex justify-between items-center mb-8">
-            <h1 class="text-4xl font-bold" style="font-family: 'Special Elite', monospace;">PERSONAGENS DA COMUNIDADE</h1>
+            <h1 class="text-4xl font-bold" style="font-family: 'Special Elite', monospace;">PERSONAGENS</h1>
             <!-- Botões de login/logout serão inseridos aqui -->
         </div>
 
@@ -61,7 +70,7 @@
 
         function renderAgents(agents) {
             agentListContainer.innerHTML = ''; 
-            const loggedInUserId = getLoggedInUserId(); // Pega o ID do usuário logado
+            const loggedInUserId = getLoggedInUserId();
 
             if (!agents || agents.length === 0) {
                 agentListContainer.innerHTML = '<p class="text-center text-gray-400">Nenhum personagem público encontrado. Seja o primeiro a criar um!</p>';
@@ -71,12 +80,13 @@
             agents.sort((a, b) => a.name.localeCompare(b.name));
 
             agents.forEach(agent => {
+                const isOwner = loggedInUserId && agent.userId && agent.userId._id === loggedInUserId;
                 const agentElement = document.createElement('div');
-                agentElement.className = 'agent-card p-4 rounded-lg shadow-lg flex justify-between items-center';
+                agentElement.className = 'agent-card p-4 rounded-lg shadow-lg flex justify-between items-center gap-4';
                 
                 // Lógica para mostrar os botões de ação apenas para o dono do personagem
                 let actionButtons = '';
-                if (loggedInUserId && agent.userId === loggedInUserId) {
+                if (isOwner) {
                     actionButtons = `
                         <div class="flex items-center gap-3 flex-shrink-0 ml-4">
                             <a href="create.html?edit=${agent._id}" class="action-btn bg-blue-600 hover:bg-blue-700 text-white">Editar</a>
@@ -85,29 +95,57 @@
                     `;
                 }
 
+                const privateBadge = !agent.isPublic && isOwner ? '<span class="private-badge ml-3">PRIVADO</span>' : '';
+                const thumbnailUrl = agent.profilePic || `https://placehold.co/64x64/2d2d2d/f5f5f5?text=BPRD`;
+                const ownerUsername = agent.userId ? agent.userId.username : 'Anônimo';
+
                 agentElement.innerHTML = `
-                    <a href="id.html?id=${agent._id}" class="flex-grow">
-                        <h2 class="text-2xl font-bold text-white">${agent.name.toUpperCase()}</h2>
-                        <p class="text-gray-300 font-light" style="font-family: 'Special Elite', monospace;">${agent.role}</p>
+                    <a href="id.html?id=${agent._id}">
+                        <div class="flex items-center gap-4 flex-grow">
+                                <img src="${thumbnailUrl}" alt="Thumbnail of ${agent.name}" class="agent-thumb flex-shrink-0" onerror="this.src='https://placehold.co/64x64/2d2d2d/f5f5f5?text=BPRD'">
+                            <div class="flex-grow">
+                                <h2 class="text-xl font-bold text-white flex items-center">${agent.name.toUpperCase()} ${privateBadge}</h2>
+                                <p class="text-gray-300 font-light text-sm" style="font-family: 'Special Elite', monospace;">${agent.role}</p>
+                                <p class="text-xs text-gray-400 mt-1">Criado por: ${ownerUsername}</p>
+                            </div>
+                        </div>
                     </a>
-                    ${actionButtons}
+                    <div class="flex-shrink-0">
+                        ${actionButtons}
+                    </div>
                 `;
                 agentListContainer.appendChild(agentElement);
             });
         }
         
-        async function loadPublicCharacters() {
+        async function loadCharacters() {
+            let allVisibleCharacters = [];
+            
             try {
-                // Agora buscamos na rota de personagens públicos
-                const response = await fetch(`${API_URL}/characters/public`);
-                if (!response.ok) {
-                    throw new Error('Falha ao buscar personagens públicos.');
+                const publicResponse = await fetch(`${API_URL}/characters/public`);
+                if (publicResponse.ok) {
+                    allVisibleCharacters.push(...await publicResponse.json());
+                } else {
+                    console.error('Falha ao buscar personagens públicos.');
                 }
-                const agents = await response.json();
-                renderAgents(agents);
+
+                if (token) {
+                    const myResponse = await fetch(`${API_URL}/characters/mine`, {
+                        headers: { 'x-auth-token': token }
+                    });
+                    if (myResponse.ok) {
+                        allVisibleCharacters.push(...await myResponse.json());
+                    } else {
+                        console.error('Falha ao buscar personagens do usuário.');
+                    }
+                }
+
+                const uniqueCharacters = Array.from(new Map(allVisibleCharacters.map(char => [char._id, char])).values());
+                renderAgents(uniqueCharacters);
+
             } catch (error) {
-                console.error('Erro:', error);
-                agentListContainer.innerHTML = `<p class="text-center text-red-500">${error.message}</p>`;
+                console.error('Erro ao carregar personagens:', error);
+                agentListContainer.innerHTML = `<p class="text-center text-red-500">Não foi possível carregar os personagens.</p>`;
             }
         }
 
@@ -117,13 +155,12 @@
             try {
                 const response = await fetch(`${API_URL}/characters/${id}`, {
                     method: 'DELETE',
-                    headers: { 'x-auth-token': token } // O token ainda é necessário para autorizar a deleção
+                    headers: { 'x-auth-token': token }
                 });
 
-                if(!response.ok) {
-                    throw new Error('Não foi possível deletar o personagem.');
-                }
-                loadPublicCharacters(); // Recarrega a lista pública
+                if(!response.ok) throw new Error('Não foi possível deletar o personagem.');
+                
+                loadCharacters();
             } catch (error) {
                 console.error('Erro ao deletar:', error);
                 alert(error.message);
@@ -139,7 +176,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             setupHeaderAndNav();
-            loadPublicCharacters();
+            loadCharacters();
         });
     </script>
 </body>

@@ -1,5 +1,5 @@
-// Define a URL base da nossa API para não repetirmos
-const API_URL = '/api'; // Ajustado para funcionar na Vercel e localmente
+const API_URL = '/api'; // Ajustado para funcionar na Vercel
+// const API_URL = 'http://localhost:5000/api'; // pra testar localmente
 
 // Array com as páginas que são públicas
 const publicPages = [

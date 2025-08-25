@@ -5,23 +5,22 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 // --- ROTA DE REGISTRO ---
-// @route   POST api/auth/register
 router.post('/register', async (req, res) => {
-  const { email, password } = req.body;
+  const { username, email, password } = req.body;
 
   try {
-    let user = await User.findOne({ email });
-    if (user) {
-      return res.status(400).json({ msg: 'Usuário já existe.' });
+    if (await User.findOne({ email })) {
+      return res.status(400).json({ msg: 'Este email já está em uso.' });
+    }
+    if (await User.findOne({ username })) {
+      return res.status(400).json({ msg: 'Este nome de usuário já está em uso.' });
     }
 
-    user = new User({ email, password });
+    const user = new User({ username, email, password });
     await user.save();
 
-    // Cria o payload para o token
     const payload = { user: { id: user.id } };
 
-    // Gera e retorna o token
     jwt.sign(
       payload,
       process.env.JWT_SECRET,
@@ -38,18 +37,14 @@ router.post('/register', async (req, res) => {
 });
 
 // --- ROTA DE LOGIN ---
-// @route   POST api/auth/login
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Procura o usuário e inclui a senha na busca
     let user = await User.findOne({ email }).select('+password');
     if (!user) {
       return res.status(400).json({ msg: 'Credenciais inválidas.' });
     }
-
-    // Compara a senha enviada com a senha criptografada no banco
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ msg: 'Credenciais inválidas.' });

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>B.P.R.D. - Arquivos</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="../public/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@700&family=Special+Elite&display=swap" rel="stylesheet">
@@ -19,12 +20,27 @@
         .site-title { font-family: 'Special Elite', monospace; text-shadow: 0 0 10px rgba(255, 0, 0, 0.5); }
         .nav-btn { letter-spacing: 0.1em; text-transform: uppercase; transition: all 0.2s ease-in-out; border: 2px solid #888; }
         .nav-btn:hover { background-color: #b91c1c; border-color: #b91c1c; transform: translateY(-3px); box-shadow: 0 4px 15px rgba(185, 28, 28, 0.4); }
+
+        /* --- ANIMAÇÃO DO LOGO (ATUALIZADA) --- */
+        @keyframes flipY-continuous {
+            from {
+                transform: rotateY(0deg);
+            }
+            to {
+                transform: rotateY(360deg);
+            }
+        }
+
+        .logo-animation {
+            animation: flipY-continuous 5s infinite linear;
+        }
+
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
 
     <div class="main-container text-center p-10 md:p-16 border-2 border-gray-700 rounded-lg shadow-2xl">
-        <img src="https://i.postimg.cc/mgc133Mk/bprd-logo-w.png" alt="B.P.R.D. Logo" class="w-32 h-32 mx-auto mb-10 opacity-80" onerror="this.style.display='none'">
+        <img src="https://i.postimg.cc/D0qWSYd9/Background-22.png" alt="B.P.R.D. Logo" class="w-32 h-32 mx-auto mb-10 opacity-80 logo-animation" onerror="this.style.display='none'">
         <h1 class="site-title text-5xl md:text-6xl font-bold text-red-600">B.P.R.D.</h1>
         <p class="font-heading text-lg text-gray-300 mb-10">AGENT DATABASE</p>
 
@@ -65,7 +81,6 @@
             `;
         }
 
-        // A função logout precisa ser definida aqui também, se for chamada daqui
         function logout() {
             localStorage.removeItem('bprd_token');
             window.location.href = 'login.html';

@@ -17,14 +17,15 @@ const connectDB = async () => {
   }
 };
 
-// --- DADOS DE EXEMPLO ---
-// Usuário de exemplo que será o dono do personagem
+// --- DADOS ---
+// Usuário (dono do personagem)
 const seedUser = {
-  email: 'gaylord.focker@bprd.com',
-  password: 'password123', // A senha será criptografada pelo Mongoose
+  username: 'frangel',
+  email: 'soumuitorodrigo@gmail.com',
+  password: 'aimeucu',
 };
 
-// Seu personagem, adaptado para o Mongoose
+// Personagem
 const seedCharacter = {
   isPublic: true,
   name: "Gaylord",

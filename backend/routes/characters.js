@@ -28,7 +28,9 @@ router.post('/', auth, async (req, res) => {
 // @access  Privado
 router.get('/mine', auth, async (req, res) => {
   try {
-    const characters = await Character.find({ userId: req.user.id }).sort({ createdAt: -1 });
+    const characters = await Character.find({ userId: req.user.id })
+      .populate('userId', 'username') 
+      .sort({ createdAt: -1 });
     res.json(characters);
   } catch (err) {
     console.error(err.message);
@@ -41,14 +43,16 @@ router.get('/mine', auth, async (req, res) => {
 // @desc    Busca todos os personagens públicos
 // @access  Público
 router.get('/public', async (req, res) => {
-    try {
-      const characters = await Character.find({ isPublic: true }).sort({ createdAt: -1 });
-      res.json(characters);
-    } catch (err) {
-      console.error(err.message);
-      res.status(500).send('Erro no servidor.');
-    }
-  });
+  try {
+    const characters = await Character.find({ isPublic: true })
+      .populate('userId', 'username') 
+      .sort({ createdAt: -1 });
+    res.json(characters);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Erro no servidor.');
+  }
+});
 
 // --- ATUALIZAR UM PERSONAGEM ---
 // @route   PUT api/characters/:id
