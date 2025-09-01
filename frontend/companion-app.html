@@ -20,7 +20,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 60px; /* Altura fixa para alinhar melhor */
+            height: 60px;
         }
         .feature-card {
             background-color: #2d2d2d;
@@ -31,6 +31,55 @@
         .chevron-icon { transition: transform 0.3s ease-in-out; }
         .font-special { font-family: 'Special Elite', monospace; }
         #char-hp:hover { cursor: pointer; background-color: rgba(255,255,255,0.1); border-radius: 4px; }
+        
+        .tab-btn {
+            background-color: #2d2d2d; border: 1px solid #444; border-bottom: none;
+            padding: 0.4rem 1rem; cursor: pointer; transition: background-color 0.2s;
+            font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;
+            border-radius: 0.375rem; flex-grow: 1; text-align: center;
+        }
+        .tab-btn:hover { background-color: #3f3f3f; }
+        .tab-btn.active { background-color: #1a1a1a; border-color: #555; color: #b91c1c; font-weight: bold; }
+        .tab-panel { display: none; padding: 0; border: none; }
+        .tab-panel.active { display: block; }
+
+        .skill-row {
+            display: grid;
+            grid-template-columns: 2rem 3rem 1fr 2rem 3rem;
+            gap: 1rem;
+            align-items: center;
+            padding: 0.5rem;
+            border-bottom: 1px solid #3f3f3f;
+        }
+        .skill-row:last-child { border-bottom: none; }
+        .skill-attr { font-family: 'Special Elite', monospace; color: #9ca3af; }
+        .skill-bonus { font-weight: bold; font-size: 1.1rem; text-align: center; background-color: #2d2d2d; border-radius: 0.25rem; padding: 0.25rem 0;}
+        .advantage-tag {
+            width: 24px; height: 27px; background-color: #16a34a; /* green-600 */
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            display: flex; justify-content: center; align-items: center;
+            color: white; font-weight: bold; font-size: 0.9rem; margin: 0 auto;
+        }
+        .proficiency-dot {
+            width: 10px; height: 10px; background-color: #b91c1c;
+            border-radius: 50%; margin: 0 auto;
+        }
+
+        .attack-header {
+            display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem;
+            padding: 0 0.75rem; margin-bottom: 0.5rem; color: #9ca3af;
+            font-size: 0.75rem; text-transform: uppercase; font-family: 'Special Elite', monospace;
+        }
+        .attack-row {
+            display: grid; grid-template-columns: 2fr 1fr 1fr;
+            grid-template-areas: "name bonus damage" "ammo ammo ammo";
+            gap: 1rem; align-items: center; padding: 0.75rem;
+            background-color: #2d2d2d; border: 1px solid #444; border-radius: 0.375rem;
+        }
+        .attack-name { grid-area: name; } .attack-bonus { grid-area: bonus; }
+        .attack-damage { grid-area: damage; } .attack-ammo { grid-area: ammo; }
+        .attack-bonus, .attack-damage { font-weight: bold; font-size: 1.1rem; text-align: center; }
+        .attack-ammo { font-size: 0.8rem; color: #9ca3af; margin-top: -0.5rem; }
     </style>
 </head>
 <body class="p-4 sm:p-8">
@@ -38,39 +87,33 @@
     <div id="loading" class="text-center text-2xl font-special">Carregando dados do agente...</div>
     
     <div id="character-sheet" class="max-w-2xl mx-auto hidden">
-        <!-- CABEÇALHO -->
         <header class="space-y-4 mb-8">
-            <div class="flex justify-between items-center">
+             <div class="flex justify-between items-center">
                 <a href="personagens.html" class="text-gray-400 hover:text-white transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                    </svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
                 </a>
                 <div class="text-center">
                     <h1 id="char-name" class="text-3xl font-bold font-special"></h1>
                     <p id="char-role-level" class="text-md text-gray-400"></p>
                 </div>
-                <div class="w-6"></div> <!-- Spacer -->
+                <div class="w-6"></div>
             </div>
-
             <div class="flex justify-between items-center text-center">
                 <div class="flex-1 text-center">
-                    <p class="text-xs text-gray-400 uppercase tracking-wider">Armor</p>
+                    <p class="text-xs text-gray-400 uppercase tracking-wider">Classe de</p>
                     <p id="char-ac" class="text-3xl font-bold text-white">--</p>
-                    <p class="text-xs text-gray-400 uppercase tracking-wider">Class</p>
+                    <p class="text-xs text-gray-400 uppercase tracking-wider">Armadura</p>
                 </div>
                 <div class="flex-1 text-center">
-                    <p class="text-xs text-gray-400 uppercase tracking-wider">Initiative</p>
+                    <p class="text-xs text-gray-400 uppercase tracking-wider">Iniciativa</p>
                     <p id="char-initiative" class="text-3xl font-bold text-white">--</p>
-                    <p class="text-xs text-gray-400 uppercase tracking-wider">&nbsp;</p> <!-- Spacer -->
+                    <p class="text-xs text-gray-400 uppercase tracking-wider">&nbsp;</p>
                 </div>
-                
                 <div class="flex-shrink-0 mx-2">
                     <img id="char-pic" src="" class="w-20 h-20 rounded-full border-2 border-gray-500 object-cover" alt="Character Portrait">
                 </div>
-
                 <div class="flex-1 text-center px-2">
-                    <p class="text-xs text-gray-400 uppercase tracking-wider">Hit Points</p>
+                    <p class="text-xs text-gray-400 uppercase tracking-wider">HP Atual</p>
                     <div id="hp-container" class="text-3xl font-bold text-white">
                         <p id="char-hp" class="px-2 py-1 transition-colors duration-200">--</p>
                     </div>
@@ -79,32 +122,40 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Atributos -->
             <div class="grid grid-cols-6 gap-2">
-                <div id="attr-str" class="stat-card rounded-lg"></div>
-                <div id="attr-dex" class="stat-card rounded-lg"></div>
-                <div id="attr-con" class="stat-card rounded-lg"></div>
-                <div id="attr-int" class="stat-card rounded-lg"></div>
-                <div id="attr-wis" class="stat-card rounded-lg"></div>
-                <div id="attr-cha" class="stat-card rounded-lg"></div>
+                <div id="attr-str" class="stat-card rounded-lg"></div> <div id="attr-dex" class="stat-card rounded-lg"></div>
+                <div id="attr-con" class="stat-card rounded-lg"></div> <div id="attr-int" class="stat-card rounded-lg"></div>
+                <div id="attr-wis" class="stat-card rounded-lg"></div> <div id="attr-cha" class="stat-card rounded-lg"></div>
             </div>
         </header>
 
-        <!-- CONTEÚDO PRINCIPAL -->
         <main>
-            <section>
-                <h3 class="text-xl font-bold mb-4 font-special">Habilidades e Equipamentos</h3>
-                <div id="features-list" class="space-y-3">
-                    <!-- Conteúdo dinâmico aqui -->
+            <div class="flex">
+                <button class="tab-btn active" data-tab="habilidades">Habilidades</button>
+                <button class="tab-btn" data-tab="pericias">Perícias</button>
+                <button class="tab-btn" data-tab="ataques">Ataques</button>
+            </div>
+            <div id="tab-content" class="relative mt-6">
+                <div id="habilidades-panel" class="tab-panel active">
+                    <h3 class="text-xl font-bold text-center mb-4 font-special">Habilidades</h3>
+                    <div id="features-list" class="space-y-3"></div>
                 </div>
-            </section>
+                <div id="pericias-panel" class="tab-panel">
+                     <h3 class="text-xl font-bold text-center mb-4 font-special">Perícias</h3>
+                     <div id="skills-list"></div>
+                </div>
+                <div id="ataques-panel" class="tab-panel">
+                     <h3 class="text-xl font-bold text-center mb-4 font-special">Ataques</h3>
+                     <div class="attack-header">
+                         <span>Arma</span> <span class="text-center">Bônus</span> <span class="text-center">Dano</span>
+                     </div>
+                     <div id="attacks-list" class="space-y-3"></div>
+                </div>
+            </div>
         </main>
         
         <div class="mt-8 text-center">
-             <a href="personagens.html" class="inline-block bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded transition-colors btn">
-                VOLTAR PARA PERSONAGENS
-            </a>
+             <a href="personagens.html" class="inline-block bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded transition-colors btn">VOLTAR</a>
         </div>
     </div>
 
@@ -112,6 +163,31 @@
     <script>
         const loadingDiv = document.getElementById('loading');
         const sheetDiv = document.getElementById('character-sheet');
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabPanels = document.querySelectorAll('.tab-panel');
+
+        const attributeMap = { str: 'FOR', dex: 'DES', con: 'CON', int: 'INT', wis: 'SAB', cha: 'CAR' };
+        const MASTER_SKILLS_LIST = [
+            { name: 'Atletismo', attr: 'str' }, { name: 'Acrobacia', attr: 'dex' },
+            { name: 'Mãos Firmes', attr: 'dex' }, { name: 'Furtividade', attr: 'dex' },
+            { name: 'Burocracia', attr: 'int' }, { name: 'História', attr: 'int' },
+            { name: 'Ocultismo', attr: 'int' }, { name: 'Religião', attr: 'int' }, 
+            { name: 'Ciência', attr: 'int' }, { name: 'Tecnologia', attr: 'int' },
+            { name: 'Lidar com Animais', attr: 'wis' }, { name: 'Arcanismo', attr: 'wis' },
+            { name: 'Intuição', attr: 'wis' }, { name: 'Investigação', attr: 'int' }, 
+            { name: 'Medicina', attr: 'wis' }, { name: 'Percepção', attr: 'wis' },
+            { name: 'Sobrevivência', attr: 'wis' }, { name: 'Intimidação', attr: 'cha' },
+            { name: 'Persuasão', attr: 'cha' },
+        ];
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                tabPanels.forEach(panel => panel.classList.remove('active'));
+                button.classList.add('active');
+                document.getElementById(`${button.dataset.tab}-panel`).classList.add('active');
+            });
+        });
 
         function calculateModifier(score) {
             const mod = Math.floor((score - 10) / 2);
@@ -120,10 +196,9 @@
 
         function renderAttribute(attr, score) {
             const container = document.getElementById(`attr-${attr}`);
-            const modifier = calculateModifier(score);
             container.innerHTML = `
-                <p class="text-xs text-gray-400 font-bold uppercase">${attr}</p>
-                <p class="text-3xl font-bold text-white">${modifier}</p>
+                <p class="text-xs text-gray-400 font-bold uppercase">${attributeMap[attr]}</p>
+                <p class="text-3xl font-bold text-white">${calculateModifier(score)}</p>
             `;
         }
 
@@ -134,81 +209,100 @@
             featureElement.innerHTML = `
                 <button class="feature-header w-full flex justify-between items-center p-4 text-left">
                     <span class="font-bold text-lg text-white">${name}</span>
-                    <svg class="chevron-icon h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                    </svg>
+                    <svg class="chevron-icon h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                 </button>
                 <div class="feature-details hidden p-4 border-t border-gray-600 bg-black bg-opacity-20">
                     <p class="text-sm text-gray-300">${description}</p>
-                </div>
-            `;
+                </div>`;
             list.appendChild(featureElement);
-
             const header = featureElement.querySelector('.feature-header');
-            const details = featureElement.querySelector('.feature-details');
-            const icon = header.querySelector('.chevron-icon');
-
             header.addEventListener('click', () => {
-                details.classList.toggle('hidden');
-                icon.style.transform = details.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+                header.nextElementSibling.classList.toggle('hidden');
+                header.querySelector('.chevron-icon').style.transform = header.nextElementSibling.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+            });
+        }
+
+        function renderSkills(agent) {
+            const proficiencyBonus = Math.ceil(1 + agent.level / 4);
+            const listContainer = document.getElementById('skills-list');
+            listContainer.innerHTML = '';
+
+            MASTER_SKILLS_LIST.forEach(skillInfo => {
+                const savedSkill = agent.skills.find(s => s.name === skillInfo.name);
+                const score = agent.attributes[skillInfo.attr] || 10;
+                let modifier = Math.floor((score - 10) / 2);
+                
+                if (savedSkill?.proficient) {
+                    modifier += proficiencyBonus;
+                }
+
+                const modifierString = modifier >= 0 ? `+${modifier}` : modifier;
+                const proficiencyIndicator = savedSkill?.proficient ? '<div class="proficiency-dot"></div>' : '<div></div>';
+                const advantageTag = savedSkill?.advantage ? '<div class="advantage-tag">A</div>' : '<div></div>';
+
+                const skillElement = document.createElement('div');
+                skillElement.className = 'skill-row';
+                // Grid: Proficiência | Atributo | Nome da Perícia | Vantagem | Bônus
+                skillElement.innerHTML = `
+                    ${proficiencyIndicator}
+                    <span class="skill-attr">${attributeMap[skillInfo.attr]}</span>
+                    <span class="skill-name">${skillInfo.name}</span>
+                    ${advantageTag}
+                    <span class="skill-bonus">${modifierString}</span>
+                `;
+                listContainer.appendChild(skillElement);
+            });
+        }
+
+        function renderAttacks(attacks) {
+            const listContainer = document.getElementById('attacks-list');
+            listContainer.innerHTML = '';
+            if (!attacks || attacks.length === 0) {
+                listContainer.innerHTML = '<p class="text-gray-400">Nenhum ataque listado.</p>';
+                return;
+            }
+            attacks.forEach(attack => {
+                const attackElement = document.createElement('div');
+                attackElement.className = 'attack-row';
+                attackElement.innerHTML = `
+                    <span class="attack-name font-bold">${attack.name || 'N/A'}</span>
+                    <span class="attack-bonus">${attack.bonus || '+0'}</span>
+                    <span class="attack-damage">${attack.damage || '-'}</span>
+                `;
+                listContainer.appendChild(attackElement);
             });
         }
 
         function updateHpBar(hpString) {
             const hpBar = document.getElementById('hp-bar');
-            if (!hpString || !hpString.includes('/')) {
-                hpBar.style.width = '0%';
-                return;
-            }
-            const parts = hpString.split('/');
-            const currentHp = parseInt(parts[0], 10);
-            const maxHp = parseInt(parts[1], 10);
-
-            if (isNaN(currentHp) || isNaN(maxHp) || maxHp === 0) {
-                hpBar.style.width = '0%';
-                return;
-            }
-            
-            const percentage = Math.max(0, Math.min(100, (currentHp / maxHp) * 100));
-            hpBar.style.width = `${percentage}%`;
+            if (!hpString || !hpString.includes('/')) { hpBar.style.width = '0%'; return; }
+            const [current, max] = hpString.split('/').map(Number);
+            if (isNaN(current) || isNaN(max) || max === 0) { hpBar.style.width = '0%'; return; }
+            hpBar.style.width = `${Math.max(0, Math.min(100, (current / max) * 100))}%`;
         }
 
         function makeHpEditable() {
             const hpContainer = document.getElementById('hp-container');
             const hpTextElement = document.getElementById('char-hp');
-
             hpTextElement.addEventListener('click', () => {
                 const hpString = hpTextElement.textContent;
-                if (!hpString || !hpString.includes('/')) return; // Não faz nada se o formato for inválido
-                const parts = hpString.split('/');
-                const currentHp = parts[0].trim();
-                const maxHp = parts[1].trim();
-
+                if (!hpString || !hpString.includes('/')) return;
+                const [currentHp, maxHp] = hpString.split('/');
                 const input = document.createElement('input');
-                input.type = 'text'; 
-                input.value = currentHp;
+                input.type = 'text'; input.value = currentHp.trim();
                 input.className = 'bg-gray-700 text-white text-center w-full text-3xl font-bold rounded';
-                
                 hpContainer.replaceChild(input, hpTextElement);
-                input.focus();
-                input.select();
-
-                input.addEventListener('input', () => {
-                    input.value = input.value.replace(/[^0-9]/g, '');
-                });
-
+                input.focus(); input.select();
+                
                 const saveChanges = () => {
                     let newCurrentHp = parseInt(input.value, 10);
-                    if (isNaN(newCurrentHp) || newCurrentHp < 0) {
-                        newCurrentHp = 0;
-                    }
-
-                    const newHpValue = `${newCurrentHp}/${maxHp}`;
+                    if (isNaN(newCurrentHp) || newCurrentHp < 0) newCurrentHp = 0;
+                    const newHpValue = `${newCurrentHp}/${maxHp.trim()}`;
                     hpTextElement.textContent = newHpValue;
                     hpContainer.replaceChild(hpTextElement, input);
                     updateHpBar(newHpValue);
+                    // Futuro: salvar HP no backend aqui
                 };
-
                 input.addEventListener('blur', saveChanges);
                 input.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') input.blur();
@@ -216,53 +310,42 @@
                 });
             });
         }
-
+        
         function formatCharacterName(fullName) {
             if (!fullName) return '';
             const quoteMatch = fullName.match(/"(.*?)"/);
-            if (quoteMatch && quoteMatch[1]) return quoteMatch[1];
-            if (fullName.includes(' ')) return fullName.split(' ')[0];
-            return fullName;
+            return (quoteMatch && quoteMatch[1]) || (fullName.includes(' ') ? fullName.split(' ')[0] : fullName);
         }
 
         function populateSheet(agent) {
             document.title = `Companion - ${agent.name}`;
             const formattedName = formatCharacterName(agent.name);
             document.getElementById('char-name').textContent = formattedName.toUpperCase();
-            document.getElementById('char-role-level').textContent = `${agent.role} // Nível ${agent.level}`;
+            document.getElementById('char-role-level').textContent = `${agent.role}  |  Nível ${agent.level}`;
             document.getElementById('char-pic').src = agent.profilePic || 'https://placehold.co/80x80/2d2d2d/f5f5f5?text=BPRD';
             
-            // Stats principais com base nos dados salvos
-            document.getElementById('char-ac').textContent = agent.armorClass || '10';
-            document.getElementById('char-initiative').textContent = agent.initiative || calculateModifier(agent.attributes.dex);
+            const dexModifier = parseInt(calculateModifier(agent.attributes.dex), 10);
+            document.getElementById('char-ac').textContent = 10 + dexModifier;
+            document.getElementById('char-initiative').textContent = dexModifier >= 0 ? `+${dexModifier}`: dexModifier;
             
-            const initialHp = agent.hitPoints || `${10 + parseInt(calculateModifier(agent.attributes.con) || 0)}/${10 + parseInt(calculateModifier(agent.attributes.con) || 0)}`;
+            const initialHp = agent.hitPoints || '10/10';
             document.getElementById('char-hp').textContent = initialHp;
             updateHpBar(initialHp);
             makeHpEditable();
 
-            // Atributos
-            renderAttribute('str', agent.attributes.str);
-            renderAttribute('dex', agent.attributes.dex);
-            renderAttribute('con', agent.attributes.con);
-            renderAttribute('int', agent.attributes.int);
-            renderAttribute('wis', agent.attributes.wis);
-            renderAttribute('cha', agent.attributes.cha);
+            Object.keys(agent.attributes).forEach(attr => renderAttribute(attr, agent.attributes[attr]));
 
-            // Habilidades e Equipamentos (Features)
             const featuresList = document.getElementById('features-list');
-            featuresList.innerHTML = ''; // Limpa a lista antes de popular
+            featuresList.innerHTML = '';
             if (agent.features && agent.features.length > 0) {
-                agent.features.forEach(feature => {
-                    if (feature.name && feature.description) {
-                        renderFeature(feature.name, feature.description);
-                    }
-                });
+                agent.features.forEach(f => renderFeature(f.name, f.description));
             } else {
-                featuresList.innerHTML = '<p class="text-center text-gray-400">Nenhuma habilidade ou equipamento registrado.</p>';
+                featuresList.innerHTML = '<p class="text-gray-400">Nenhuma habilidade listada.</p>';
             }
 
-            // Mostrar a ficha
+            renderSkills(agent);
+            renderAttacks(agent.attacks);
+
             loadingDiv.classList.add('hidden');
             sheetDiv.classList.remove('hidden');
         }
@@ -270,32 +353,32 @@
         async function fetchCharacter(id) {
             const token = localStorage.getItem('bprd_token');
             try {
-                // Tenta buscar o personagem diretamente pela rota /api/characters/:id
-                // Assumimos que essa rota verifica a permissão (público ou dono)
-                const res = await fetch(`${API_URL}/characters/${id}`, {
-                    headers: token ? { 'x-auth-token': token } : {}
-                });
-                if (res.ok) return await res.json();
+                // Workaround: Buscar em 'mine' e 'public'
+                let character = null;
 
-                // Fallback para o método antigo caso a rota acima falhe ou não exista
-                if(token) {
-                    const myRes = await fetch(`${API_URL}/characters/mine`, { headers: {'x-auth-token': token }});
-                    if(myRes.ok) {
-                        const myChars = await myRes.json();
-                        const character = myChars.find(c => c._id === id);
-                        if(character) return character;
+                if (token) {
+                    const myResponse = await fetch(`${API_URL}/characters/mine`, { headers: { 'x-auth-token': token } });
+                    if (myResponse.ok) {
+                        const myChars = await myResponse.json();
+                        character = myChars.find(c => c._id === id);
                     }
                 }
-                const publicRes = await fetch(`${API_URL}/characters/public`);
-                if(publicRes.ok) {
-                    const publicChars = await publicRes.json();
-                    const character = publicChars.find(c => c._id === id);
-                    if(character) return character;
+
+                if (!character) {
+                    const publicResponse = await fetch(`${API_URL}/characters/public`);
+                    if (publicResponse.ok) {
+                        const publicChars = await publicResponse.json();
+                        character = publicChars.find(c => c._id === id);
+                    }
                 }
 
+                if (character) return character;
+                
                 throw new Error('Personagem não encontrado ou acesso negado.');
+
             } catch (error) {
                 console.error("Erro ao buscar personagem:", error);
+                loadingDiv.textContent = error.message;
                 return null;
             }
         }
@@ -303,21 +386,14 @@
         window.addEventListener('DOMContentLoaded', async () => {
             const params = new URLSearchParams(window.location.search);
             const agentId = params.get('id');
-
             if (!agentId) {
-                loadingDiv.textContent = 'ID do agente não fornecido na URL. Ex: companion-app.html?id=SEU_ID_AQUI';
+                loadingDiv.textContent = 'ID do agente não fornecido.';
                 return;
             }
-
             const agent = await fetchCharacter(agentId);
-
-            if (!agent) {
-                loadingDiv.textContent = 'Agente não encontrado ou acesso negado.';
-                return;
-            }
-            
-            populateSheet(agent);
+            if (agent) populateSheet(agent);
         });
     </script>
 </body>
 </html>
+

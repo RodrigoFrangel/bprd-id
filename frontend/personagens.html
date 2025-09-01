@@ -9,12 +9,23 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         body { background-color: #1a1a1a; font-family: 'Roboto Condensed', sans-serif; color: #f5f5f5; }
         .agent-card { background-color: #2d2d2d; border-left: 5px solid #444; transition: all 0.2s ease-in-out; }
+        .agent-card.main { border-left-color: #facc15; } /* Cor para personagem principal */
         .agent-card:hover { border-left-color: #b91c1c; }
         .btn { font-family: 'Roboto Condensed', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; }
-        .action-btn { padding: 0.5rem 1rem; font-size: 0.8rem; border-radius: 0.25rem; transition: background-color: 0.2s; }
+        .action-btn { 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 9999px; /* circular */
+            transition: all 0.2s;
+        }
+        .action-btn:hover { transform: scale(1.1); }
         .private-badge { font-size: 0.7rem; background-color: #4b5563; color: #e5e7eb; padding: 2px 8px; border-radius: 12px; font-family: 'Special Elite', monospace; }
         .agent-thumb {
             width: 64px;
@@ -28,8 +39,8 @@
 <body class="p-4 sm:p-10">
 
     <div class="max-w-4xl mx-auto">
-        <div id="header-container" class="flex justify-between items-center mb-8">
-            <h1 class="text-4xl font-bold" style="font-family: 'Special Elite', monospace;">PERSONAGENS</h1>
+        <div id="header-container" class="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0 mb-8">
+            <h1 class="text-4xl font-bold text-center sm:text-left" style="font-family: 'Special Elite', monospace;">PERSONAGENS</h1>
             <!-- Botões de login/logout serão inseridos aqui -->
         </div>
 
@@ -37,17 +48,16 @@
             <!-- A lista de agentes será inserida aqui -->
         </div>
 
-        <div class="mt-8 text-center">
-             <a href="index.html" class="inline-block bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded transition-colors btn">
+        <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center items-center">
+             <a href="index.html" class="w-full sm:w-auto inline-block text-center bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded transition-colors btn">
                 VOLTAR
             </a>
-            <a id="create-character-btn" href="create.html" class="inline-block bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-6 rounded transition-colors btn">
+            <a id="create-character-btn" href="create.html" class="w-full sm:w-auto inline-block text-center bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-6 rounded transition-colors btn">
                 CRIAR NOVO PERSONAGEM
             </a>
         </div>
     </div>
 
-    <!-- Importamos o auth.js para usar as funções de logout e de pegar o ID do usuário -->
     <script src="auth.js"></script>
     <script>
         const agentListContainer = document.getElementById('agent-list');
@@ -57,20 +67,28 @@
 
         function setupHeaderAndNav() {
             if (token) {
-                // Usuário está logado
-                headerContainer.innerHTML += `<button onclick="logout()" class="action-btn bg-gray-600 hover:bg-gray-700 text-white">Logout</button>`;
+                headerContainer.innerHTML += `<button onclick="logout()" class="text-sm bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg btn">Logout</button>`;
                 createCharacterBtn.href = 'create.html';
             } else {
-                // Usuário não está logado
-                headerContainer.innerHTML += `<a href="login.html" class="action-btn bg-blue-600 hover:bg-blue-700 text-white">Login</a>`;
-                // Se não está logado, o botão de criar leva para o login
+                headerContainer.innerHTML += `<a href="login.html" class="text-sm bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg btn">Login</a>`;
                 createCharacterBtn.href = 'login.html';
             }
+        }
+        
+        function setMainCharacter(id) {
+            const currentMain = localStorage.getItem('main_character_id');
+            if (currentMain === id) {
+                localStorage.removeItem('main_character_id');
+            } else {
+                localStorage.setItem('main_character_id', id);
+            }
+            loadCharacters(); 
         }
 
         function renderAgents(agents) {
             agentListContainer.innerHTML = ''; 
             const loggedInUserId = getLoggedInUserId();
+            const mainCharacterId = localStorage.getItem('main_character_id');
 
             if (!agents || agents.length === 0) {
                 agentListContainer.innerHTML = '<p class="text-center text-gray-400">Nenhum personagem público encontrado. Seja o primeiro a criar um!</p>';
@@ -81,16 +99,27 @@
 
             agents.forEach(agent => {
                 const isOwner = loggedInUserId && agent.userId && agent.userId._id === loggedInUserId;
-                const agentElement = document.createElement('div');
-                agentElement.className = 'agent-card p-4 rounded-lg shadow-lg flex justify-between items-center gap-4';
+                const isMain = agent._id === mainCharacterId;
                 
-                // Lógica para mostrar os botões de ação apenas para o dono do personagem
+                const agentElement = document.createElement('div');
+                agentElement.className = `agent-card p-4 rounded-lg shadow-lg flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 ${isMain ? 'main' : ''}`;
+                
                 let actionButtons = '';
                 if (isOwner) {
                     actionButtons = `
-                        <div class="flex items-center gap-3 flex-shrink-0 ml-4">
-                            <a href="create.html?edit=${agent._id}" class="action-btn bg-blue-600 hover:bg-blue-700 text-white">Editar</a>
-                            <button data-id="${agent._id}" class="delete-btn action-btn bg-red-800 hover:bg-red-900 text-white">Deletar</button>
+                        <div class="flex items-center justify-end gap-2 w-full mt-4 sm:w-auto sm:mt-0 sm:flex-shrink-0 sm:ml-4">
+                            <a href="companion-app.html?id=${agent._id}" title="Companion App" class="action-btn bg-green-600 hover:bg-green-700 text-white">
+                               <i class="fas fa-chart-bar"></i>
+                            </a>
+                            <button data-id="${agent._id}" title="Marcar como Principal" class="set-main-btn action-btn ${isMain ? 'bg-yellow-400 hover:bg-yellow-500' : 'bg-gray-500 hover:bg-gray-600'} text-white">
+                                <i class="fas fa-star"></i>
+                            </button>
+                            <a href="create.html?edit=${agent._id}" title="Editar Personagem" class="action-btn bg-blue-600 hover:bg-blue-700 text-white">
+                                <i class="fas fa-pencil-alt"></i>
+                            </a>
+                            <button data-id="${agent._id}" title="Deletar Personagem" class="delete-btn action-btn bg-red-800 hover:bg-red-900 text-white">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
                         </div>
                     `;
                 }
@@ -100,19 +129,17 @@
                 const ownerUsername = agent.userId ? agent.userId.username : 'Anônimo';
 
                 agentElement.innerHTML = `
-                    <a href="id.html?id=${agent._id}">
-                        <div class="flex items-center gap-4 flex-grow">
-                                <img src="${thumbnailUrl}" alt="Thumbnail of ${agent.name}" class="agent-thumb flex-shrink-0" onerror="this.src='https://placehold.co/64x64/2d2d2d/f5f5f5?text=BPRD'">
+                    <div class="w-full flex justify-between items-center">
+                         <a href="id.html?id=${agent._id}" class="flex items-center gap-4 flex-grow">
+                            <img src="${thumbnailUrl}" alt="Thumbnail of ${agent.name}" class="agent-thumb flex-shrink-0" onerror="this.src='https://placehold.co/64x64/2d2d2d/f5f5f5?text=BPRD'">
                             <div class="flex-grow">
-                                <h2 class="text-xl font-bold text-white flex items-center">${agent.name.toUpperCase()} ${privateBadge}</h2>
+                                <h2 class="text-xl font-bold text-white flex items-center flex-wrap">${agent.name.toUpperCase()} ${privateBadge}</h2>
                                 <p class="text-gray-300 font-light text-sm" style="font-family: 'Special Elite', monospace;">${agent.role}</p>
                                 <p class="text-xs text-gray-400 mt-1">Criado por: ${ownerUsername}</p>
                             </div>
-                        </div>
-                    </a>
-                    <div class="flex-shrink-0">
-                        ${actionButtons}
+                        </a>
                     </div>
+                    ${actionButtons}
                 `;
                 agentListContainer.appendChild(agentElement);
             });
@@ -125,18 +152,12 @@
                 const publicResponse = await fetch(`${API_URL}/characters/public`);
                 if (publicResponse.ok) {
                     allVisibleCharacters.push(...await publicResponse.json());
-                } else {
-                    console.error('Falha ao buscar personagens públicos.');
                 }
 
                 if (token) {
-                    const myResponse = await fetch(`${API_URL}/characters/mine`, {
-                        headers: { 'x-auth-token': token }
-                    });
+                    const myResponse = await fetch(`${API_URL}/characters/mine`, { headers: { 'x-auth-token': token } });
                     if (myResponse.ok) {
                         allVisibleCharacters.push(...await myResponse.json());
-                    } else {
-                        console.error('Falha ao buscar personagens do usuário.');
                     }
                 }
 
@@ -168,9 +189,18 @@
         }
 
         agentListContainer.addEventListener('click', function(event) {
-            if (event.target.classList.contains('delete-btn')) {
-                const agentId = event.target.getAttribute('data-id');
+            const deleteButton = event.target.closest('.delete-btn');
+            if (deleteButton) {
+                const agentId = deleteButton.getAttribute('data-id');
                 deleteCharacter(agentId);
+                return;
+            }
+
+            const mainButton = event.target.closest('.set-main-btn');
+            if(mainButton) {
+                const agentId = mainButton.getAttribute('data-id');
+                setMainCharacter(agentId);
+                return;
             }
         });
 
@@ -181,3 +211,4 @@
     </script>
 </body>
 </html>
+

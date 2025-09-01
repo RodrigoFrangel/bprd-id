@@ -9,9 +9,9 @@ const CharacterSchema = new mongoose.Schema({
   },
   isPublic: {
     type: Boolean,
-    default: false, // Por padrão, personagens são privados
+    default: false,
   },
-  // Todos os campos do seu formulário
+  // Dados Básicos
   name: { type: String, required: true },
   age: { type: String },
   height: { type: String },
@@ -20,20 +20,16 @@ const CharacterSchema = new mongoose.Schema({
   department: { type: String, required: true },
   level: { type: String, required: true },
   profilePic: { type: String },
+  hitPoints: { type: String }, // Ex: "12/12"
+  
+  // Classificação
   origin: { type: String, required: true },
   recruitment: { type: String, required: true },
   lifeBefore: { type: String },
   drive: { type: String },
-  psych: [{ type: String }], // Um array de strings
-
-  // --- NOVOS CAMPOS ---
-  hitPoints: { type: String }, // Ex: "10/10"
-  features: [{
-    name: { type: String },
-    description: { type: String }
-  }],
-  // --------------------
+  psych: [{ type: String }],
   
+  // Atributos
   attributes: {
     str: { type: Number, required: true },
     con: { type: Number, required: true },
@@ -42,6 +38,27 @@ const CharacterSchema = new mongoose.Schema({
     wis: { type: Number, required: true },
     cha: { type: Number, required: true },
   },
+
+  // Habilidades
+  features: [{
+    name: { type: String },
+    description: { type: String }
+  }],
+
+  // Perícias
+  skills: [{
+      name: { type: String },
+      proficient: { type: Boolean },
+      advantage: { type: Boolean }
+  }],
+
+  // Ataques
+  attacks: [{
+      name: { type: String },
+      bonus: { type: String },
+      damage: { type: String }
+  }],
+
   createdAt: {
     type: Date,
     default: Date.now,
@@ -51,3 +68,4 @@ const CharacterSchema = new mongoose.Schema({
 const Character = mongoose.model('Character', CharacterSchema);
 
 module.exports = Character;
+

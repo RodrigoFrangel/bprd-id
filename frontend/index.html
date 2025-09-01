@@ -20,21 +20,16 @@
         .site-title { font-family: 'Special Elite', monospace; text-shadow: 0 0 10px rgba(255, 0, 0, 0.5); }
         .nav-btn { letter-spacing: 0.1em; text-transform: uppercase; transition: all 0.2s ease-in-out; border: 2px solid #888; }
         .nav-btn:hover { background-color: #b91c1c; border-color: #b91c1c; transform: translateY(-3px); box-shadow: 0 4px 15px rgba(185, 28, 28, 0.4); }
+        .nav-btn-main { background-color: #b91c1c; border-color: #b91c1c; }
 
-        /* --- ANIMAÇÃO DO LOGO (ATUALIZADA) --- */
+        /* --- ANIMAÇÃO DO LOGO --- */
         @keyframes flipY-continuous {
-            from {
-                transform: rotateY(0deg);
-            }
-            to {
-                transform: rotateY(360deg);
-            }
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(360deg); }
         }
-
         .logo-animation {
             animation: flipY-continuous 5s infinite linear;
         }
-
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
@@ -52,17 +47,38 @@
     <script>
         const navLinksContainer = document.getElementById('nav-links');
         const token = localStorage.getItem('bprd_token');
+        const mainCharacterId = localStorage.getItem('main_character_id');
+
+        let companionButtonHTML = '';
 
         if (token) {
+            // Se o usuário está logado, montamos o botão do Companion
+            if (mainCharacterId) {
+                // Se um personagem principal está definido, o link vai direto para ele
+                companionButtonHTML = `
+                    <a href="companion-app.html?id=${mainCharacterId}" class="nav-btn nav-btn-main w-64 text-white font-bold py-3 px-4 rounded">
+                        Companion App
+                    </a>
+                `;
+            } else {
+                // Se não, o link leva para a lista de personagens para que um seja escolhido
+                companionButtonHTML = `
+                    <a href="personagens.html" class="nav-btn w-64 text-white font-bold py-3 px-4 rounded" title="Selecione um personagem como principal para ter acesso rápido.">
+                        Companion App
+                    </a>
+                `;
+            }
+
             // Usuário está logado
             navLinksContainer.innerHTML = `
+                ${companionButtonHTML}
                 <a href="personagens.html" class="nav-btn w-64 text-white font-bold py-3 px-4 rounded">
                     Ver Personagens
                 </a>
                 <a href="create.html" class="nav-btn w-64 text-white font-bold py-3 px-4 rounded">
-                    Criar Novo Personagem
+                    Criar Novo
                 </a>
-                <button onclick="logout()" class="nav-btn w-64 bg-gray-700 text-white font-bold py-3 px-4 rounded">
+                <button onclick="logout()" class="nav-btn w-64 bg-gray-700 border-gray-700 text-white font-bold py-3 px-4 rounded">
                     Logout
                 </button>
             `;
@@ -70,7 +86,7 @@
             // Usuário não está logado
             navLinksContainer.innerHTML = `
                 <a href="personagens.html" class="nav-btn w-64 text-white font-bold py-3 px-4 rounded">
-                    Ver Personagens
+                    Ver Personagens Públicos
                 </a>
                 <a href="login.html" class="nav-btn w-64 text-white font-bold py-3 px-4 rounded">
                     Login
@@ -83,9 +99,11 @@
 
         function logout() {
             localStorage.removeItem('bprd_token');
+            localStorage.removeItem('main_character_id'); // Limpa o personagem principal ao sair
             window.location.href = 'login.html';
         }
     </script>
 
 </body>
 </html>
+
