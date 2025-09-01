@@ -25,6 +25,15 @@ const CharacterSchema = new mongoose.Schema({
   lifeBefore: { type: String },
   drive: { type: String },
   psych: [{ type: String }], // Um array de strings
+
+  // --- NOVOS CAMPOS ---
+  hitPoints: { type: String }, // Ex: "10/10"
+  features: [{
+    name: { type: String },
+    description: { type: String }
+  }],
+  // --------------------
+  
   attributes: {
     str: { type: Number, required: true },
     con: { type: Number, required: true },
