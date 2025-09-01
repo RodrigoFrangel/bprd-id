@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B.P.R.D. - Companion App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="../public/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
+    <style>
+        body { background-color: #1a1a1a; font-family: 'Roboto Condensed', sans-serif; color: #f5f5f5; }
+        .btn { font-family: 'Roboto Condensed', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; }
+        .stat-card {
+            background-color: #2d2d2d;
+            border: 1px solid #444;
+            border-left: 4px solid #444;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 60px; /* Altura fixa para alinhar melhor */
+        }
+        .feature-card {
+            background-color: #2d2d2d;
+            border: 1px solid #444;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .feature-header:hover { background-color: #3f3f3f; }
+        .chevron-icon { transition: transform 0.3s ease-in-out; }
+        .font-special { font-family: 'Special Elite', monospace; }
+        #char-hp:hover { cursor: pointer; background-color: rgba(255,255,255,0.1); border-radius: 4px; }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <div id="loading" class="text-center text-2xl font-special">Carregando dados do agente...</div>
+    
+    <div id="character-sheet" class="max-w-2xl mx-auto hidden">
+        <!-- CABEÇALHO -->
+        <header class="space-y-4 mb-8">
+            <div class="flex justify-between items-center">
+                <a href="personagens.html" class="text-gray-400 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </a>
+                <div class="text-center">
+                    <h1 id="char-name" class="text-3xl font-bold font-special"></h1>
+                    <p id="char-role-level" class="text-md text-gray-400"></p>
+                </div>
+                <div class="w-6"></div> <!-- Spacer -->
+            </div>
+
+            <div class="flex justify-between items-center text-center">
+                <div class="flex-1 text-center">
+                    <p class="text-xs text-gray-400 uppercase tracking-wider">Armor</p>
+                    <p id="char-ac" class="text-3xl font-bold text-white">--</p>
+                    <p class="text-xs text-gray-400 uppercase tracking-wider">Class</p>
+                </div>
+                <div class="flex-1 text-center">
+                    <p class="text-xs text-gray-400 uppercase tracking-wider">Initiative</p>
+                    <p id="char-initiative" class="text-3xl font-bold text-white">--</p>
+                    <p class="text-xs text-gray-400 uppercase tracking-wider">&nbsp;</p> <!-- Spacer -->
+                </div>
+                
+                <div class="flex-shrink-0 mx-2">
+                    <img id="char-pic" src="" class="w-20 h-20 rounded-full border-2 border-gray-500 object-cover" alt="Character Portrait">
+                </div>
+
+                <div class="flex-1 text-center px-2">
+                    <p class="text-xs text-gray-400 uppercase tracking-wider">Hit Points</p>
+                    <div id="hp-container" class="text-3xl font-bold text-white">
+                        <p id="char-hp" class="px-2 py-1 transition-colors duration-200">--</p>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-1.5 mt-1">
+                        <div id="hp-bar" class="bg-red-600 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Atributos -->
+            <div class="grid grid-cols-6 gap-2">
+                <div id="attr-str" class="stat-card rounded-lg"></div>
+                <div id="attr-dex" class="stat-card rounded-lg"></div>
+                <div id="attr-con" class="stat-card rounded-lg"></div>
+                <div id="attr-int" class="stat-card rounded-lg"></div>
+                <div id="attr-wis" class="stat-card rounded-lg"></div>
+                <div id="attr-cha" class="stat-card rounded-lg"></div>
+            </div>
+        </header>
+
+        <!-- CONTEÚDO PRINCIPAL -->
+        <main>
+            <section>
+                <h3 class="text-xl font-bold mb-4 font-special">Habilidades e Equipamentos</h3>
+                <div id="features-list" class="space-y-3">
+                    <!-- Conteúdo dinâmico aqui -->
+                </div>
+            </section>
+        </main>
+        
+        <div class="mt-8 text-center">
+             <a href="personagens.html" class="inline-block bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded transition-colors btn">
+                VOLTAR PARA PERSONAGENS
+            </a>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        const loadingDiv = document.getElementById('loading');
+        const sheetDiv = document.getElementById('character-sheet');
+
+        function calculateModifier(score) {
+            const mod = Math.floor((score - 10) / 2);
+            return mod >= 0 ? `+${mod}` : `${mod}`;
+        }
+
+        function renderAttribute(attr, score) {
+            const container = document.getElementById(`attr-${attr}`);
+            const modifier = calculateModifier(score);
+            container.innerHTML = `
+                <p class="text-xs text-gray-400 font-bold uppercase">${attr}</p>
+                <p class="text-3xl font-bold text-white">${modifier}</p>
+            `;
+        }
+
+        function renderFeature(name, description) {
+            const list = document.getElementById('features-list');
+            const featureElement = document.createElement('div');
+            featureElement.className = 'feature-card rounded-lg overflow-hidden';
+            featureElement.innerHTML = `
+                <button class="feature-header w-full flex justify-between items-center p-4 text-left">
+                    <span class="font-bold text-lg text-white">${name}</span>
+                    <svg class="chevron-icon h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                </button>
+                <div class="feature-details hidden p-4 border-t border-gray-600 bg-black bg-opacity-20">
+                    <p class="text-sm text-gray-300">${description}</p>
+                </div>
+            `;
+            list.appendChild(featureElement);
+
+            const header = featureElement.querySelector('.feature-header');
+            const details = featureElement.querySelector('.feature-details');
+            const icon = header.querySelector('.chevron-icon');
+
+            header.addEventListener('click', () => {
+                details.classList.toggle('hidden');
+                icon.style.transform = details.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+            });
+        }
+
+        function updateHpBar(hpString) {
+            const hpBar = document.getElementById('hp-bar');
+            if (!hpString || !hpString.includes('/')) {
+                hpBar.style.width = '0%';
+                return;
+            }
+            const parts = hpString.split('/');
+            const currentHp = parseInt(parts[0], 10);
+            const maxHp = parseInt(parts[1], 10);
+
+            if (isNaN(currentHp) || isNaN(maxHp) || maxHp === 0) {
+                hpBar.style.width = '0%';
+                return;
+            }
+            
+            const percentage = Math.max(0, Math.min(100, (currentHp / maxHp) * 100));
+            hpBar.style.width = `${percentage}%`;
+        }
+
+        function makeHpEditable() {
+            const hpContainer = document.getElementById('hp-container');
+            const hpTextElement = document.getElementById('char-hp');
+
+            hpTextElement.addEventListener('click', () => {
+                const hpString = hpTextElement.textContent;
+                if (!hpString || !hpString.includes('/')) return; // Não faz nada se o formato for inválido
+                const parts = hpString.split('/');
+                const currentHp = parts[0].trim();
+                const maxHp = parts[1].trim();
+
+                const input = document.createElement('input');
+                input.type = 'text'; 
+                input.value = currentHp;
+                input.className = 'bg-gray-700 text-white text-center w-full text-3xl font-bold rounded';
+                
+                hpContainer.replaceChild(input, hpTextElement);
+                input.focus();
+                input.select();
+
+                input.addEventListener('input', () => {
+                    input.value = input.value.replace(/[^0-9]/g, '');
+                });
+
+                const saveChanges = () => {
+                    let newCurrentHp = parseInt(input.value, 10);
+                    if (isNaN(newCurrentHp) || newCurrentHp < 0) {
+                        newCurrentHp = 0;
+                    }
+
+                    const newHpValue = `${newCurrentHp}/${maxHp}`;
+                    hpTextElement.textContent = newHpValue;
+                    hpContainer.replaceChild(hpTextElement, input);
+                    updateHpBar(newHpValue);
+                };
+
+                input.addEventListener('blur', saveChanges);
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') input.blur();
+                    else if (e.key === 'Escape') hpContainer.replaceChild(hpTextElement, input);
+                });
+            });
+        }
+
+        function formatCharacterName(fullName) {
+            if (!fullName) return '';
+            const quoteMatch = fullName.match(/"(.*?)"/);
+            if (quoteMatch && quoteMatch[1]) return quoteMatch[1];
+            if (fullName.includes(' ')) return fullName.split(' ')[0];
+            return fullName;
+        }
+
+        function populateSheet(agent) {
+            document.title = `Companion - ${agent.name}`;
+            const formattedName = formatCharacterName(agent.name);
+            document.getElementById('char-name').textContent = formattedName.toUpperCase();
+            document.getElementById('char-role-level').textContent = `${agent.role} // Nível ${agent.level}`;
+            document.getElementById('char-pic').src = agent.profilePic || 'https://placehold.co/80x80/2d2d2d/f5f5f5?text=BPRD';
+            
+            // Stats principais com base nos dados salvos
+            document.getElementById('char-ac').textContent = agent.armorClass || '10';
+            document.getElementById('char-initiative').textContent = agent.initiative || calculateModifier(agent.attributes.dex);
+            
+            const initialHp = agent.hitPoints || `${10 + parseInt(calculateModifier(agent.attributes.con) || 0)}/${10 + parseInt(calculateModifier(agent.attributes.con) || 0)}`;
+            document.getElementById('char-hp').textContent = initialHp;
+            updateHpBar(initialHp);
+            makeHpEditable();
+
+            // Atributos
+            renderAttribute('str', agent.attributes.str);
+            renderAttribute('dex', agent.attributes.dex);
+            renderAttribute('con', agent.attributes.con);
+            renderAttribute('int', agent.attributes.int);
+            renderAttribute('wis', agent.attributes.wis);
+            renderAttribute('cha', agent.attributes.cha);
+
+            // Habilidades e Equipamentos (Features)
+            const featuresList = document.getElementById('features-list');
+            featuresList.innerHTML = ''; // Limpa a lista antes de popular
+            if (agent.features && agent.features.length > 0) {
+                agent.features.forEach(feature => {
+                    if (feature.name && feature.description) {
+                        renderFeature(feature.name, feature.description);
+                    }
+                });
+            } else {
+                featuresList.innerHTML = '<p class="text-center text-gray-400">Nenhuma habilidade ou equipamento registrado.</p>';
+            }
+
+            // Mostrar a ficha
+            loadingDiv.classList.add('hidden');
+            sheetDiv.classList.remove('hidden');
+        }
+
+        async function fetchCharacter(id) {
+            const token = localStorage.getItem('bprd_token');
+            try {
+                // Tenta buscar o personagem diretamente pela rota /api/characters/:id
+                // Assumimos que essa rota verifica a permissão (público ou dono)
+                const res = await fetch(`${API_URL}/characters/${id}`, {
+                    headers: token ? { 'x-auth-token': token } : {}
+                });
+                if (res.ok) return await res.json();
+
+                // Fallback para o método antigo caso a rota acima falhe ou não exista
+                if(token) {
+                    const myRes = await fetch(`${API_URL}/characters/mine`, { headers: {'x-auth-token': token }});
+                    if(myRes.ok) {
+                        const myChars = await myRes.json();
+                        const character = myChars.find(c => c._id === id);
+                        if(character) return character;
+                    }
+                }
+                const publicRes = await fetch(`${API_URL}/characters/public`);
+                if(publicRes.ok) {
+                    const publicChars = await publicRes.json();
+                    const character = publicChars.find(c => c._id === id);
+                    if(character) return character;
+                }
+
+                throw new Error('Personagem não encontrado ou acesso negado.');
+            } catch (error) {
+                console.error("Erro ao buscar personagem:", error);
+                return null;
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            const agentId = params.get('id');
+
+            if (!agentId) {
+                loadingDiv.textContent = 'ID do agente não fornecido na URL. Ex: companion-app.html?id=SEU_ID_AQUI';
+                return;
+            }
+
+            const agent = await fetchCharacter(agentId);
+
+            if (!agent) {
+                loadingDiv.textContent = 'Agente não encontrado ou acesso negado.';
+                return;
+            }
+            
+            populateSheet(agent);
+        });
+    </script>
+</body>
+</html>

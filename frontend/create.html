@@ -21,6 +21,8 @@
         .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: #b91c1c; }
         input:checked + .slider:before { transform: translateX(26px); }
+        .remove-btn { transition: background-color 0.2s; }
+        .ability-modifier { pointer-events: none; }
     </style>
 </head>
 <body class="p-4 sm:p-10">
@@ -35,7 +37,6 @@
             <!-- Coluna 1 -->
             <div>
                 <h2 class="text-2xl font-bold text-red-500 mb-4">DADOS BÁSICOS</h2>
-                <!-- Campos existentes (name, age, etc) -->
                 <div class="space-y-4">
                     <div><label for="name" class="form-label">NOME DO PERSONAGEM</label><input type="text" id="name" name="name" class="w-full p-2 rounded form-input" required></div>
                     <div class="grid grid-cols-3 gap-4">
@@ -43,9 +44,14 @@
                         <div><label for="height" class="form-label">ALTURA (cm)</label><input type="number" id="height" name="height" class="w-full p-2 rounded form-input"></div>
                         <div><label for="weight" class="form-label">PESO (kg)</label><input type="number" id="weight" name="weight" class="w-full p-2 rounded form-input"></div>
                     </div>
-                    <div><label for="role" class="form-label">FUNÇÃO (ROLE)</label><input type="text" id="role" name="role" class="w-full p-2 rounded form-input" required></div>
-                    <div><label for="department" class="form-label">DEPARTAMENTO</label><input type="text" id="department" name="department" class="w-full p-2 rounded form-input" required></div>
-                     <div><label for="level" class="form-label">NÍVEL</label><input type="number" id="level" name="level" class="w-full p-2 rounded form-input" required></div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label for="role" class="form-label">FUNÇÃO (ROLE)</label><input type="text" id="role" name="role" class="w-full p-2 rounded form-input" required></div>
+                        <div><label for="department" class="form-label">DEPARTAMENTO</label><input type="text" id="department" name="department" class="w-full p-2 rounded form-input" required></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div><label for="level" class="form-label">NÍVEL</label><input type="number" id="level" name="level" class="w-full p-2 rounded form-input" required></div>
+                        <div><label for="maxHitPoints" class="form-label">HP MÁXIMO</label><input type="number" id="maxHitPoints" name="maxHitPoints" placeholder="ex: 12" class="w-full p-2 rounded form-input"></div>
+                    </div>
                     <div><label for="profilePic" class="form-label">URL DA IMAGEM DE PERFIL</label><input type="url" id="profilePic" name="profilePic" class="w-full p-2 rounded form-input"></div>
                 </div>
                  <h2 class="text-2xl font-bold text-red-500 mt-6 mb-4">CLASSIFICAÇÃO</h2>
@@ -60,15 +66,60 @@
 
             <!-- Coluna 2 -->
             <div>
-                 <h2 class="text-2xl font-bold text-red-500 mb-4">ÍNDICE DE HABILIDADES</h2>
-                 <div class="grid grid-cols-2 gap-4">
-                     <div><label for="str" class="form-label">FORÇA (STR)</label><input type="number" id="str" name="str" class="w-full p-2 rounded form-input" required></div>
-                     <div><label for="con" class="form-label">CONSTITUIÇÃO (CON)</label><input type="number" id="con" name="con" class="w-full p-2 rounded form-input" required></div>
-                     <div><label for="dex" class="form-label">DESTREZA (DEX)</label><input type="number" id="dex" name="dex" class="w-full p-2 rounded form-input" required></div>
-                     <div><label for="int" class="form-label">INTELIGÊNCIA (INT)</label><input type="number" id="int" name="int" class="w-full p-2 rounded form-input" required></div>
-                     <div><label for="wis" class="form-label">SABEDORIA (WIS)</label><input type="number" id="wis" name="wis" class="w-full p-2 rounded form-input" required></div>
-                     <div><label for="cha" class="form-label">CARISMA (CHA)</label><input type="number" id="cha" name="cha" class="w-full p-2 rounded form-input" required></div>
+                <h2 class="text-2xl font-bold text-red-500 mb-4">ÍNDICE DE HABILIDADES</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="str" class="form-label">FORÇA (STR)</label>
+                        <div class="relative flex items-center">
+                            <input type="number" id="str" name="str" class="w-full p-2 rounded form-input ability-input" required>
+                            <span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="con" class="form-label">CONSTITUIÇÃO (CON)</label>
+                        <div class="relative flex items-center">
+                            <input type="number" id="con" name="con" class="w-full p-2 rounded form-input ability-input" required>
+                            <span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="dex" class="form-label">DESTREZA (DEX)</label>
+                        <div class="relative flex items-center">
+                            <input type="number" id="dex" name="dex" class="w-full p-2 rounded form-input ability-input" required>
+                            <span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="int" class="form-label">INTELIGÊNCIA (INT)</label>
+                        <div class="relative flex items-center">
+                            <input type="number" id="int" name="int" class="w-full p-2 rounded form-input ability-input" required>
+                            <span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="wis" class="form-label">SABEDORIA (WIS)</label>
+                        <div class="relative flex items-center">
+                            <input type="number" id="wis" name="wis" class="w-full p-2 rounded form-input ability-input" required>
+                            <span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="cha" class="form-label">CARISMA (CHA)</label>
+                        <div class="relative flex items-center">
+                            <input type="number" id="cha" name="cha" class="w-full p-2 rounded form-input ability-input" required>
+                            <span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span>
+                        </div>
+                    </div>
+                </div>
+                 <h2 class="text-2xl font-bold text-red-500 mt-6 mb-4">HABILIDADES</h2>
+                 <div id="features-container" class="space-y-3">
+                    <!-- Feature fields will be added here dynamically -->
                  </div>
+                 <button type="button" id="add-feature-btn" class="mt-4 w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition-colors btn flex items-center justify-center gap-2">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                     ADICIONAR HABILIDADE
+                 </button>
+
                  <h2 class="text-2xl font-bold text-red-500 mt-6 mb-4">PRIVACIDADE</h2>
                  <div class="flex items-center gap-4">
                     <label for="isPublic" class="form-label">PERSONAGEM PÚBLICO?</label>
@@ -92,7 +143,49 @@
         const agentIdField = document.getElementById('agentId');
         const pageTitle = document.getElementById('page-title');
         const submitButton = document.getElementById('submit-button');
+        const featuresContainer = document.getElementById('features-container');
+        const addFeatureBtn = document.getElementById('add-feature-btn');
         const token = localStorage.getItem('bprd_token');
+        const abilityInputs = form.querySelectorAll('.ability-input');
+
+        function calculateModifier(score) {
+            if (isNaN(score) || score === '') return '';
+            const mod = Math.floor((score - 10) / 2);
+            return mod >= 0 ? `+${mod}` : mod;
+        }
+
+        function updateModifier(inputElement) {
+            const score = parseInt(inputElement.value, 10);
+            const modifier = calculateModifier(score);
+            const modifierSpan = inputElement.nextElementSibling;
+            if (modifierSpan && modifierSpan.classList.contains('ability-modifier')) {
+                modifierSpan.textContent = modifier;
+            }
+        }
+
+        abilityInputs.forEach(input => {
+            input.addEventListener('input', () => updateModifier(input));
+        });
+
+        function addFeatureInput(name = '', description = '') {
+            const featureDiv = document.createElement('div');
+            featureDiv.className = 'feature-item relative p-3 rounded bg-black bg-opacity-20 border border-gray-600';
+            featureDiv.innerHTML = `
+                <button type="button" class="remove-feature-btn absolute top-1 right-1 text-gray-500 hover:text-white text-xl p-1 leading-none">&times;</button>
+                <input type="text" placeholder="Nome da Habilidade" class="w-full p-2 rounded form-input feature-name" value="${name}">
+                <details class="mt-2">
+                    <summary class="text-xs text-gray-400 cursor-pointer hover:text-white select-none">Descrição</summary>
+                    <textarea placeholder="Descrição da habilidade..." rows="2" class="w-full p-2 rounded form-input feature-description mt-1">${description}</textarea>
+                </details>
+            `;
+            featuresContainer.appendChild(featureDiv);
+
+            featureDiv.querySelector('.remove-feature-btn').addEventListener('click', () => {
+                featureDiv.remove();
+            });
+        }
+        
+        addFeatureBtn.addEventListener('click', () => addFeatureInput());
 
         function populateForm(agent) {
             agentIdField.value = agent._id;
@@ -111,9 +204,21 @@
             form.psych.value = agent.psych.join('\n');
             form.isPublic.checked = agent.isPublic;
             
+            if (agent.hitPoints && agent.hitPoints.includes('/')) {
+                form.maxHitPoints.value = agent.hitPoints.split('/')[1];
+            } else {
+                form.maxHitPoints.value = agent.hitPoints || '';
+            }
+            
+            featuresContainer.innerHTML = '';
+            if (agent.features && Array.isArray(agent.features)) {
+                agent.features.forEach(f => addFeatureInput(f.name, f.description));
+            }
+            
             for (const attr in agent.attributes) {
                 form[attr].value = agent.attributes[attr];
             }
+            abilityInputs.forEach(updateModifier);
 
             pageTitle.textContent = "EDITAR PERSONAGEM";
             submitButton.textContent = "ATUALIZAR DADOS";
@@ -125,25 +230,41 @@
 
             if (editId) {
                 try {
-                    // Para editar, precisamos buscar os dados do personagem específico
-                    // Nota: A API atual não tem uma rota para buscar um SÓ personagem.
-                    // Por simplicidade, vamos buscar todos e filtrar. O ideal seria ter uma rota GET /api/characters/:id
                     const response = await fetch(`${API_URL}/characters/mine`, {
                         headers: { 'x-auth-token': token }
                     });
+                    if (!response.ok) throw new Error('Falha ao buscar dados do personagem.');
                     const myCharacters = await response.json();
                     const agentToEdit = myCharacters.find(agent => agent._id === editId);
                     if (agentToEdit) {
                         populateForm(agentToEdit);
+                    } else {
+                         throw new Error('Personagem para edição não encontrado.');
                     }
                 } catch(err) {
                     console.error("Erro ao buscar dados para edição:", err);
+                    alert(err.message);
                 }
+            } else {
+                addFeatureInput();
             }
         });
 
         form.addEventListener('submit', async function(event) {
             event.preventDefault();
+
+            const featureItems = featuresContainer.querySelectorAll('.feature-item');
+            const featuresParsed = [];
+            featureItems.forEach(item => {
+                const name = item.querySelector('.feature-name').value;
+                const description = item.querySelector('.feature-description').value;
+                if (name.trim() !== '' || description.trim() !== '') {
+                     featuresParsed.push({ name, description });
+                }
+            });
+
+            const maxHp = this.maxHitPoints.value;
+            const hitPointsValue = maxHp ? `${maxHp}/${maxHp}` : '';
 
             const agentData = {
                 name: this.name.value,
@@ -160,6 +281,8 @@
                 drive: this.drive.value,
                 psych: this.psych.value.split('\n').filter(line => line.trim() !== ''),
                 isPublic: this.isPublic.checked,
+                hitPoints: hitPointsValue,
+                features: featuresParsed,
                 attributes: {
                     str: parseInt(this.str.value), con: parseInt(this.con.value),
                     dex: parseInt(this.dex.value), int: parseInt(this.int.value),
@@ -197,3 +320,4 @@
     </script>
 </body>
 </html>
+
