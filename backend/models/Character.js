@@ -11,6 +11,14 @@ const CharacterSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  npc: {
+    type: Boolean,
+    default: false,
+  },
+  isMainCharacter: {
+    type: Boolean,
+    default: false,
+  },
   // Dados Básicos
   name: { type: String, required: true },
   age: { type: String },
@@ -70,3 +78,4 @@ const CharacterSchema = new mongoose.Schema({
 const Character = mongoose.model('Character', CharacterSchema);
 
 module.exports = Character;
+

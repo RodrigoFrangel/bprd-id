@@ -44,34 +44,44 @@
         </div>
     </div>
     
+    <script src="auth.js"></script>
     <script>
         const navLinksContainer = document.getElementById('nav-links');
         const token = localStorage.getItem('bprd_token');
         const mainCharacterId = localStorage.getItem('main_character_id');
+        const userRole = getLoggedInUserRole(); // Pega a role do usuário
 
-        let companionButtonHTML = '';
+        let primaryButtonHTML = '';
 
         if (token) {
-            // Se o usuário está logado, montamos o botão do Companion
-            if (mainCharacterId) {
-                // Se um personagem principal está definido, o link vai direto para ele
-                companionButtonHTML = `
-                    <a href="companion-app.html?id=${mainCharacterId}" class="nav-btn nav-btn-main w-64 text-white font-bold py-3 px-4 rounded">
-                        Companion App
+            // Se o usuário está logado, verifica a role
+            if (userRole === 'DM') {
+                // Se for DM, mostra o botão de Campanhas
+                primaryButtonHTML = `
+                    <a href="#" class="nav-btn nav-btn-main w-64 text-white font-bold py-3 px-4 rounded">
+                        Minhas Campanhas
                     </a>
                 `;
             } else {
-                // Se não, o link leva para a lista de personagens para que um seja escolhido
-                companionButtonHTML = `
-                    <a href="personagens.html" class="nav-btn w-64 text-white font-bold py-3 px-4 rounded" title="Selecione um personagem como principal para ter acesso rápido.">
-                        Companion App
-                    </a>
-                `;
+                // Se for Player (ou qualquer outra role), mostra a lógica do Companion App
+                if (mainCharacterId) {
+                    primaryButtonHTML = `
+                        <a href="companion-app.html?id=${mainCharacterId}" class="nav-btn nav-btn-main w-64 text-white font-bold py-3 px-4 rounded">
+                            Companion App
+                        </a>
+                    `;
+                } else {
+                    primaryButtonHTML = `
+                        <a href="personagens.html" class="nav-btn w-64 text-white font-bold py-3 px-4 rounded" title="Selecione um personagem como principal para ter acesso rápido.">
+                            Companion App
+                        </a>
+                    `;
+                }
             }
 
-            // Usuário está logado
+            // Monta o menu para usuário logado
             navLinksContainer.innerHTML = `
-                ${companionButtonHTML}
+                ${primaryButtonHTML}
                 <a href="personagens.html" class="nav-btn w-64 text-white font-bold py-3 px-4 rounded">
                     Ver Personagens
                 </a>
@@ -106,4 +116,3 @@
 
 </body>
 </html>
-

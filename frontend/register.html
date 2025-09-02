@@ -20,6 +20,8 @@
             background-color: #2d2d2d; 
             border: 1px solid #444; 
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border-left: 4px solid #b91c1c;
+            border-right: 4px solid #b91c1c;
         }
         .form-label { font-family: 'Special Elite', monospace; color: #ccc; }
         .form-input { 
@@ -37,41 +39,78 @@
             font-family: 'Roboto Condensed', sans-serif;
             letter-spacing: 0.1em;
             text-transform: uppercase;
-            transition: background-color 0.2s;
+            transition: all 0.2s;
+        }
+        .btn:hover {
+            box-shadow: 0 0 15px rgba(185, 28, 28, 0.6);
+        }
+        .role-option {
+            background-color: #1a1a1a;
+            border: 2px solid #555;
+            color: #ccc;
+            transition: all 0.2s;
+        }
+        .role-option.selected {
+            background-color: #b91c1c;
+            border-color: #ef4444;
+            color: white;
+        }
+        .fade-in {
+            animation: fadeInAnimation 0.5s ease-in-out forwards;
+        }
+        @keyframes fadeInAnimation {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
 
-    <div class="w-full max-w-md">
+    <div class="w-full max-w-md fade-in">
         <div class="text-center mb-8">
             <img src="https://i.postimg.cc/mgc133Mk/bprd-logo-w.png" alt="B.P.R.D. Logo" class="w-24 h-24 mx-auto mb-4 opacity-80" onerror="this.style.display='none'">
-            <h1 class="text-4xl text-center font-bold text-red-600" style="font-family: 'Special Elite', monospace;">REGISTRO DE AGENTE</h1>
+            <h1 class="text-3xl sm:text-4xl text-center font-bold text-red-600" style="font-family: 'Special Elite', monospace;">REGISTRO DE AGENTE</h1>
             <p class="text-gray-400">CRIAÇÃO DE CREDENCIAIS DE ACESSO</p>
         </div>
 
-        <div class="form-container p-8 rounded-lg">
+        <div class="form-container p-6 sm:p-8 rounded-lg">
             <form id="register-form">
-                <div class="mb-6">
-                    <label for="username" class="form-label block mb-2">NOME DE USUÁRIO</label>
-                    <input type="text" id="username" name="username" class="w-full p-3 rounded form-input" required>
-                </div>
-                <div class="mb-6">
-                    <label for="email" class="form-label block mb-2">EMAIL</label>
-                    <input type="email" id="email" name="email" class="w-full p-3 rounded form-input" required>
-                </div>
-                <div class="mb-6">
-                    <label for="password" class="form-label block mb-2">SENHA</label>
-                    <input type="password" id="password" name="password" class="w-full p-3 rounded form-input" minlength="6" required>
-                </div>
-                <div class="mb-6">
-                    <label for="confirm-password" class="form-label block mb-2">CONFIRMAR SENHA</label>
-                    <input type="password" id="confirm-password" name="confirm-password" class="w-full p-3 rounded form-input" required>
+                
+                 <div class="grid grid-cols-2 gap-2 mb-6">
+                    <button type="button" class="role-option selected font-bold py-2 sm:py-3 rounded-lg" data-role="Player">
+                        JOGADOR
+                    </button>
+                    <button type="button" class="role-option font-bold py-2 sm:py-3 rounded-lg" data-role="DM">
+                        MESTRE
+                    </button>
+                    <input type="hidden" id="role" name="role" value="Player">
                 </div>
                 
-                <div id="error-message" class="text-red-500 text-center mb-4" style="display: none;"></div>
+                <hr class="border-gray-600 my-6">
 
-                <button type="submit" class="w-full bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-4 rounded transition-colors btn">
+                <div class="space-y-6">
+                    <div>
+                        <label for="username" class="form-label block mb-2">NOME DE USUÁRIO</label>
+                        <input type="text" id="username" name="username" class="w-full p-3 rounded form-input" required>
+                    </div>
+                    <div>
+                        <label for="email" class="form-label block mb-2">EMAIL</label>
+                        <input type="email" id="email" name="email" class="w-full p-3 rounded form-input" required>
+                    </div>
+                    <div>
+                        <label for="password" class="form-label block mb-2">SENHA</label>
+                        <input type="password" id="password" name="password" class="w-full p-3 rounded form-input" minlength="6" required>
+                    </div>
+                    <div>
+                        <label for="confirm-password" class="form-label block mb-2">CONFIRMAR SENHA</label>
+                        <input type="password" id="confirm-password" name="confirm-password" class="w-full p-3 rounded form-input" required>
+                    </div>
+                </div>
+                
+                <div id="error-message" class="text-red-500 text-center mt-4 h-5"></div>
+
+                <button type="submit" class="w-full mt-4 bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-4 rounded transition-colors btn flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 2a1 1 0 00-1 1v1a1 1 0 102 0V3a1 1 0 00-1-1zM4 4a1 1 0 001 1v1a1 1 0 102 0V5a1 1 0 00-1-1H4zM15 3a1 1 0 011 1v1a1 1 0 11-2 0V4a1 1 0 011-1zM4 9a1 1 0 001 1h1a1 1 0 100-2H5a1 1 0 00-1 1zm12-1a1 1 0 100 2h1a1 1 0 100-2h-1zM4 14a1 1 0 001 1h1a1 1 0 100-2H5a1 1 0 00-1 1zm12-1a1 1 0 100 2h1a1 1 0 100-2h-1zM9 9a1 1 0 001 1h1a1 1 0 100-2h-1a1 1 0 00-1 1zM9 14a1 1 0 001 1h1a1 1 0 100-2h-1a1 1 0 00-1 1z" clip-rule="evenodd" /></svg>
                     CRIAR CREDENCIAL
                 </button>
             </form>
@@ -86,19 +125,29 @@
     <script>
         const registerForm = document.getElementById('register-form');
         const errorMessage = document.getElementById('error-message');
+        const roleButtons = document.querySelectorAll('.role-option');
+        const roleInput = document.getElementById('role');
+
+        roleButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                roleButtons.forEach(btn => btn.classList.remove('selected'));
+                button.classList.add('selected');
+                roleInput.value = button.dataset.role;
+            });
+        });
 
         registerForm.addEventListener('submit', async function(event) {
             event.preventDefault();
-            errorMessage.style.display = 'none';
+            errorMessage.textContent = '';
 
-            const username = this.username.value; // Pega o valor do novo campo
+            const username = this.username.value;
             const email = this.email.value;
             const password = this.password.value;
             const confirmPassword = this['confirm-password'].value;
+            const role = roleInput.value;
 
             if (password !== confirmPassword) {
                 errorMessage.textContent = 'As senhas não coincidem.';
-                errorMessage.style.display = 'block';
                 return;
             }
 
@@ -106,7 +155,7 @@
                 const response = await fetch(`${API_URL}/auth/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, email, password })
+                    body: JSON.stringify({ username, email, password, role })
                 });
 
                 const data = await response.json();
@@ -116,14 +165,14 @@
                 }
 
                 localStorage.setItem('bprd_token', data.token);
-                window.location.href = 'personagens.html';
+                window.location.href = 'index.html';
 
             } catch (error) {
                 errorMessage.textContent = error.message;
-                errorMessage.style.display = 'block';
             }
         });
     </script>
 
 </body>
 </html>
+

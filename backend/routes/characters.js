@@ -54,6 +54,44 @@ router.get('/public', async (req, res) => {
   }
 });
 
+// --- DEFINIR PERSONAGEM PRINCIPAL ---
+// @route   PUT api/characters/set-main/:id
+// @desc    Define ou desmarca um personagem como o principal do usuário
+// @access  Privado
+router.put('/set-main/:id', auth, async (req, res) => {
+  try {
+    const characterToSet = await Character.findById(req.params.id);
+
+    // Verifica se o personagem existe e pertence ao usuário
+    if (!characterToSet || characterToSet.userId.toString() !== req.user.id) {
+      return res.status(404).json({ msg: 'Personagem não encontrado ou não autorizado.' });
+    }
+
+    const isCurrentlyMain = characterToSet.isMainCharacter;
+
+    // Primeiro, reseta o status de 'main' para todos os personagens do usuário
+    await Character.updateMany(
+      { userId: req.user.id },
+      { $set: { isMainCharacter: false } }
+    );
+
+    // Se o personagem clicado NÃO era o principal, ele se torna o principal
+    if (!isCurrentlyMain) {
+      await Character.findByIdAndUpdate(
+        req.params.id,
+        { $set: { isMainCharacter: true } }
+      );
+    }
+    // Se ele JÁ ERA o principal, a ação acima já o desmarcou.
+
+    res.json({ msg: 'Personagem principal atualizado com sucesso.' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Erro no servidor.');
+  }
+});
+
+
 // --- ATUALIZAR UM PERSONAGEM ---
 // @route   PUT api/characters/:id
 // @desc    Atualiza um personagem

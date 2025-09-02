@@ -28,18 +28,32 @@ function logout() {
     window.location.href = 'login.html';
 }
 
-// Função para pegar o ID do usuário logado a partir do token
-function getLoggedInUserId() {
+// --- FUNÇÕES DE TOKEN REESTRUTURADAS ---
+
+// Função central para decodificar o token
+function getDecodedToken() {
     const token = localStorage.getItem('bprd_token');
     if (!token) return null;
     try {
         // Decodifica a parte do meio (payload) do token JWT
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        return payload.user.id;
+        return JSON.parse(atob(token.split('.')[1]));
     } catch (e) {
         console.error("Erro ao decodificar token:", e);
         return null;
     }
+}
+
+// Função para pegar o ID do usuário logado
+function getLoggedInUserId() {
+    const payload = getDecodedToken();
+    return payload ? payload.user.id : null;
+}
+
+// Função para pegar a ROLE do usuário logado
+function getLoggedInUserRole() {
+    const payload = getDecodedToken();
+    // Assumindo que o backend inclui 'role' no payload do token
+    return payload ? payload.user.role : null; 
 }
 
 

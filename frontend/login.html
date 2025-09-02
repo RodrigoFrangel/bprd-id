@@ -96,15 +96,11 @@
                 const data = await response.json();
 
                 if (!response.ok) {
-                    // A mensagem de erro agora vem do backend
                     throw new Error(data.msg || 'Falha na autenticação');
                 }
 
-                // Se o login for bem-sucedido:
-                // 1. Salve o token de autenticação no localStorage
                 localStorage.setItem('bprd_token', data.token);
-                // 2. Redirecione para a página de personagens
-                window.location.href = 'personagens.html';
+                window.location.href = 'index.html';
 
             } catch (error) {
                 errorMessage.textContent = error.message;

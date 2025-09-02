@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>B.P.R.D. - Personagens da Comunidade</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" type="image/png" href="../public/favicon.ico">
@@ -11,181 +11,212 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
-        body { background-color: #1a1a1a; font-family: 'Roboto Condensed', sans-serif; color: #f5f5f5; }
+        :root {
+            --bottom-nav-height: 60px;
+            --header-height: 60px;
+        }
+        body { 
+            background-color: #111; 
+            font-family: 'Roboto Condensed', sans-serif; 
+            color: #f5f5f5; 
+            overflow-x: hidden;
+        }
+        .app-header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            height: var(--header-height);
+            background-color: rgba(18, 18, 18, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid #2a2a2a;
+        }
+        .main-content {
+            padding-top: var(--header-height);
+            padding-bottom: var(--bottom-nav-height);
+        }
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: var(--bottom-nav-height);
+            z-index: 20;
+            background-color: rgba(18, 18, 18, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-top: 1px solid #2a2a2a;
+        }
+        .nav-item {
+            color: #9ca3af;
+            transition: all 0.2s ease-in-out;
+        }
+        .nav-item:hover, .nav-item.active {
+            color: #f5f5f5;
+            transform: translateY(-2px);
+        }
+        .fab {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: all 0.2s ease-in-out;
+        }
+        .fab:hover {
+            transform: scale(1.1) rotate(10deg);
+        }
         .agent-card { 
             background-color: #2d2d2d; 
             border-left: 5px solid #444; 
             transition: all 0.2s ease-in-out; 
-            position: relative; /* Adicionado para posicionar a tag 'privado' */
+            position: relative;
         }
         .agent-card.main { border-left-color: #facc15; }
         .agent-card:hover { border-left-color: #b91c1c; }
-        .btn { font-family: 'Roboto Condensed', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; }
         .private-badge {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            font-size: 0.7rem; 
-            background-color: #4b5563; 
-            color: #e5e7eb; 
-            padding: 2px 8px; 
-            border-radius: 12px; 
-            line-height: initial;
+            position: absolute; top: 1rem; right: 1rem;
+            font-size: 0.7rem; background-color: #4b5563; color: #e5e7eb; 
+            padding: 2px 8px; border-radius: 12px; line-height: initial;
         }
         .agent-thumb {
-            width: 64px;
-            height: 64px;
-            object-fit: cover;
-            border-radius: 0.25rem;
-            border: 2px solid #4b5563;
+            width: 56px; height: 56px;
+            object-fit: cover; border-radius: 0.25rem; border: 2px solid #4b5563;
         }
-        
-        /* --- ESTILOS PARA O MENU DE CONTEXTO --- */
         .modal-overlay {
             transition: opacity 0.2s ease-in-out, backdrop-filter 0.2s ease-in-out;
-            background-color: rgba(10, 10, 10, 0.5); /* Fundo mais escuro */
-            backdrop-filter: blur(0px); /* Estado inicial para transição */
-            -webkit-backdrop-filter: blur(0px);
+            background-color: rgba(10, 10, 10, 0.7);
+            backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px);
         }
         .modal-box {
-            position: absolute; /* Chave para o posicionamento */
             transition: all 0.15s ease-in-out;
             box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5), 0 4px 6px -2px rgba(0,0,0,0.25);
-            background-color: #2d2d2d; /* Cor igual aos cards */
-            border: 1px solid #4b5563; /* Borda sutil */
+            background-color: #2d2d2d; border: 1px solid #4b5563;
         }
         .modal-overlay.visible {
-            opacity: 1;
-            pointer-events: auto;
-            backdrop-filter: blur(4px); /* Efeito de blur ativo */
-            -webkit-backdrop-filter: blur(4px);
+            opacity: 1; pointer-events: auto; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
         }
         .modal-overlay.visible .modal-box {
-            opacity: 1;
-            transform: scale(1);
+            opacity: 1; transform: translateY(0) scale(1);
         }
         .modal-option {
-            display: flex;
-            align-items: center;
-            width: 100%;
-            padding: 10px 6px;
-            background-color: transparent;
-            color: #e5e7eb;
-            border-radius: 0.375rem;
-            text-align: left;
-            font-weight: normal;
-            transition: background-color 0.2s;
-            font-size: 0.9rem;
+            display: flex; align-items: center; width: 100%; padding: 10px 6px;
+            background-color: transparent; color: #e5e7eb; border-radius: 0.375rem;
+            text-align: left; font-weight: normal; transition: background-color 0.2s; font-size: 0.9rem;
         }
-        .modal-option:hover {
-            background-color: #383c41;
+        .modal-option:hover { background-color: #383c41; }
+        .modal-option i.fa-fw { margin-right: 12px; color: #9ca3af; width: 20px; text-align: center; }
+        .modal-option.delete { color: #f87171; }
+        .modal-option.delete:hover { background-color: #b91c1c; color: white; }
+        #modal-close-btn { font-size: 1.5rem; line-height: 1; padding: 0 8px; color: #9ca3af; transition: color 0.2s; }
+        #modal-close-btn:hover { color: white; }
+        .options-btn {
+            background-color: transparent; color: #9ca3af; transition: color 0.2s;
+            border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
         }
-        .modal-option i.fa-fw {
-            margin-right: 12px;
-            color: #9ca3af;
-            width: 20px;
-            text-align: center;
-        }
-        .modal-option.delete {
-             color: #f87171;
-        }
-        .modal-option.delete:hover {
-             background-color: #b91c1c;
-             color: white;
-        }
-        #modal-close-btn {
-            font-size: 1.5rem;
-            line-height: 1;
-            padding: 0 8px;
-            color: #9ca3af;
-            transition: color 0.2s;
-        }
-        #modal-close-btn:hover {
-            color: white;
-        }
+        .options-btn:hover { background-color: #4a5568; color: white; }
     </style>
 </head>
-<body class="p-4 sm:p-10">
+<body>
 
-    <div class="max-w-4xl mx-auto">
-        <div id="header-container" class="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0 mb-8">
-            <h1 class="text-4xl font-bold text-center sm:text-left" style="font-family: 'Special Elite', monospace;">PERSONAGENS</h1>
-            <!-- Botões de login/logout serão inseridos aqui -->
-        </div>
+    <header class="app-header flex items-center justify-center">
+        <h1 class="text-2xl font-bold tracking-wider" style="font-family: 'Special Elite', monospace;">PERSONAGENS</h1>
+    </header>
 
-        <div id="agent-list" class="space-y-4">
-            <!-- A lista de agentes será inserida aqui -->
+    <main class="main-content">
+        <div id="agent-list" class="space-y-3 p-3 max-w-4xl mx-auto">
+            <!-- Lista de agentes será inserida aqui -->
         </div>
-
-        <div class="mt-8 flex flex-col sm:flex-row gap-4 justify-center items-center">
-             <a href="index.html" class="w-full sm:w-auto inline-block text-center bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded transition-colors btn">
-                VOLTAR
-            </a>
-            <a id="create-character-btn" href="create.html" class="w-full sm:w-auto inline-block text-center bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-6 rounded transition-colors btn">
-                CRIAR NOVO PERSONAGEM
-            </a>
-        </div>
-    </div>
+    </main>
 
     <!-- Menu de Contexto -->
-    <div id="options-modal-overlay" class="modal-overlay fixed inset-0 z-50 opacity-0 pointer-events-none">
+    <div id="options-modal-overlay" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center opacity-0 pointer-events-none p-4">
         <div id="options-modal" class="modal-box rounded-lg w-full max-w-xs transform opacity-0 scale-95" style="width: 260px;">
             <div id="modal-header" class="p-2 border-b border-gray-700/50 flex justify-between items-center">
                  <h3 id="modal-title" class="text-sm font-bold text-gray-300 px-2 truncate">Opções</h3>
                  <button id="modal-close-btn">&times;</button>
             </div>
             <div id="modal-content" class="p-2 space-y-1">
-                <!-- Opções serão injetadas aqui -->
             </div>
         </div>
     </div>
 
+    <!-- Barra de Navegação Inferior -->
+    <footer class="bottom-nav">
+        <div class="w-full h-full max-w-4xl mx-auto flex items-center justify-around relative" id="nav-container">
+            <!-- Conteúdo da Navegação será injetado aqui -->
+        </div>
+    </footer>
+
     <script src="auth.js"></script>
     <script>
         const agentListContainer = document.getElementById('agent-list');
-        const headerContainer = document.getElementById('header-container');
-        const createCharacterBtn = document.getElementById('create-character-btn');
         const token = localStorage.getItem('bprd_token');
-        
         const optionsModalOverlay = document.getElementById('options-modal-overlay');
-        const optionsModal = document.getElementById('options-modal');
         const modalContent = document.getElementById('modal-content');
         const modalTitle = document.getElementById('modal-title');
         const modalCloseBtn = document.getElementById('modal-close-btn');
 
         let characterData = [];
-        let longPressTimer;
-        const LONG_PRESS_DURATION = 500;
 
         function setupHeaderAndNav() {
+            const navContainer = document.getElementById('nav-container');
             if (token) {
-                headerContainer.innerHTML += `<button onclick="logout()" class="text-sm bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg btn">Logout</button>`;
-                createCharacterBtn.href = 'create.html';
+                navContainer.innerHTML = `
+                    <a href="index.html" class="nav-item flex flex-col items-center gap-1 text-center w-20">
+                        <i class="fas fa-home fa-lg"></i>
+                        <span class="text-xs font-bold uppercase hidden sm:block">Início</span>
+                    </a>
+                    <a id="create-character-btn" href="create.html" class="fab bg-red-700 hover:bg-red-800 text-white absolute bottom-4" style="left: 50%; transform: translateX(-50%);">
+                        <i class="fas fa-plus fa-lg"></i>
+                    </a>
+                    <button onclick="logout()" class="nav-item flex flex-col items-center gap-1 text-center w-20">
+                        <i class="fas fa-sign-out-alt fa-lg"></i>
+                        <span class="text-xs font-bold uppercase hidden sm:block">Sair</span>
+                    </button>
+                `;
             } else {
-                headerContainer.innerHTML += `<a href="login.html" class="text-sm bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg btn">Login</a>`;
-                createCharacterBtn.href = 'login.html';
+                navContainer.innerHTML = `
+                    <a href="index.html" class="nav-item flex flex-col items-center gap-1 text-center w-20">
+                        <i class="fas fa-home fa-lg"></i>
+                        <span class="text-xs font-bold uppercase hidden sm:block">Início</span>
+                    </a>
+                    <a href="login.html" class="nav-item flex flex-col items-center gap-1 text-center w-20">
+                        <i class="fas fa-sign-in-alt fa-lg"></i>
+                        <span class="text-xs font-bold uppercase hidden sm:block">Login</span>
+                    </a>
+                `;
+                document.getElementById('agent-list').innerHTML = '<p class="text-center text-gray-400 mt-10">Você precisa fazer login para ver seus personagens.</p>';
             }
         }
         
-        function setMainCharacter(id) {
-            const currentMain = localStorage.getItem('main_character_id');
-            if (currentMain === id) {
-                localStorage.removeItem('main_character_id');
-            } else {
-                localStorage.setItem('main_character_id', id);
-            }
+        async function setMainCharacter(id) {
             closeOptionsMenu();
-            loadCharacters(); 
+            try {
+                const response = await fetch(`${API_URL}/characters/set-main/${id}`, {
+                    method: 'PUT',
+                    headers: { 'x-auth-token': token }
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.msg || 'Falha ao definir personagem principal.');
+                }
+                await loadCharacters();
+            } catch (error) {
+                console.error('Erro ao definir personagem principal:', error);
+                alert(error.message);
+            }
         }
 
         function renderAgents(agents) {
             characterData = agents;
             agentListContainer.innerHTML = ''; 
             const loggedInUserId = getLoggedInUserId();
-            const mainCharacterId = localStorage.getItem('main_character_id');
 
             if (!agents || agents.length === 0) {
-                agentListContainer.innerHTML = '<p class="text-center text-gray-400">Nenhum personagem público encontrado. Seja o primeiro a criar um!</p>';
+                agentListContainer.innerHTML = '<p class="text-center text-gray-400 mt-10">Nenhum personagem encontrado. Seja o primeiro a criar um!</p>';
                 return;
             }
 
@@ -193,47 +224,64 @@
 
             agents.forEach(agent => {
                 const isOwner = loggedInUserId && agent.userId && agent.userId._id === loggedInUserId;
-                const isMain = agent._id === mainCharacterId;
+                const isMain = agent.isMainCharacter;
                 
                 const agentElement = document.createElement('div');
-                agentElement.className = `agent-card p-4 rounded-lg shadow-lg flex gap-4 ${isMain ? 'main' : ''}`;
-                agentElement.dataset.agentId = agent._id;
-
+                agentElement.className = `agent-card p-3 rounded-lg shadow-lg flex items-center gap-4 ${isMain ? 'main' : ''}`;
+                
                 const privateBadgeHTML = !agent.isPublic && isOwner ? '<span class="private-badge">Privado</span>' : '';
                 const thumbnailUrl = agent.profilePic || `https://placehold.co/64x64/2d2d2d/f5f5f5?text=BPRD`;
                 const ownerUsername = agent.userId ? agent.userId.username : 'Anônimo';
 
+                let optionsButtonHTML = '';
+                if (isOwner) {
+                    optionsButtonHTML = `
+                        <button class="options-btn ml-auto flex-shrink-0" data-agent-id="${agent._id}">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                    `;
+                }
+
                 agentElement.innerHTML = `
-                     <a href="id.html?id=${agent._id}" class="flex items-center gap-4 flex-grow w-full">
-                        <img src="${thumbnailUrl}" alt="Thumbnail of ${agent.name}" class="agent-thumb flex-shrink-0" onerror="this.src='https://placehold.co/64x64/2d2d2d/f5f5f5?text=BPRD'">
+                     <a href="id.html?id=${agent._id}" class="flex items-center gap-3 flex-grow">
+                        <img src="${thumbnailUrl}" alt="Thumbnail of ${agent.name}" class="agent-thumb" onerror="this.src='https://placehold.co/64x64/2d2d2d/f5f5f5?text=BPRD'">
                         <div class="flex-grow">
-                            <h2 class="text-xl font-bold text-white flex-wrap">${agent.name.toUpperCase()}</h2>
+                            <h2 class="text-lg font-bold text-white flex-wrap">${agent.name.toUpperCase()}</h2>
                             <p class="text-gray-300 font-light text-sm" style="font-family: 'Special Elite', monospace;">${agent.role}</p>
                             <p class="text-xs text-gray-400 mt-1">Criado por: ${ownerUsername}</p>
                         </div>
                     </a>
                     ${privateBadgeHTML}
+                    ${optionsButtonHTML}
                 `;
                 agentListContainer.appendChild(agentElement);
             });
         }
         
         async function loadCharacters() {
+            if (!token) return; // Não carrega personagens se não estiver logado
+
             let allVisibleCharacters = [];
             try {
                 const publicResponse = await fetch(`${API_URL}/characters/public`);
                 if (publicResponse.ok) allVisibleCharacters.push(...await publicResponse.json());
 
-                if (token) {
-                    const myResponse = await fetch(`${API_URL}/characters/mine`, { headers: { 'x-auth-token': token } });
-                    if (myResponse.ok) allVisibleCharacters.push(...await myResponse.json());
-                }
+                const myResponse = await fetch(`${API_URL}/characters/mine`, { headers: { 'x-auth-token': token } });
+                if (myResponse.ok) allVisibleCharacters.push(...await myResponse.json());
 
                 const uniqueCharacters = Array.from(new Map(allVisibleCharacters.map(char => [char._id, char])).values());
+                
+                const mainChar = uniqueCharacters.find(char => char.isMainCharacter && char.userId._id === getLoggedInUserId());
+                if (mainChar) {
+                    localStorage.setItem('main_character_id', mainChar._id);
+                } else {
+                    localStorage.removeItem('main_character_id');
+                }
+
                 renderAgents(uniqueCharacters);
             } catch (error) {
                 console.error('Erro ao carregar personagens:', error);
-                agentListContainer.innerHTML = `<p class="text-center text-red-500">Não foi possível carregar os personagens.</p>`;
+                agentListContainer.innerHTML = `<p class="text-center text-red-500 mt-10">Não foi possível carregar os personagens.</p>`;
             }
         }
 
@@ -253,10 +301,11 @@
             }
         }
 
-        function openOptionsMenu(agent, cardElement) {
+        function openOptionsMenu(agent) {
+            const modal = document.getElementById('options-modal');
             modalContent.innerHTML = '';
             modalTitle.textContent = agent.name;
-            const isMain = localStorage.getItem('main_character_id') === agent._id;
+            const isMain = agent.isMainCharacter;
 
             const options = [
                  { text: 'Companion App', icon: 'fa-chart-bar', action: () => { window.location.href = `companion-app.html?id=${agent._id}` } },
@@ -273,33 +322,6 @@
                 modalContent.appendChild(button);
             });
             
-            // --- LÓGICA DE POSICIONAMENTO CORRIGIDA ---
-            const cardRect = cardElement.getBoundingClientRect();
-            const modalWidth = optionsModal.offsetWidth;
-            const modalHeight = optionsModal.offsetHeight;
-            const margin = 8;
-
-            // Usa coordenadas relativas à viewport (tela visível), pois o modal está num container 'fixed'
-            let top = cardRect.top;
-            let left = cardRect.right + margin;
-
-            // Evita que o menu saia da tela
-            if (left + modalWidth > window.innerWidth) {
-                left = cardRect.left - modalWidth - margin;
-            }
-            if (left < 0) {
-                left = margin;
-            }
-            if (top + modalHeight > window.innerHeight) {
-                top = cardRect.bottom - modalHeight;
-            }
-            if (top < 0) {
-                top = margin;
-            }
-
-            optionsModal.style.top = `${top}px`;
-            optionsModal.style.left = `${left}px`;
-            
             optionsModalOverlay.classList.add('visible');
         }
 
@@ -307,33 +329,14 @@
             optionsModalOverlay.classList.remove('visible');
         }
 
-        // --- Lógica de Eventos ---
-        agentListContainer.addEventListener('mousedown', handlePressStart);
-        agentListContainer.addEventListener('touchstart', handlePressStart, { passive: true });
-        agentListContainer.addEventListener('mouseup', handlePressEnd);
-        agentListContainer.addEventListener('mouseleave', handlePressEnd);
-        agentListContainer.addEventListener('touchend', handlePressEnd);
-        agentListContainer.addEventListener('touchmove', handlePressEnd);
-
-        function handlePressStart(e) {
-            const card = e.target.closest('.agent-card');
-            if (!card) return;
-            
-            const agentId = card.dataset.agentId;
-            const agent = characterData.find(c => c._id === agentId);
-            const loggedInUserId = getLoggedInUserId();
-
-            if (!agent || !agent.userId || !agent.userId._id || agent.userId._id !== loggedInUserId) return;
-
-            longPressTimer = setTimeout(() => {
-                e.preventDefault();
-                openOptionsMenu(agent, card);
-            }, LONG_PRESS_DURATION);
-        }
-
-        function handlePressEnd(e) {
-            clearTimeout(longPressTimer);
-        }
+        agentListContainer.addEventListener('click', (e) => {
+            const optionsButton = e.target.closest('.options-btn');
+            if (optionsButton) {
+                const agentId = optionsButton.dataset.agentId;
+                const agent = characterData.find(c => c._id === agentId);
+                if (agent) openOptionsMenu(agent);
+            }
+        });
         
         modalCloseBtn.addEventListener('click', closeOptionsMenu);
         optionsModalOverlay.addEventListener('click', (e) => {
