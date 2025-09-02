@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>B.P.R.D. - Registro de Personagem</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="icon" type="image/png" href="../public/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,10 +16,31 @@
         .form-label { font-family: 'Special Elite', monospace; color: #ccc; }
         .form-input { background-color: #1a1a1a; border: 1px solid #555; color: #f5f5f5; }
         .btn { font-family: 'Roboto Condensed', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; }
-        .remove-btn { transition: background-color 0.2s; }
+        
         .ability-modifier { pointer-events: none; }
         
-        /* Estilos para Perícias */
+        .remove-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: #4a5568;
+            color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            line-height: 1;
+            transition: all 0.2s ease-in-out;
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+        }
+        .remove-btn:hover {
+            background-color: #b91c1c;
+            color: white;
+            transform: scale(1.1);
+        }
+
         .skill-grid {
             display: grid;
             grid-template-columns: 1fr auto auto;
@@ -44,24 +66,38 @@
             color: white;
             border-color: #b91c1c;
         }
-         input[type="checkbox"] { display: none; }
-
-        /* Estilos para o dropdown de Perícias */
-        summary {
-            list-style: none; /* Remove default marker */
+        .skill-grid input[type="checkbox"] { display: none; }
+        
+        .form-checkbox {
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #555;
+            border-radius: 0.25rem;
+            vertical-align: middle;
+            background-color: #1a1a1a;
+            transition: all 0.2s;
             cursor: pointer;
         }
-        summary::-webkit-details-marker {
-            display: none; /* Remove default marker for Safari */
-        }
-        .details-arrow {
-             transition: transform 0.2s;
-        }
-        details[open] > summary .details-arrow {
-            transform: rotate(180deg);
+        .form-checkbox:checked {
+            background-color: #b91c1c;
+            border-color: #b91c1c;
+            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
         }
 
-        /* Estilos para o Toggle Switch de Privacidade */
+        summary { list-style: none; cursor: pointer; }
+        summary::-webkit-details-marker { display: none; }
+        
+        .collapsible-header {
+            transition: all 0.2s ease-in-out;
+            border-bottom: 2px solid #4a5568;
+            padding-bottom: 0.5rem;
+        }
+        .collapsible-header:hover { filter: brightness(1.25); }
+        .collapsible-content { padding-top: 1.5rem; }
+        .details-arrow { transition: transform 0.2s; }
+        details[open] > summary .details-arrow { transform: rotate(180deg); }
+
         .toggle-switch { position: relative; display: inline-block; width: 60px; height: 34px; }
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .4s; border-radius: 34px; }
@@ -69,154 +105,160 @@
         input:checked + .slider { background-color: #b91c1c; }
         input:checked + .slider:before { transform: translateX(26px); }
 
+        .markdown-tab { border-bottom: 2px solid transparent; color: #9ca3af; }
+        .markdown-tab.active { color: #f5f5f5; border-bottom-color: #b91c1c; }
+        .prose { font-size: 0.9rem; line-height: 1.6; }
+        .prose h1, .prose h2, .prose h3 { font-weight: bold; margin-top: 1em; margin-bottom: 0.5em; }
+        .prose h1 { font-size: 1.5em; } .prose h2 { font-size: 1.25em; } .prose h3 { font-size: 1.1em; }
+        .prose p { margin-bottom: 1em; }
+        .prose ul, .prose ol { margin-left: 1.5rem; margin-bottom: 1em; }
+        .prose ul { list-style-type: disc; } .prose ol { list-style-type: decimal; }
+        .prose strong { font-weight: bold; }
+        .prose em { font-style: italic; }
+        .prose a { color: #ef4444; text-decoration: underline; }
+        .prose blockquote { border-left: 4px solid #4a5568; padding-left: 1rem; color: #d1d5db; }
+        .prose code { background-color: #1a1a1a; padding: 2px 4px; border-radius: 4px; font-family: monospace; }
+        .hidden { display: none; }
+
+        .section-title {
+            border-bottom: 2px solid #4a5568;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
     </style>
 </head>
-<body class="p-4 sm:p-10">
+<body class="p-4 sm:p-6 md:p-10">
 
-    <div class="max-w-4xl mx-auto form-container p-8 rounded-lg shadow-lg">
-        <h1 id="page-title" class="text-4xl text-center mb-2 font-bold" style="font-family: 'Special Elite', monospace;">REGISTRO DE PERSONAGEM</h1>
-        <p class="text-center text-gray-400 mb-8">BUREAU FOR PARANORMAL RESEARCH AND DEFENSE</p>
+    <div class="max-w-6xl mx-auto form-container p-6 sm:p-8 rounded-lg shadow-lg">
+        <div class="text-center mb-8">
+            <h1 id="page-title" class="text-4xl mb-2 font-bold" style="font-family: 'Special Elite', monospace;">REGISTRO DE PERSONAGEM</h1>
+            <p class="text-gray-400">BUREAU FOR PARANORMAL RESEARCH AND DEFENSE</p>
+        </div>
 
         <form id="agent-form">
             <input type="hidden" id="agentId" name="agentId">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                <!-- Coluna 1 -->
-                <div>
-                    <h2 class="text-2xl font-bold text-red-500 mb-4">DADOS BÁSICOS</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-6">
+                <!-- Coluna 1: Dados Básicos -->
+                <section>
+                    <h2 class="section-title text-2xl font-bold text-red-500">DADOS BÁSICOS</h2>
                     <div class="space-y-4">
                         <div><label for="name" class="form-label">NOME DO PERSONAGEM</label><input type="text" id="name" name="name" class="w-full p-2 rounded form-input" required></div>
-                        <div class="grid grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div><label for="age" class="form-label">IDADE</label><input type="number" id="age" name="age" class="w-full p-2 rounded form-input"></div>
                             <div><label for="height" class="form-label">ALTURA (cm)</label><input type="number" id="height" name="height" class="w-full p-2 rounded form-input"></div>
                             <div><label for="weight" class="form-label">PESO (kg)</label><input type="number" id="weight" name="weight" class="w-full p-2 rounded form-input"></div>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div><label for="role" class="form-label">FUNÇÃO (ROLE)</label><input type="text" id="role" name="role" class="w-full p-2 rounded form-input" required></div>
                             <div><label for="department" class="form-label">DEPARTAMENTO</label><input type="text" id="department" name="department" class="w-full p-2 rounded form-input" required></div>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div><label for="level" class="form-label">NÍVEL</label><input type="number" id="level" name="level" class="w-full p-2 rounded form-input" required></div>
                             <div><label for="maxHitPoints" class="form-label">HP MÁXIMO</label><input type="number" id="maxHitPoints" name="maxHitPoints" placeholder="ex: 12" class="w-full p-2 rounded form-input"></div>
                         </div>
                         <div><label for="profilePic" class="form-label">URL DA IMAGEM DE PERFIL</label><input type="url" id="profilePic" name="profilePic" class="w-full p-2 rounded form-input"></div>
                     </div>
-                     <h2 class="text-2xl font-bold text-red-500 mt-6 mb-4">CLASSIFICAÇÃO</h2>
-                     <div class="space-y-4">
-                        <div><label for="origin" class="form-label">ORIGEM</label><input type="text" id="origin" name="origin" class="w-full p-2 rounded form-input" required></div>
-                        <div><label for="recruitment" class="form-label">RECRUTAMENTO</label><input type="text" id="recruitment" name="recruitment" class="w-full p-2 rounded form-input" required></div>
-                        <div><label for="lifeBefore" class="form-label">VIDA ANTES DA B.P.R.D.</label><input type="text" id="lifeBefore" name="lifeBefore" class="w-full p-2 rounded form-input"></div>
-                        <div><label for="drive" class="form-label">MOTIVAÇÃO (DRIVE)</label><input type="text" id="drive" name="drive" class="w-full p-2 rounded form-input"></div>
-                        <div><label for="psych" class="form-label">AVALIAÇÃO PSICOLÓGICA (um por linha)</label><textarea id="psych" name="psych" rows="3" class="w-full p-2 rounded form-input"></textarea></div>
-                     </div>
-                </div>
+                </section>
 
-                <!-- Coluna 2 -->
-                <div>
-                    <h2 class="text-2xl font-bold text-red-500 mb-4">ÍNDICE DE HABILIDADES</h2>
+                <!-- Coluna 2: Habilidades & Privacidade -->
+                <section>
+                    <h2 class="section-title text-2xl font-bold text-red-500">ÍNDICE DE HABILIDADES</h2>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label for="str" class="form-label">FORÇA (FOR)</label>
-                            <div class="relative flex items-center">
-                                <input type="number" id="str" name="str" class="w-full p-2 rounded form-input ability-input" required>
-                                <span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span>
-                            </div>
+                            <label for="str" class="form-label">FORÇA</label>
+                            <div class="relative flex items-center"><input type="number" id="str" name="str" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
                         </div>
                         <div>
-                            <label for="con" class="form-label">CONSTITUIÇÃO (CON)</label>
-                            <div class="relative flex items-center">
-                                <input type="number" id="con" name="con" class="w-full p-2 rounded form-input ability-input" required>
-                                <span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span>
-                            </div>
+                            <label for="con" class="form-label">CONSTITUIÇÃO</label>
+                            <div class="relative flex items-center"><input type="number" id="con" name="con" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
                         </div>
                         <div>
-                            <label for="dex" class="form-label">DESTREZA (DES)</label>
-                            <div class="relative flex items-center">
-                                <input type="number" id="dex" name="dex" class="w-full p-2 rounded form-input ability-input" required>
-                                <span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span>
-                            </div>
+                            <label for="dex" class="form-label">DESTREZA</label>
+                            <div class="relative flex items-center"><input type="number" id="dex" name="dex" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
                         </div>
                         <div>
-                            <label for="int" class="form-label">INTELIGÊNCIA (INT)</label>
-                            <div class="relative flex items-center">
-                                <input type="number" id="int" name="int" class="w-full p-2 rounded form-input ability-input" required>
-                                <span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span>
-                            </div>
+                            <label for="int" class="form-label">INTELIGÊNCIA</label>
+                            <div class="relative flex items-center"><input type="number" id="int" name="int" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
                         </div>
                         <div>
-                            <label for="wis" class="form-label">SABEDORIA (SAB)</label>
-                            <div class="relative flex items-center">
-                                <input type="number" id="wis" name="wis" class="w-full p-2 rounded form-input ability-input" required>
-                                <span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span>
-                            </div>
+                            <label for="wis" class="form-label">SABEDORIA</label>
+                            <div class="relative flex items-center"><input type="number" id="wis" name="wis" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
                         </div>
                         <div>
-                            <label for="cha" class="form-label">CARISMA (CAR)</label>
-                            <div class="relative flex items-center">
-                                <input type="number" id="cha" name="cha" class="w-full p-2 rounded form-input ability-input" required>
-                                <span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span>
-                            </div>
+                            <label for="cha" class="form-label">CARISMA</label>
+                            <div class="relative flex items-center"><input type="number" id="cha" name="cha" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
                         </div>
                     </div>
-                    <h2 class="text-2xl font-bold text-red-500 mt-6 mb-4">HABILIDADES E EQUIPAMENTOS</h2>
-                    <div id="features-container" class="space-y-3"></div>
-                    <button type="button" id="add-feature-btn" class="mt-4 w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition-colors btn flex items-center justify-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
-                        ADICIONAR HABILIDADE
-                    </button>
                     
-                    <h2 class="text-2xl font-bold text-red-500 mt-6 mb-4">PRIVACIDADE</h2>
-                    <div class="flex items-center gap-4">
+                    <h2 class="section-title text-2xl font-bold text-red-500 mt-8">PRIVACIDADE</h2>
+                    <div class="flex items-center justify-between p-4 bg-black bg-opacity-20 rounded-lg">
                        <label for="isPublic" class="form-label">PERSONAGEM PÚBLICO?</label>
-                       <label class="toggle-switch">
-                           <input type="checkbox" id="isPublic" name="isPublic">
-                           <span class="slider"></span>
-                       </label>
+                       <label class="toggle-switch"><input type="checkbox" id="isPublic" name="isPublic"><span class="slider"></span></label>
                     </div>
-                </div>
+                </section>
             </div>
+            
+            <!-- Seção de Classificação -->
+            <section class="mt-8">
+                <h2 class="section-title text-2xl font-bold text-red-500">CLASSIFICAÇÃO</h2>
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                    <div><label for="origin" class="form-label">ORIGEM</label><input type="text" id="origin" name="origin" class="w-full p-2 rounded form-input" required></div>
+                    <div><label for="recruitment" class="form-label">RECRUTAMENTO</label><input type="text" id="recruitment" name="recruitment" class="w-full p-2 rounded form-input" required></div>
+                    <div><label for="lifeBefore" class="form-label">VIDA ANTES DA B.P.R.D.</label><input type="text" id="lifeBefore" name="lifeBefore" class="w-full p-2 rounded form-input"></div>
+                    <div><label for="drive" class="form-label">MOTIVAÇÃO (DRIVE)</label><input type="text" id="drive" name="drive" class="w-full p-2 rounded form-input"></div>
+                    <div class="md:col-span-2"><label for="psych" class="form-label">AVALIAÇÃO PSICOLÓGICA (um por linha)</label><textarea id="psych" name="psych" rows="3" class="w-full p-2 rounded form-input"></textarea></div>
+                 </div>
+            </section>
+
+            <!-- Seção de Habilidades e Equipamentos -->
+            <section class="mt-8">
+                <h2 class="section-title text-2xl font-bold text-red-500">HABILIDADES E EQUIPAMENTOS</h2>
+                <div id="features-container" class="space-y-3"></div>
+                <button type="button" id="add-feature-btn" class="mt-4 w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition-colors btn flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                    ADICIONAR HABILIDADE
+                </button>
+            </section>
 
              <!-- Seção de Perícias -->
-            <div class="md:col-span-2 mt-6">
+            <section class="mt-8">
                  <details>
-                    <summary class="text-2xl font-bold text-red-500 mb-4 flex justify-between items-center">
+                    <summary class="collapsible-header text-2xl font-bold text-red-500 flex justify-between items-center">
                         <span>PERÍCIAS</span>
-                         <svg class="details-arrow w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                        </svg>
+                         <svg class="details-arrow w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                     </summary>
-                    <div class="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-4 pt-4 border-t border-gray-700" id="skills-container">
+                    <div class="collapsible-content grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-4" id="skills-container">
                         <!-- Skills will be generated by JS here -->
                     </div>
                 </details>
-            </div>
+            </section>
 
              <!-- Seção de Ataques -->
-            <div class="md:col-span-2 mt-6">
-                <h2 class="text-2xl font-bold text-red-500 mb-4">ARMAS E ATAQUES</h2>
+            <section class="mt-8">
+                <h2 class="section-title text-2xl font-bold text-red-500">ARMAS E ATAQUES</h2>
                 <div id="attacks-container" class="space-y-3"></div>
                 <button type="button" id="add-attack-btn" class="mt-4 w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition-colors btn flex items-center justify-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
                     ADICIONAR ARMA
                 </button>
-            </div>
+            </section>
             
-            <div class="md:col-span-2 mt-8 flex justify-between gap-4">
-                <a href="personagens.html" class="w-1/2 text-center bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded transition-colors btn">CANCELAR</a>
-                <button id="submit-button" type="submit" class="w-1/2 bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-4 rounded transition-colors btn">SALVAR PERSONAGEM</button>
+            <div class="mt-8 pt-6 border-t border-gray-700 flex flex-col-reverse sm:flex-row-reverse gap-4">
+                <button id="submit-button" type="submit" class="w-full sm:w-auto bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-6 rounded transition-colors btn">SALVAR PERSONAGEM</button>
+                <a href="personagens.html" class="w-full sm:w-auto text-center bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded transition-colors btn">CANCELAR</a>
             </div>
         </form>
     </div>
 
     <script src="auth.js"></script>
     <script>
-        // Form elements
         const form = document.getElementById('agent-form');
         const agentIdField = document.getElementById('agentId');
         const pageTitle = document.getElementById('page-title');
         const submitButton = document.getElementById('submit-button');
         const token = localStorage.getItem('bprd_token');
         
-        // Dynamic sections
         const featuresContainer = document.getElementById('features-container');
         const addFeatureBtn = document.getElementById('add-feature-btn');
         const attacksContainer = document.getElementById('attacks-container');
@@ -229,14 +271,12 @@
             { name: 'Burocracia', attr: 'int' }, { name: 'História', attr: 'int' },
             { name: 'Ocultismo', attr: 'int' }, { name: 'Religião', attr: 'int' }, 
             { name: 'Ciência', attr: 'int' }, { name: 'Tecnologia', attr: 'int' },
-            { name: 'Lidar com Animais', attr: 'wis' }, { name: 'Arcanismo', attr: 'wis' },
-            { name: 'Intuição', attr: 'wis' }, { name: 'Investigação', attr: 'int' }, 
-            { name: 'Medicina', attr: 'wis' }, { name: 'Percepção', attr: 'wis' },
-            { name: 'Sobrevivência', attr: 'wis' }, { name: 'Intimidação', attr: 'cha' },
-            { name: 'Persuasão', attr: 'cha' },
+            { name: 'Lidar com Animais', attr: 'wis' }, { name: 'Intuição', attr: 'wis' },
+            { name: 'Investigação', attr: 'wis' }, { name: 'Medicina', attr: 'wis' },
+            { name: 'Percepção', attr: 'wis' }, { name: 'Sobrevivência', attr: 'wis' },
+            { name: 'Intimidação', attr: 'cha' }, { name: 'Persuasão', attr: 'cha' }
         ];
 
-        // --- Hability Modifiers ---
         const abilityInputs = form.querySelectorAll('.ability-input');
         function calculateModifier(score) {
             if (isNaN(score) || score === '') return '';
@@ -247,49 +287,93 @@
             const score = parseInt(inputElement.value, 10);
             const modifier = calculateModifier(score);
             const modifierSpan = inputElement.nextElementSibling;
-            if (modifierSpan && modifierSpan.classList.contains('ability-modifier')) {
-                modifierSpan.textContent = modifier;
-            }
+            if (modifierSpan) modifierSpan.textContent = modifier;
         }
         abilityInputs.forEach(input => {
             input.addEventListener('input', () => updateModifier(input));
         });
 
-        // --- Dynamic Features ---
         function addFeatureInput(name = '', description = '') {
             const featureDiv = document.createElement('div');
-            featureDiv.className = 'feature-item relative p-3 rounded bg-black bg-opacity-20 border border-gray-600';
+            featureDiv.className = 'feature-item relative p-3 rounded bg-black bg-opacity-20';
             featureDiv.innerHTML = `
-                <button type="button" class="remove-btn absolute top-1 right-1 text-gray-500 hover:text-white text-xl p-1 leading-none">&times;</button>
+                <button type="button" class="remove-btn">&times;</button>
                 <input type="text" placeholder="Nome da Habilidade" class="w-full p-2 rounded form-input feature-name" value="${name}">
-                <details class="mt-2">
-                    <summary class="text-xs text-gray-400 cursor-pointer hover:text-white select-none">Descrição</summary>
-                    <textarea placeholder="Descrição da habilidade..." rows="2" class="w-full p-2 rounded form-input feature-description mt-1">${description}</textarea>
-                </details>
-            `;
+                <div class="mt-2">
+                    <div class="flex border-b border-gray-700 text-sm">
+                        <button type="button" class="markdown-tab active p-2" data-tab="write">Escrever</button>
+                        <button type="button" class="markdown-tab p-2" data-tab="preview">Visualizar</button>
+                    </div>
+                    <div class="markdown-content mt-1">
+                        <textarea placeholder="Descrição da habilidade... (suporta Markdown)" rows="3" class="w-full p-2 rounded form-input feature-description">${description}</textarea>
+                        <div class="prose p-2 feature-preview hidden" style="min-height: 74px;"></div>
+                    </div>
+                </div>`;
+            
+            const writeTab = featureDiv.querySelector('[data-tab="write"]');
+            const previewTab = featureDiv.querySelector('[data-tab="preview"]');
+            const textarea = featureDiv.querySelector('.feature-description');
+            const previewDiv = featureDiv.querySelector('.feature-preview');
+
+            previewDiv.innerHTML = marked.parse(textarea.value);
+            textarea.addEventListener('input', () => {
+                previewDiv.innerHTML = marked.parse(textarea.value);
+            });
+
+            writeTab.addEventListener('click', () => {
+                writeTab.classList.add('active');
+                previewTab.classList.remove('active');
+                textarea.classList.remove('hidden');
+                previewDiv.classList.add('hidden');
+            });
+
+            previewTab.addEventListener('click', () => {
+                previewTab.classList.add('active');
+                writeTab.classList.remove('active');
+                previewDiv.classList.remove('hidden');
+                textarea.classList.add('hidden');
+            });
+
             featuresContainer.appendChild(featureDiv);
             featureDiv.querySelector('.remove-btn').addEventListener('click', () => featureDiv.remove());
         }
         addFeatureBtn.addEventListener('click', () => addFeatureInput());
         
-        // --- Dynamic Attacks ---
-        function addAttackInput(name = '', bonus = '', damage = '') {
+        function addAttackInput(name = '', bonus = '', damage = '', hasAmmo = false, currentAmmo = '') {
             const attackDiv = document.createElement('div');
-            attackDiv.className = 'attack-item relative p-3 rounded bg-black bg-opacity-20 border border-gray-600';
+            const ammoId = `ammo-check-${crypto.randomUUID()}`;
+            const usesAmmo = String(hasAmmo) === 'true';
+            
+            attackDiv.className = 'attack-item relative p-3 rounded bg-black bg-opacity-20 space-y-3';
             attackDiv.innerHTML = `
-                <button type="button" class="remove-btn absolute top-1 right-1 text-gray-500 hover:text-white text-xl p-1 leading-none">&times;</button>
+                <button type="button" class="remove-btn">&times;</button>
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <input type="text" placeholder="Nome da Arma" class="p-2 rounded form-input attack-name" value="${name}">
                     <input type="text" placeholder="Bônus" class="p-2 rounded form-input attack-bonus" value="${bonus}">
                     <input type="text" placeholder="Dano" class="p-2 rounded form-input attack-damage" value="${damage}">
                 </div>
-            `;
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" id="${ammoId}" class="form-checkbox attack-has-ammo" ${usesAmmo ? 'checked' : ''}>
+                        <label for="${ammoId}" class="form-label text-sm cursor-pointer select-none">Usa Munição?</label>
+                    </div>
+                    <div class="ammo-amount-container ${usesAmmo ? '' : 'hidden'}">
+                        <input type="text" placeholder="Munição" class="p-2 w-28 rounded form-input attack-ammo-value" value="${currentAmmo}">
+                    </div>
+                </div>`;
             attacksContainer.appendChild(attackDiv);
+            
+            const checkbox = attackDiv.querySelector('.attack-has-ammo');
+            const ammoAmountContainer = attackDiv.querySelector('.ammo-amount-container');
+
+            checkbox.addEventListener('change', () => {
+                ammoAmountContainer.classList.toggle('hidden', !checkbox.checked);
+            });
+
             attackDiv.querySelector('.remove-btn').addEventListener('click', () => attackDiv.remove());
         }
         addAttackBtn.addEventListener('click', () => addAttackInput());
 
-        // --- Skills Initialization ---
         function initializeSkillsList() {
             skillsContainer.innerHTML = '';
             MASTER_SKILLS_LIST.forEach(skill => {
@@ -302,50 +386,41 @@
                     <input type="checkbox" id="prof-${skillId}" class="skill-proficient">
                     <label for="prof-${skillId}" class="skill-checkbox-label" title="Proficiência">P</label>
                     <input type="checkbox" id="adv-${skillId}" class="skill-advantage">
-                    <label for="adv-${skillId}" class="skill-checkbox-label" title="Vantagem">A</label>
-                `;
+                    <label for="adv-${skillId}" class="skill-checkbox-label" title="Vantagem">A</label>`;
                 skillsContainer.appendChild(skillDiv);
             });
         }
 
-        // --- Form Population and Submission ---
         function populateForm(agent) {
-            // Basic data
             Object.keys(agent).forEach(key => {
-                if(form[key] && typeof agent[key] !== 'object' && agent[key] !== null) {
-                    const element = form[key];
+                const element = form[key];
+                if(element && typeof agent[key] !== 'object' && agent[key] !== null) {
                     if (element.type === 'checkbox') {
-                         element.checked = agent[key];
+                         element.checked = String(agent[key]) === 'true';
                     } else {
                          element.value = agent[key];
                     }
                 }
             });
 
-            form.maxHitPoints.value = agent.hitPoints ? agent.hitPoints.split('/')[0] : '';
-            document.getElementById('isPublic').checked = agent.isPublic;
+            form.maxHitPoints.value = agent.hitPoints ? agent.hitPoints.split('/')[1] : '';
             
-            // Attributes
             for (const attr in agent.attributes) {
-                if (form[attr]) {
-                    form[attr].value = agent.attributes[attr];
-                }
+                if (form[attr]) form[attr].value = agent.attributes[attr];
             }
             abilityInputs.forEach(updateModifier);
 
-            // Dynamic sections
             featuresContainer.innerHTML = '';
             agent.features?.forEach(f => addFeatureInput(f.name, f.description));
             
             attacksContainer.innerHTML = '';
-            agent.attacks?.forEach(a => addAttackInput(a.name, a.bonus, a.damage));
+            agent.attacks?.forEach(a => addAttackInput(a.name, a.bonus, a.damage, a.hasAmmo, a.currentAmmo));
 
-            // Skills
             agent.skills?.forEach(savedSkill => {
                 const skillRow = skillsContainer.querySelector(`[data-skill-name="${savedSkill.name}"]`);
                 if(skillRow) {
-                    skillRow.querySelector('.skill-proficient').checked = savedSkill.proficient;
-                    skillRow.querySelector('.skill-advantage').checked = savedSkill.advantage;
+                    skillRow.querySelector('.skill-proficient').checked = String(savedSkill.proficient) === 'true';
+                    skillRow.querySelector('.skill-advantage').checked = String(savedSkill.advantage) === 'true';
                 }
             });
 
@@ -358,7 +433,6 @@
             const params = new URLSearchParams(window.location.search);
             const editId = params.get('edit');
             agentIdField.value = editId || '';
-
 
             if (editId) {
                 try {
@@ -373,7 +447,7 @@
                     alert(err.message);
                 }
             } else {
-                 addFeatureInput(); // Add one empty field for new characters
+                 addFeatureInput();
                  addAttackInput();
             }
         });
@@ -381,28 +455,28 @@
         form.addEventListener('submit', async function(event) {
             event.preventDefault();
 
-            // Collect Skills
             const skillsData = Array.from(skillsContainer.querySelectorAll('.skill-grid')).map(row => ({
                 name: row.dataset.skillName,
                 proficient: row.querySelector('.skill-proficient').checked,
                 advantage: row.querySelector('.skill-advantage').checked,
             }));
 
-            // Collect Attacks
             const attacksData = Array.from(attacksContainer.querySelectorAll('.attack-item')).map(row => ({
                 name: row.querySelector('.attack-name').value,
                 bonus: row.querySelector('.attack-bonus').value,
                 damage: row.querySelector('.attack-damage').value,
+                hasAmmo: row.querySelector('.attack-has-ammo').checked,
+                currentAmmo: row.querySelector('.attack-ammo-value').value
             }));
 
-            // Collect Features
             const featuresData = Array.from(featuresContainer.querySelectorAll('.feature-item')).map(row => ({
                  name: row.querySelector('.feature-name').value,
                  description: row.querySelector('.feature-description').value,
             }));
             
             const maxHp = form.maxHitPoints.value;
-            const hitPointsValue = maxHp ? `${maxHp}/${maxHp}` : '';
+            const currentHp = agentIdField.value ? document.getElementById('char-hp')?.textContent.split('/')[0] || maxHp : maxHp;
+            const hitPointsValue = maxHp ? `${currentHp}/${maxHp}` : '';
 
             const agentData = {
                 name: form.name.value,
@@ -454,4 +528,3 @@
     </script>
 </body>
 </html>
-

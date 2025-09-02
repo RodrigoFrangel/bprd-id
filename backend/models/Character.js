@@ -56,7 +56,9 @@ const CharacterSchema = new mongoose.Schema({
   attacks: [{
       name: { type: String },
       bonus: { type: String },
-      damage: { type: String }
+      damage: { type: String },
+      hasAmmo: { type: Boolean, default: false },
+      currentAmmo: { type: String, default: "" }
   }],
 
   createdAt: {
@@ -68,4 +70,3 @@ const CharacterSchema = new mongoose.Schema({
 const Character = mongoose.model('Character', CharacterSchema);
 
 module.exports = Character;
-

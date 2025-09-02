@@ -9,8 +9,23 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
+    <!-- Font Awesome for shield icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        body { background-color: #1a1a1a; font-family: 'Roboto Condensed', sans-serif; color: #f5f5f5; }
+        body { 
+            background-color: #1a1a1a; 
+            font-family: 'Roboto Condensed', sans-serif; 
+            color: #f5f5f5;
+            background-image: url('https://i.pinimg.com/736x/e0/ed/b9/e0edb9994735e302f7cc267859993442.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .sheet-container {
+            background-color: rgba(10, 10, 10, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid #444;
+        }
         .btn { font-family: 'Roboto Condensed', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; }
         .stat-card {
             background-color: #2d2d2d;
@@ -21,6 +36,10 @@
             justify-content: center;
             align-items: center;
             height: 60px;
+            transition: all 0.2s ease-in-out;
+        }
+        .stat-card.proficient-save {
+            border-color: #b91c1c;
         }
         .feature-card {
             background-color: #2d2d2d;
@@ -32,28 +51,43 @@
         .font-special { font-family: 'Special Elite', monospace; }
         #char-hp:hover { cursor: pointer; background-color: rgba(255,255,255,0.1); border-radius: 4px; }
         
+        .tab-container {
+            display: flex;
+            border: 1px solid #444;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
         .tab-btn {
-            background-color: #2d2d2d; border: 1px solid #444; border-bottom: none;
-            padding: 0.4rem 1rem; cursor: pointer; transition: background-color 0.2s;
-            font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em;
-            border-radius: 0.375rem; flex-grow: 1; text-align: center;
+            background-color: #2d2d2d;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            flex-grow: 1;
+            text-align: center;
+            border-right: 1px solid #444;
+        }
+        .tab-btn:last-child {
+            border-right: none;
         }
         .tab-btn:hover { background-color: #3f3f3f; }
-        .tab-btn.active { background-color: #1a1a1a; border-color: #555; color: #b91c1c; font-weight: bold; }
+        .tab-btn.active { background-color: #1a1a1a; color: #b91c1c; font-weight: bold; }
         .tab-panel { display: none; padding: 0; border: none; }
         .tab-panel.active { display: block; }
 
         .skill-row {
             display: grid;
-            grid-template-columns: 2rem 3rem 1fr 2rem 3rem;
-            gap: 1rem;
+            grid-template-columns: 24px 40px 1fr 24px 40px;
+            gap: 0.75rem;
             align-items: center;
             padding: 0.5rem;
-            border-bottom: 1px solid #3f3f3f;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
         .skill-row:last-child { border-bottom: none; }
         .skill-attr { font-family: 'Special Elite', monospace; color: #9ca3af; }
-        .skill-bonus { font-weight: bold; font-size: 1.1rem; text-align: center; background-color: #2d2d2d; border-radius: 0.25rem; padding: 0.25rem 0;}
+        .skill-bonus { font-weight: bold; font-size: 1.1rem; text-align: center; }
         .advantage-tag {
             width: 24px; height: 27px; background-color: #16a34a; /* green-600 */
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
@@ -71,43 +105,61 @@
             font-size: 0.75rem; text-transform: uppercase; font-family: 'Special Elite', monospace;
         }
         .attack-row {
-            display: grid; grid-template-columns: 2fr 1fr 1fr;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
             grid-template-areas: "name bonus damage" "ammo ammo ammo";
-            gap: 1rem; align-items: center; padding: 0.75rem;
-            background-color: #2d2d2d; border: 1px solid #444; border-radius: 0.375rem;
+            gap: 0.5rem 1rem;
+            align-items: center;
+            padding: 0.75rem;
+            background-color: #2d2d2d;
+            border: 1px solid #444;
+            border-radius: 0.375rem;
         }
-        .attack-name { grid-area: name; } .attack-bonus { grid-area: bonus; }
-        .attack-damage { grid-area: damage; } .attack-ammo { grid-area: ammo; }
+        .attack-name { grid-area: name; }
+        .attack-bonus { grid-area: bonus; }
+        .attack-damage { grid-area: damage; }
+        .attack-ammo { grid-area: ammo; }
         .attack-bonus, .attack-damage { font-weight: bold; font-size: 1.1rem; text-align: center; }
-        .attack-ammo { font-size: 0.8rem; color: #9ca3af; margin-top: -0.5rem; }
+        .attack-ammo { font-size: 0.8rem; color: #9ca3af; padding-top: 0.5rem; border-top: 1px solid #444; margin-top: 0.5rem;}
+        .ammo-value { cursor: pointer; font-weight: bold; color: #f5f5f5; padding: 0.1rem 0.5rem; border-radius: 4px; transition: background-color 0.2s;}
+        .ammo-value:hover { background-color: rgba(255,255,255,0.1); }
+
+        /* Estilos para o Toggle Switch de Salva-Guarda */
+        .toggle-switch { position: relative; display: inline-block; width: 34px; height: 20px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #b91c1c; }
+        input:checked + .slider:before { transform: translateX(14px); }
     </style>
 </head>
 <body class="p-4 sm:p-8">
 
     <div id="loading" class="text-center text-2xl font-special">Carregando dados do agente...</div>
     
-    <div id="character-sheet" class="max-w-2xl mx-auto hidden">
+    <div id="character-sheet" class="sheet-container max-w-2xl mx-auto hidden rounded-lg p-6 sm:p-8">
         <header class="space-y-4 mb-8">
              <div class="flex justify-between items-center">
-                <a href="personagens.html" class="text-gray-400 hover:text-white transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-                </a>
+                <div class="w-6"></div> <!-- Spacer -->
                 <div class="text-center">
                     <h1 id="char-name" class="text-3xl font-bold font-special"></h1>
                     <p id="char-role-level" class="text-md text-gray-400"></p>
                 </div>
-                <div class="w-6"></div>
-            </div>
-            <div class="flex justify-between items-center text-center">
-                <div class="flex-1 text-center">
-                    <p class="text-xs text-gray-400 uppercase tracking-wider">Classe de</p>
-                    <p id="char-ac" class="text-3xl font-bold text-white">--</p>
-                    <p class="text-xs text-gray-400 uppercase tracking-wider">Armadura</p>
+                 <div class="w-6 h-6 text-green-500 opacity-0 transition-opacity duration-500" id="save-indicator">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
                 </div>
-                <div class="flex-1 text-center">
-                    <p class="text-xs text-gray-400 uppercase tracking-wider">Iniciativa</p>
-                    <p id="char-initiative" class="text-3xl font-bold text-white">--</p>
-                    <p class="text-xs text-gray-400 uppercase tracking-wider">&nbsp;</p>
+            </div>
+            <div class="flex justify-around items-center text-center">
+                <div class="flex-1 flex flex-col items-center justify-center">
+                    <div class="relative w-16 h-16 flex items-center justify-center">
+                        <i class="fas fa-shield-alt absolute text-6xl text-gray-700 opacity-40"></i>
+                        <div class="relative text-center">
+                            <p class="text-xs text-gray-400 uppercase tracking-wider leading-none">CA</p>
+                            <p id="char-ac" class="text-2xl font-bold text-white leading-tight">--</p>
+                        </div>
+                    </div>
                 </div>
                 <div class="flex-shrink-0 mx-2">
                     <img id="char-pic" src="" class="w-20 h-20 rounded-full border-2 border-gray-500 object-cover" alt="Character Portrait">
@@ -122,20 +174,30 @@
                     </div>
                 </div>
             </div>
+            <div class="flex justify-start items-center my-2">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="save-toggle">
+                    <span class="slider"></span>
+                </label>
+                <label for="save-toggle" class="font-special text-sm ml-3">Salva-guardas</label>
+            </div>
             <div class="grid grid-cols-6 gap-2">
-                <div id="attr-str" class="stat-card rounded-lg"></div> <div id="attr-dex" class="stat-card rounded-lg"></div>
-                <div id="attr-con" class="stat-card rounded-lg"></div> <div id="attr-int" class="stat-card rounded-lg"></div>
-                <div id="attr-wis" class="stat-card rounded-lg"></div> <div id="attr-cha" class="stat-card rounded-lg"></div>
+                <div id="attr-str" class="stat-card rounded-lg"></div> 
+                <div id="attr-dex" class="stat-card rounded-lg"></div>
+                <div id="attr-con" class="stat-card rounded-lg"></div> 
+                <div id="attr-int" class="stat-card rounded-lg"></div>
+                <div id="attr-wis" class="stat-card rounded-lg"></div> 
+                <div id="attr-cha" class="stat-card rounded-lg"></div>
             </div>
         </header>
 
         <main>
-            <div class="flex">
+            <div class="tab-container">
                 <button class="tab-btn active" data-tab="habilidades">Habilidades</button>
                 <button class="tab-btn" data-tab="pericias">Perícias</button>
                 <button class="tab-btn" data-tab="ataques">Ataques</button>
             </div>
-            <div id="tab-content" class="relative mt-6">
+            <div id="tab-content" class="relative mt-4">
                 <div id="habilidades-panel" class="tab-panel active">
                     <h3 class="text-xl font-bold text-center mb-4 font-special">Habilidades</h3>
                     <div id="features-list" class="space-y-3"></div>
@@ -165,19 +227,37 @@
         const sheetDiv = document.getElementById('character-sheet');
         const tabButtons = document.querySelectorAll('.tab-btn');
         const tabPanels = document.querySelectorAll('.tab-panel');
+        const attacksListContainer = document.getElementById('attacks-list');
+        const saveIndicator = document.getElementById('save-indicator');
+        const saveToggle = document.getElementById('save-toggle');
+
+        let currentCharacter = null;
+        let saveTimeout;
 
         const attributeMap = { str: 'FOR', dex: 'DES', con: 'CON', int: 'INT', wis: 'SAB', cha: 'CAR' };
+        // NOTE: Saving throw proficiencies need to be stored in the database. 
+        // For now, it's hardcoded based on common class types.
+        const SAVING_THROW_PROFICIENCIES = {
+            // Martial / Front liners
+            'guerreiro': ['str', 'con'], 'bárbaro': ['str', 'con'], 'paladino': ['wis', 'cha'],
+            // Skill / Agile
+            'ladino': ['dex', 'int'], 'ranger': ['str', 'dex'], 'monge': ['str', 'dex'],
+            // Casters
+            'mago': ['int', 'wis'], 'feiticeiro': ['con', 'cha'], 'clérigo': ['wis', 'cha'], 'bardo': ['dex', 'cha'],
+            // Default
+            'default': ['con']
+        };
+
         const MASTER_SKILLS_LIST = [
             { name: 'Atletismo', attr: 'str' }, { name: 'Acrobacia', attr: 'dex' },
             { name: 'Mãos Firmes', attr: 'dex' }, { name: 'Furtividade', attr: 'dex' },
             { name: 'Burocracia', attr: 'int' }, { name: 'História', attr: 'int' },
             { name: 'Ocultismo', attr: 'int' }, { name: 'Religião', attr: 'int' }, 
             { name: 'Ciência', attr: 'int' }, { name: 'Tecnologia', attr: 'int' },
-            { name: 'Lidar com Animais', attr: 'wis' }, { name: 'Arcanismo', attr: 'wis' },
-            { name: 'Intuição', attr: 'wis' }, { name: 'Investigação', attr: 'int' }, 
-            { name: 'Medicina', attr: 'wis' }, { name: 'Percepção', attr: 'wis' },
-            { name: 'Sobrevivência', attr: 'wis' }, { name: 'Intimidação', attr: 'cha' },
-            { name: 'Persuasão', attr: 'cha' },
+            { name: 'Lidar com Animais', attr: 'wis' }, { name: 'Intuição', attr: 'wis' },
+            { name: 'Investigação', attr: 'wis' }, { name: 'Medicina', attr: 'wis' },
+            { name: 'Percepção', attr: 'wis' }, { name: 'Sobrevivência', attr: 'wis' },
+            { name: 'Intimidação', attr: 'cha' }, { name: 'Persuasão', attr: 'cha' }
         ];
 
         tabButtons.forEach(button => {
@@ -190,17 +270,69 @@
         });
 
         function calculateModifier(score) {
-            const mod = Math.floor((score - 10) / 2);
-            return mod >= 0 ? `+${mod}` : `${mod}`;
+            return Math.floor((score - 10) / 2);
         }
 
-        function renderAttribute(attr, score) {
-            const container = document.getElementById(`attr-${attr}`);
-            container.innerHTML = `
-                <p class="text-xs text-gray-400 font-bold uppercase">${attributeMap[attr]}</p>
-                <p class="text-3xl font-bold text-white">${calculateModifier(score)}</p>
-            `;
+        function formatBonus(bonus) {
+            return bonus >= 0 ? `+${bonus}` : `${bonus}`;
         }
+        
+        async function saveCharacterUpdate(characterData) {
+            const token = localStorage.getItem('bprd_token');
+            if (!token) {
+                console.error("Token de autenticação não encontrado.");
+                return;
+            }
+            try {
+                const response = await fetch(`${API_URL}/characters/${characterData._id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'x-auth-token': token },
+                    body: JSON.stringify(characterData)
+                });
+                if (!response.ok) throw new Error('Falha ao salvar os dados do personagem.');
+                
+                clearTimeout(saveTimeout);
+                saveIndicator.classList.remove('opacity-0');
+                saveTimeout = setTimeout(() => saveIndicator.classList.add('opacity-0'), 2000);
+            } catch (error) {
+                console.error("Erro ao salvar personagem:", error);
+            }
+        }
+
+        function renderAllAttributes(showSaves = false) {
+            if (!currentCharacter) return;
+            
+            const roleKey = currentCharacter.role.toLowerCase();
+            const proficiencies = SAVING_THROW_PROFICIENCIES[roleKey] || SAVING_THROW_PROFICIENCIES['default'];
+
+            Object.keys(attributeMap).forEach(attr => {
+                const card = document.getElementById(`attr-${attr}`);
+                const score = currentCharacter.attributes[attr];
+                const modifier = calculateModifier(score);
+                const isProficient = proficiencies.includes(attr);
+
+                // Always set proficiency border
+                card.classList.toggle('proficient-save', isProficient);
+
+                if (showSaves) {
+                    const profBonus = Math.ceil(1 + currentCharacter.level / 4);
+                    const saveBonus = modifier + (isProficient ? profBonus : 0);
+                    card.innerHTML = `
+                        <p class="text-xs text-gray-400 font-bold uppercase">${attributeMap[attr]}</p>
+                        <p class="text-3xl font-bold text-white">${formatBonus(saveBonus)}</p>
+                    `;
+                } else {
+                    card.innerHTML = `
+                        <p class="text-xs text-gray-400 font-bold uppercase">${attributeMap[attr]}</p>
+                        <p class="text-3xl font-bold text-white">${formatBonus(modifier)}</p>
+                    `;
+                }
+            });
+        }
+
+        saveToggle.addEventListener('change', () => {
+            renderAllAttributes(saveToggle.checked);
+        });
 
         function renderFeature(name, description) {
             const list = document.getElementById('features-list');
@@ -230,53 +362,98 @@
             MASTER_SKILLS_LIST.forEach(skillInfo => {
                 const savedSkill = agent.skills.find(s => s.name === skillInfo.name);
                 const score = agent.attributes[skillInfo.attr] || 10;
-                let modifier = Math.floor((score - 10) / 2);
+                let modifier = calculateModifier(score);
                 
                 if (savedSkill?.proficient) {
                     modifier += proficiencyBonus;
                 }
 
-                const modifierString = modifier >= 0 ? `+${modifier}` : modifier;
                 const proficiencyIndicator = savedSkill?.proficient ? '<div class="proficiency-dot"></div>' : '<div></div>';
                 const advantageTag = savedSkill?.advantage ? '<div class="advantage-tag">A</div>' : '<div></div>';
 
                 const skillElement = document.createElement('div');
                 skillElement.className = 'skill-row';
-                // Grid: Proficiência | Atributo | Nome da Perícia | Vantagem | Bônus
                 skillElement.innerHTML = `
                     ${proficiencyIndicator}
                     <span class="skill-attr">${attributeMap[skillInfo.attr]}</span>
                     <span class="skill-name">${skillInfo.name}</span>
                     ${advantageTag}
-                    <span class="skill-bonus">${modifierString}</span>
+                    <span class="skill-bonus">${formatBonus(modifier)}</span>
                 `;
                 listContainer.appendChild(skillElement);
             });
         }
 
         function renderAttacks(attacks) {
-            const listContainer = document.getElementById('attacks-list');
-            listContainer.innerHTML = '';
+            attacksListContainer.innerHTML = '';
             if (!attacks || attacks.length === 0) {
-                listContainer.innerHTML = '<p class="text-gray-400">Nenhum ataque listado.</p>';
+                attacksListContainer.innerHTML = '<p class="text-gray-400">Nenhum ataque listado.</p>';
                 return;
             }
-            attacks.forEach(attack => {
+            attacks.forEach((attack, index) => {
                 const attackElement = document.createElement('div');
                 attackElement.className = 'attack-row';
+
+                let ammoHTML = '';
+                if (attack.hasAmmo) {
+                    ammoHTML = `<div class="attack-ammo text-right">
+                           <span class="font-special text-xs">MUNIÇÃO: </span>
+                           <span class="ammo-value" data-attack-index="${index}">${attack.currentAmmo || '--'}</span>
+                       </div>`;
+                } else {
+                    attackElement.style.gridTemplateAreas = '"name bonus damage"';
+                    attackElement.style.gap = '0.5rem 1rem'; 
+                }
+
                 attackElement.innerHTML = `
                     <span class="attack-name font-bold">${attack.name || 'N/A'}</span>
                     <span class="attack-bonus">${attack.bonus || '+0'}</span>
                     <span class="attack-damage">${attack.damage || '-'}</span>
+                    ${ammoHTML}
                 `;
-                listContainer.appendChild(attackElement);
+                attacksListContainer.appendChild(attackElement);
+            });
+        }
+        
+        attacksListContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('ammo-value')) {
+                makeAmmoEditable(e.target);
+            }
+        });
+
+        function makeAmmoEditable(ammoElement) {
+            const attackIndex = ammoElement.dataset.attackIndex;
+            const originalValue = ammoElement.textContent;
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = originalValue === '--' ? '' : originalValue;
+            input.className = 'bg-gray-700 text-white text-center w-20 text-sm font-bold rounded';
+            
+            ammoElement.replaceWith(input);
+            input.focus();
+            input.select();
+
+            const saveAmmo = () => {
+                const newValue = input.value.trim() || '--';
+                currentCharacter.attacks[attackIndex].currentAmmo = newValue;
+                saveCharacterUpdate(currentCharacter);
+                renderAttacks(currentCharacter.attacks);
+            };
+
+            input.addEventListener('blur', saveAmmo);
+            input.addEventListener('keydown', (e) => {
+                if(e.key === 'Enter') input.blur();
+                if(e.key === 'Escape') {
+                    renderAttacks(currentCharacter.attacks);
+                }
             });
         }
 
         function updateHpBar(hpString) {
             const hpBar = document.getElementById('hp-bar');
             if (!hpString || !hpString.includes('/')) { hpBar.style.width = '0%'; return; }
-            const [current, max] = hpString.split('/').map(Number);
+            const [current, max] = hpString.split('/').map(s => parseInt(s.trim(), 10));
             if (isNaN(current) || isNaN(max) || max === 0) { hpBar.style.width = '0%'; return; }
             hpBar.style.width = `${Math.max(0, Math.min(100, (current / max) * 100))}%`;
         }
@@ -296,12 +473,14 @@
                 
                 const saveChanges = () => {
                     let newCurrentHp = parseInt(input.value, 10);
-                    if (isNaN(newCurrentHp) || newCurrentHp < 0) newCurrentHp = 0;
+                    if (isNaN(newCurrentHp)) newCurrentHp = parseInt(currentHp.trim(), 10);
+                    
                     const newHpValue = `${newCurrentHp}/${maxHp.trim()}`;
+                    currentCharacter.hitPoints = newHpValue;
                     hpTextElement.textContent = newHpValue;
                     hpContainer.replaceChild(hpTextElement, input);
                     updateHpBar(newHpValue);
-                    // Futuro: salvar HP no backend aqui
+                    saveCharacterUpdate(currentCharacter);
                 };
                 input.addEventListener('blur', saveChanges);
                 input.addEventListener('keydown', (e) => {
@@ -318,22 +497,22 @@
         }
 
         function populateSheet(agent) {
+            currentCharacter = agent;
             document.title = `Companion - ${agent.name}`;
             const formattedName = formatCharacterName(agent.name);
             document.getElementById('char-name').textContent = formattedName.toUpperCase();
             document.getElementById('char-role-level').textContent = `${agent.role}  |  Nível ${agent.level}`;
             document.getElementById('char-pic').src = agent.profilePic || 'https://placehold.co/80x80/2d2d2d/f5f5f5?text=BPRD';
             
-            const dexModifier = parseInt(calculateModifier(agent.attributes.dex), 10);
+            const dexModifier = calculateModifier(agent.attributes.dex);
             document.getElementById('char-ac').textContent = 10 + dexModifier;
-            document.getElementById('char-initiative').textContent = dexModifier >= 0 ? `+${dexModifier}`: dexModifier;
             
-            const initialHp = agent.hitPoints || '10/10';
+            const initialHp = agent.hitPoints || '0/10';
             document.getElementById('char-hp').textContent = initialHp;
             updateHpBar(initialHp);
             makeHpEditable();
 
-            Object.keys(agent.attributes).forEach(attr => renderAttribute(attr, agent.attributes[attr]));
+            renderAllAttributes(saveToggle.checked);
 
             const featuresList = document.getElementById('features-list');
             featuresList.innerHTML = '';
@@ -353,7 +532,6 @@
         async function fetchCharacter(id) {
             const token = localStorage.getItem('bprd_token');
             try {
-                // Workaround: Buscar em 'mine' e 'public'
                 let character = null;
 
                 if (token) {

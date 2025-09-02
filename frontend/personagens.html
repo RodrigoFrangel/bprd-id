@@ -12,27 +12,96 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         body { background-color: #1a1a1a; font-family: 'Roboto Condensed', sans-serif; color: #f5f5f5; }
-        .agent-card { background-color: #2d2d2d; border-left: 5px solid #444; transition: all 0.2s ease-in-out; }
-        .agent-card.main { border-left-color: #facc15; } /* Cor para personagem principal */
+        .agent-card { 
+            background-color: #2d2d2d; 
+            border-left: 5px solid #444; 
+            transition: all 0.2s ease-in-out; 
+            position: relative; /* Adicionado para posicionar a tag 'privado' */
+        }
+        .agent-card.main { border-left-color: #facc15; }
         .agent-card:hover { border-left-color: #b91c1c; }
         .btn { font-family: 'Roboto Condensed', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; }
-        .action-btn { 
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 36px;
-            height: 36px;
-            border-radius: 9999px; /* circular */
-            transition: all 0.2s;
+        .private-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 0.7rem; 
+            background-color: #4b5563; 
+            color: #e5e7eb; 
+            padding: 2px 8px; 
+            border-radius: 12px; 
+            line-height: initial;
         }
-        .action-btn:hover { transform: scale(1.1); }
-        .private-badge { font-size: 0.7rem; background-color: #4b5563; color: #e5e7eb; padding: 2px 8px; border-radius: 12px; font-family: 'Special Elite', monospace; }
         .agent-thumb {
             width: 64px;
             height: 64px;
             object-fit: cover;
             border-radius: 0.25rem;
             border: 2px solid #4b5563;
+        }
+        
+        /* --- ESTILOS PARA O MENU DE CONTEXTO --- */
+        .modal-overlay {
+            transition: opacity 0.2s ease-in-out, backdrop-filter 0.2s ease-in-out;
+            background-color: rgba(10, 10, 10, 0.5); /* Fundo mais escuro */
+            backdrop-filter: blur(0px); /* Estado inicial para transição */
+            -webkit-backdrop-filter: blur(0px);
+        }
+        .modal-box {
+            position: absolute; /* Chave para o posicionamento */
+            transition: all 0.15s ease-in-out;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5), 0 4px 6px -2px rgba(0,0,0,0.25);
+            background-color: #2d2d2d; /* Cor igual aos cards */
+            border: 1px solid #4b5563; /* Borda sutil */
+        }
+        .modal-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+            backdrop-filter: blur(4px); /* Efeito de blur ativo */
+            -webkit-backdrop-filter: blur(4px);
+        }
+        .modal-overlay.visible .modal-box {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .modal-option {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 10px 6px;
+            background-color: transparent;
+            color: #e5e7eb;
+            border-radius: 0.375rem;
+            text-align: left;
+            font-weight: normal;
+            transition: background-color 0.2s;
+            font-size: 0.9rem;
+        }
+        .modal-option:hover {
+            background-color: #383c41;
+        }
+        .modal-option i.fa-fw {
+            margin-right: 12px;
+            color: #9ca3af;
+            width: 20px;
+            text-align: center;
+        }
+        .modal-option.delete {
+             color: #f87171;
+        }
+        .modal-option.delete:hover {
+             background-color: #b91c1c;
+             color: white;
+        }
+        #modal-close-btn {
+            font-size: 1.5rem;
+            line-height: 1;
+            padding: 0 8px;
+            color: #9ca3af;
+            transition: color 0.2s;
+        }
+        #modal-close-btn:hover {
+            color: white;
         }
     </style>
 </head>
@@ -58,12 +127,35 @@
         </div>
     </div>
 
+    <!-- Menu de Contexto -->
+    <div id="options-modal-overlay" class="modal-overlay fixed inset-0 z-50 opacity-0 pointer-events-none">
+        <div id="options-modal" class="modal-box rounded-lg w-full max-w-xs transform opacity-0 scale-95" style="width: 260px;">
+            <div id="modal-header" class="p-2 border-b border-gray-700/50 flex justify-between items-center">
+                 <h3 id="modal-title" class="text-sm font-bold text-gray-300 px-2 truncate">Opções</h3>
+                 <button id="modal-close-btn">&times;</button>
+            </div>
+            <div id="modal-content" class="p-2 space-y-1">
+                <!-- Opções serão injetadas aqui -->
+            </div>
+        </div>
+    </div>
+
     <script src="auth.js"></script>
     <script>
         const agentListContainer = document.getElementById('agent-list');
         const headerContainer = document.getElementById('header-container');
         const createCharacterBtn = document.getElementById('create-character-btn');
         const token = localStorage.getItem('bprd_token');
+        
+        const optionsModalOverlay = document.getElementById('options-modal-overlay');
+        const optionsModal = document.getElementById('options-modal');
+        const modalContent = document.getElementById('modal-content');
+        const modalTitle = document.getElementById('modal-title');
+        const modalCloseBtn = document.getElementById('modal-close-btn');
+
+        let characterData = [];
+        let longPressTimer;
+        const LONG_PRESS_DURATION = 500;
 
         function setupHeaderAndNav() {
             if (token) {
@@ -82,10 +174,12 @@
             } else {
                 localStorage.setItem('main_character_id', id);
             }
+            closeOptionsMenu();
             loadCharacters(); 
         }
 
         function renderAgents(agents) {
+            characterData = agents;
             agentListContainer.innerHTML = ''; 
             const loggedInUserId = getLoggedInUserId();
             const mainCharacterId = localStorage.getItem('main_character_id');
@@ -102,44 +196,23 @@
                 const isMain = agent._id === mainCharacterId;
                 
                 const agentElement = document.createElement('div');
-                agentElement.className = `agent-card p-4 rounded-lg shadow-lg flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 ${isMain ? 'main' : ''}`;
-                
-                let actionButtons = '';
-                if (isOwner) {
-                    actionButtons = `
-                        <div class="flex items-center justify-end gap-2 w-full mt-4 sm:w-auto sm:mt-0 sm:flex-shrink-0 sm:ml-4">
-                            <a href="companion-app.html?id=${agent._id}" title="Companion App" class="action-btn bg-green-600 hover:bg-green-700 text-white">
-                               <i class="fas fa-chart-bar"></i>
-                            </a>
-                            <button data-id="${agent._id}" title="Marcar como Principal" class="set-main-btn action-btn ${isMain ? 'bg-yellow-400 hover:bg-yellow-500' : 'bg-gray-500 hover:bg-gray-600'} text-white">
-                                <i class="fas fa-star"></i>
-                            </button>
-                            <a href="create.html?edit=${agent._id}" title="Editar Personagem" class="action-btn bg-blue-600 hover:bg-blue-700 text-white">
-                                <i class="fas fa-pencil-alt"></i>
-                            </a>
-                            <button data-id="${agent._id}" title="Deletar Personagem" class="delete-btn action-btn bg-red-800 hover:bg-red-900 text-white">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </div>
-                    `;
-                }
+                agentElement.className = `agent-card p-4 rounded-lg shadow-lg flex gap-4 ${isMain ? 'main' : ''}`;
+                agentElement.dataset.agentId = agent._id;
 
-                const privateBadge = !agent.isPublic && isOwner ? '<span class="private-badge ml-3">PRIVADO</span>' : '';
+                const privateBadgeHTML = !agent.isPublic && isOwner ? '<span class="private-badge">Privado</span>' : '';
                 const thumbnailUrl = agent.profilePic || `https://placehold.co/64x64/2d2d2d/f5f5f5?text=BPRD`;
                 const ownerUsername = agent.userId ? agent.userId.username : 'Anônimo';
 
                 agentElement.innerHTML = `
-                    <div class="w-full flex justify-between items-center">
-                         <a href="id.html?id=${agent._id}" class="flex items-center gap-4 flex-grow">
-                            <img src="${thumbnailUrl}" alt="Thumbnail of ${agent.name}" class="agent-thumb flex-shrink-0" onerror="this.src='https://placehold.co/64x64/2d2d2d/f5f5f5?text=BPRD'">
-                            <div class="flex-grow">
-                                <h2 class="text-xl font-bold text-white flex items-center flex-wrap">${agent.name.toUpperCase()} ${privateBadge}</h2>
-                                <p class="text-gray-300 font-light text-sm" style="font-family: 'Special Elite', monospace;">${agent.role}</p>
-                                <p class="text-xs text-gray-400 mt-1">Criado por: ${ownerUsername}</p>
-                            </div>
-                        </a>
-                    </div>
-                    ${actionButtons}
+                     <a href="id.html?id=${agent._id}" class="flex items-center gap-4 flex-grow w-full">
+                        <img src="${thumbnailUrl}" alt="Thumbnail of ${agent.name}" class="agent-thumb flex-shrink-0" onerror="this.src='https://placehold.co/64x64/2d2d2d/f5f5f5?text=BPRD'">
+                        <div class="flex-grow">
+                            <h2 class="text-xl font-bold text-white flex-wrap">${agent.name.toUpperCase()}</h2>
+                            <p class="text-gray-300 font-light text-sm" style="font-family: 'Special Elite', monospace;">${agent.role}</p>
+                            <p class="text-xs text-gray-400 mt-1">Criado por: ${ownerUsername}</p>
+                        </div>
+                    </a>
+                    ${privateBadgeHTML}
                 `;
                 agentListContainer.appendChild(agentElement);
             });
@@ -147,23 +220,17 @@
         
         async function loadCharacters() {
             let allVisibleCharacters = [];
-            
             try {
                 const publicResponse = await fetch(`${API_URL}/characters/public`);
-                if (publicResponse.ok) {
-                    allVisibleCharacters.push(...await publicResponse.json());
-                }
+                if (publicResponse.ok) allVisibleCharacters.push(...await publicResponse.json());
 
                 if (token) {
                     const myResponse = await fetch(`${API_URL}/characters/mine`, { headers: { 'x-auth-token': token } });
-                    if (myResponse.ok) {
-                        allVisibleCharacters.push(...await myResponse.json());
-                    }
+                    if (myResponse.ok) allVisibleCharacters.push(...await myResponse.json());
                 }
 
                 const uniqueCharacters = Array.from(new Map(allVisibleCharacters.map(char => [char._id, char])).values());
                 renderAgents(uniqueCharacters);
-
             } catch (error) {
                 console.error('Erro ao carregar personagens:', error);
                 agentListContainer.innerHTML = `<p class="text-center text-red-500">Não foi possível carregar os personagens.</p>`;
@@ -171,37 +238,106 @@
         }
 
         async function deleteCharacter(id) {
-            if (!confirm('Tem certeza que deseja apagar este personagem?')) return;
+            if (!confirm('Tem certeza que deseja apagar este personagem? Esta ação não pode ser desfeita.')) return;
             
+            closeOptionsMenu();
             try {
                 const response = await fetch(`${API_URL}/characters/${id}`, {
                     method: 'DELETE',
                     headers: { 'x-auth-token': token }
                 });
-
-                if(!response.ok) throw new Error('Não foi possível deletar o personagem.');
-                
+                if (!response.ok) throw new Error('Não foi possível deletar o personagem.');
                 loadCharacters();
             } catch (error) {
                 console.error('Erro ao deletar:', error);
-                alert(error.message);
             }
         }
 
-        agentListContainer.addEventListener('click', function(event) {
-            const deleteButton = event.target.closest('.delete-btn');
-            if (deleteButton) {
-                const agentId = deleteButton.getAttribute('data-id');
-                deleteCharacter(agentId);
-                return;
+        function openOptionsMenu(agent, cardElement) {
+            modalContent.innerHTML = '';
+            modalTitle.textContent = agent.name;
+            const isMain = localStorage.getItem('main_character_id') === agent._id;
+
+            const options = [
+                 { text: 'Companion App', icon: 'fa-chart-bar', action: () => { window.location.href = `companion-app.html?id=${agent._id}` } },
+                 { text: isMain ? 'Desmarcar Principal' : 'Marcar Principal', icon: 'fa-star', action: () => setMainCharacter(agent._id) },
+                 { text: 'Editar Personagem', icon: 'fa-pencil-alt', action: () => { window.location.href = `create.html?edit=${agent._id}` } },
+                 { text: 'Apagar Personagem', icon: 'fa-trash-alt', class: 'delete', action: () => deleteCharacter(agent._id) }
+            ];
+
+            options.forEach(opt => {
+                const button = document.createElement('button');
+                button.className = `modal-option ${opt.class || ''}`;
+                button.innerHTML = `<i class="fas ${opt.icon} fa-fw"></i> <span>${opt.text}</span>`;
+                button.onclick = opt.action;
+                modalContent.appendChild(button);
+            });
+            
+            // --- LÓGICA DE POSICIONAMENTO CORRIGIDA ---
+            const cardRect = cardElement.getBoundingClientRect();
+            const modalWidth = optionsModal.offsetWidth;
+            const modalHeight = optionsModal.offsetHeight;
+            const margin = 8;
+
+            // Usa coordenadas relativas à viewport (tela visível), pois o modal está num container 'fixed'
+            let top = cardRect.top;
+            let left = cardRect.right + margin;
+
+            // Evita que o menu saia da tela
+            if (left + modalWidth > window.innerWidth) {
+                left = cardRect.left - modalWidth - margin;
+            }
+            if (left < 0) {
+                left = margin;
+            }
+            if (top + modalHeight > window.innerHeight) {
+                top = cardRect.bottom - modalHeight;
+            }
+            if (top < 0) {
+                top = margin;
             }
 
-            const mainButton = event.target.closest('.set-main-btn');
-            if(mainButton) {
-                const agentId = mainButton.getAttribute('data-id');
-                setMainCharacter(agentId);
-                return;
-            }
+            optionsModal.style.top = `${top}px`;
+            optionsModal.style.left = `${left}px`;
+            
+            optionsModalOverlay.classList.add('visible');
+        }
+
+        function closeOptionsMenu() {
+            optionsModalOverlay.classList.remove('visible');
+        }
+
+        // --- Lógica de Eventos ---
+        agentListContainer.addEventListener('mousedown', handlePressStart);
+        agentListContainer.addEventListener('touchstart', handlePressStart, { passive: true });
+        agentListContainer.addEventListener('mouseup', handlePressEnd);
+        agentListContainer.addEventListener('mouseleave', handlePressEnd);
+        agentListContainer.addEventListener('touchend', handlePressEnd);
+        agentListContainer.addEventListener('touchmove', handlePressEnd);
+
+        function handlePressStart(e) {
+            const card = e.target.closest('.agent-card');
+            if (!card) return;
+            
+            const agentId = card.dataset.agentId;
+            const agent = characterData.find(c => c._id === agentId);
+            const loggedInUserId = getLoggedInUserId();
+
+            if (!agent || !agent.userId || !agent.userId._id || agent.userId._id !== loggedInUserId) return;
+
+            longPressTimer = setTimeout(() => {
+                e.preventDefault();
+                openOptionsMenu(agent, card);
+            }, LONG_PRESS_DURATION);
+        }
+
+        function handlePressEnd(e) {
+            clearTimeout(longPressTimer);
+        }
+        
+        modalCloseBtn.addEventListener('click', closeOptionsMenu);
+        optionsModalOverlay.addEventListener('click', (e) => {
+            if (e.target === optionsModalOverlay) closeOptionsMenu();
         });
 
         document.addEventListener('DOMContentLoaded', () => {
