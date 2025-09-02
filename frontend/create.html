@@ -14,7 +14,7 @@
         body { background-color: #1a1a1a; font-family: 'Roboto Condensed', sans-serif; color: #f5f5f5; }
         .form-container { background-color: #2d2d2d; border: 1px solid #444; }
         .form-label { font-family: 'Special Elite', monospace; color: #ccc; }
-        .form-input { background-color: #1a1a1a; border: 1px solid #555; color: #f5f5f5; }
+        .form-input, .form-select { background-color: #1a1a1a; border: 1px solid #555; color: #f5f5f5; }
         .btn { font-family: 'Roboto Condensed', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; }
         
         .ability-modifier { pointer-events: none; }
@@ -67,6 +67,23 @@
             border-color: #b91c1c;
         }
         .skill-grid input[type="checkbox"] { display: none; }
+
+        .skill-state-btn {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 30px;
+            height: 30px;
+            border: 1px solid #555;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.8rem;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+        }
+        .skill-state-btn.state-none { background-color: transparent; color: #555; }
+        .skill-state-btn.state-advantage { background-color: #16a34a; color: white; border-color: #16a34a; }
+        .skill-state-btn.state-disadvantage { background-color: #b91c1c; color: white; border-color: #b91c1c; }
         
         .form-checkbox {
             appearance: none;
@@ -125,6 +142,16 @@
             padding-bottom: 0.5rem;
             margin-bottom: 1.5rem;
         }
+        .feature-tag-select {
+            background-color: #1a1a1a;
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-family: 'Roboto Condensed', sans-serif;
+            margin-left: auto;
+        }
     </style>
 </head>
 <body class="p-4 sm:p-6 md:p-10">
@@ -154,7 +181,7 @@
                             <div><label for="department" class="form-label">DEPARTAMENTO</label><input type="text" id="department" name="department" class="w-full p-2 rounded form-input" required></div>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div><label for="level" class="form-label">NÍVEL</label><input type="number" id="level" name="level" class="w-full p-2 rounded form-input" required></div>
+                            <div><label for="level" class="form-label">NÍVEL</label><input type="number" id="level" name="level" class="w-full p-2 rounded form-input" min="1" max="20" required></div>
                             <div><label for="maxHitPoints" class="form-label">HP MÁXIMO</label><input type="number" id="maxHitPoints" name="maxHitPoints" placeholder="ex: 12" class="w-full p-2 rounded form-input"></div>
                         </div>
                         <div><label for="profilePic" class="form-label">URL DA IMAGEM DE PERFIL</label><input type="url" id="profilePic" name="profilePic" class="w-full p-2 rounded form-input"></div>
@@ -198,6 +225,14 @@
                     </div>
                 </section>
             </div>
+            
+             <!-- Seção de Salva-guardas -->
+            <section class="mt-8">
+                <h2 class="section-title text-2xl font-bold text-red-500">SALVA-GUARDAS</h2>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" id="saving-throws-container">
+                    <!-- Checkboxes de Salva-guarda serão gerados aqui -->
+                </div>
+            </section>
             
             <!-- Seção de Classificação -->
             <section class="mt-8">
@@ -264,6 +299,9 @@
         const attacksContainer = document.getElementById('attacks-container');
         const addAttackBtn = document.getElementById('add-attack-btn');
         const skillsContainer = document.getElementById('skills-container');
+        const savingThrowsContainer = document.getElementById('saving-throws-container');
+
+        const attributeMap = { str: 'FOR', dex: 'DES', con: 'CON', int: 'INT', wis: 'SAB', cha: 'CAR' };
 
         const MASTER_SKILLS_LIST = [
             { name: 'Atletismo', attr: 'str' }, { name: 'Acrobacia', attr: 'dex' },
@@ -276,6 +314,15 @@
             { name: 'Percepção', attr: 'wis' }, { name: 'Sobrevivência', attr: 'wis' },
             { name: 'Intimidação', attr: 'cha' }, { name: 'Persuasão', attr: 'cha' }
         ];
+        
+        const FEATURE_TAGS = {
+            'Origem': 'Origem',
+            'Função': 'Função',
+            'Vida Antes': 'Vida Antes',
+            'Recrutamento': 'Recrutamento',
+            'Especialização': 'Especialização',
+            'Homebrew': 'Homebrew'
+        };
 
         const abilityInputs = form.querySelectorAll('.ability-input');
         function calculateModifier(score) {
@@ -293,13 +340,24 @@
             input.addEventListener('input', () => updateModifier(input));
         });
 
-        function addFeatureInput(name = '', description = '') {
+        function addFeatureInput(name = '', description = '', tag = '') {
             const featureDiv = document.createElement('div');
             featureDiv.className = 'feature-item relative p-3 rounded bg-black bg-opacity-20';
+            
+            const tagOptions = Object.keys(FEATURE_TAGS).map(key => 
+                `<option value="${key}" ${key === tag ? 'selected' : ''}>${FEATURE_TAGS[key]}</option>`
+            ).join('');
+
             featureDiv.innerHTML = `
                 <button type="button" class="remove-btn">&times;</button>
-                <input type="text" placeholder="Nome da Habilidade" class="w-full p-2 rounded form-input feature-name" value="${name}">
-                <div class="mt-2">
+                <div class="flex items-center gap-4 mb-2">
+                    <input type="text" placeholder="Nome da Habilidade" class="w-full p-2 rounded form-input feature-name" value="${name}">
+                    <select class="feature-tag-select feature-tag form-select">
+                        <option value="">Sem Tag</option>
+                        ${tagOptions}
+                    </select>
+                </div>
+                <div>
                     <div class="flex border-b border-gray-700 text-sm">
                         <button type="button" class="markdown-tab active p-2" data-tab="write">Escrever</button>
                         <button type="button" class="markdown-tab p-2" data-tab="preview">Visualizar</button>
@@ -385,21 +443,57 @@
                     <span class="skill-label">${skill.name}</span>
                     <input type="checkbox" id="prof-${skillId}" class="skill-proficient">
                     <label for="prof-${skillId}" class="skill-checkbox-label" title="Proficiência">P</label>
-                    <input type="checkbox" id="adv-${skillId}" class="skill-advantage">
-                    <label for="adv-${skillId}" class="skill-checkbox-label" title="Vantagem">A</label>`;
+                    <button type="button" class="skill-state-btn" data-state="none" title="Vantagem/Desvantagem">-</button>
+                `;
                 skillsContainer.appendChild(skillDiv);
             });
+
+            skillsContainer.addEventListener('click', (e) => {
+                if (e.target.classList.contains('skill-state-btn')) {
+                    const btn = e.target;
+                    let currentState = btn.dataset.state;
+                    
+                    if (currentState === 'none') {
+                        btn.dataset.state = 'advantage';
+                        btn.textContent = 'V';
+                        btn.className = 'skill-state-btn state-advantage';
+                    } else if (currentState === 'advantage') {
+                        btn.dataset.state = 'disadvantage';
+                        btn.textContent = 'D';
+                        btn.className = 'skill-state-btn state-disadvantage';
+                    } else { // disadvantage
+                        btn.dataset.state = 'none';
+                        btn.textContent = '-';
+                        btn.className = 'skill-state-btn state-none';
+                    }
+                }
+            });
         }
+        
+        function initializeSavingThrows() {
+            savingThrowsContainer.innerHTML = '';
+            Object.keys(attributeMap).forEach(attr => {
+                const attrId = `save-prof-${attr}`;
+                const div = document.createElement('div');
+                div.className = 'flex items-center gap-2';
+                div.innerHTML = `
+                    <input type="checkbox" id="${attrId}" name="savingThrowProficiencies" value="${attr}" class="form-checkbox">
+                    <label for="${attrId}" class="form-label text-sm cursor-pointer select-none">${attributeMap[attr]}</label>
+                `;
+                savingThrowsContainer.appendChild(div);
+            });
+        }
+
 
         function populateForm(agent) {
             Object.keys(agent).forEach(key => {
                 const element = form[key];
                 if(element && typeof agent[key] !== 'object' && agent[key] !== null) {
-                    if (element.type === 'checkbox') {
+                     if (element.type === 'checkbox') {
                          element.checked = String(agent[key]) === 'true';
-                    } else {
+                     } else {
                          element.value = agent[key];
-                    }
+                     }
                 }
             });
 
@@ -411,7 +505,7 @@
             abilityInputs.forEach(updateModifier);
 
             featuresContainer.innerHTML = '';
-            agent.features?.forEach(f => addFeatureInput(f.name, f.description));
+            agent.features?.forEach(f => addFeatureInput(f.name, f.description, f.tag));
             
             attacksContainer.innerHTML = '';
             agent.attacks?.forEach(a => addAttackInput(a.name, a.bonus, a.damage, a.hasAmmo, a.currentAmmo));
@@ -419,10 +513,29 @@
             agent.skills?.forEach(savedSkill => {
                 const skillRow = skillsContainer.querySelector(`[data-skill-name="${savedSkill.name}"]`);
                 if(skillRow) {
-                    skillRow.querySelector('.skill-proficient').checked = String(savedSkill.proficient) === 'true';
-                    skillRow.querySelector('.skill-advantage').checked = String(savedSkill.advantage) === 'true';
+                    skillRow.querySelector('.skill-proficient').checked = savedSkill.proficient;
+                    
+                    const stateBtn = skillRow.querySelector('.skill-state-btn');
+                    const state = savedSkill.advState || 'none';
+                    stateBtn.dataset.state = state;
+                    if (state === 'advantage') {
+                        stateBtn.textContent = 'V';
+                        stateBtn.className = 'skill-state-btn state-advantage';
+                    } else if (state === 'disadvantage') {
+                        stateBtn.textContent = 'D';
+                        stateBtn.className = 'skill-state-btn state-disadvantage';
+                    } else {
+                        stateBtn.textContent = '-';
+                        stateBtn.className = 'skill-state-btn state-none';
+                    }
                 }
             });
+            
+            agent.savingThrowProficiencies?.forEach(prof => {
+                const checkbox = savingThrowsContainer.querySelector(`input[value="${prof}"]`);
+                if (checkbox) checkbox.checked = true;
+            });
+
 
             pageTitle.textContent = "EDITAR PERSONAGEM";
             submitButton.textContent = "ATUALIZAR DADOS";
@@ -430,6 +543,7 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             initializeSkillsList();
+            initializeSavingThrows();
             const params = new URLSearchParams(window.location.search);
             const editId = params.get('edit');
             agentIdField.value = editId || '';
@@ -455,11 +569,14 @@
         form.addEventListener('submit', async function(event) {
             event.preventDefault();
 
-            const skillsData = Array.from(skillsContainer.querySelectorAll('.skill-grid')).map(row => ({
-                name: row.dataset.skillName,
-                proficient: row.querySelector('.skill-proficient').checked,
-                advantage: row.querySelector('.skill-advantage').checked,
-            }));
+            const skillsData = Array.from(skillsContainer.querySelectorAll('.skill-grid')).map(row => {
+                const state = row.querySelector('.skill-state-btn').dataset.state;
+                return {
+                    name: row.dataset.skillName,
+                    proficient: row.querySelector('.skill-proficient').checked,
+                    advState: state === 'none' ? null : state,
+                }
+            });
 
             const attacksData = Array.from(attacksContainer.querySelectorAll('.attack-item')).map(row => ({
                 name: row.querySelector('.attack-name').value,
@@ -472,7 +589,10 @@
             const featuresData = Array.from(featuresContainer.querySelectorAll('.feature-item')).map(row => ({
                  name: row.querySelector('.feature-name').value,
                  description: row.querySelector('.feature-description').value,
+                 tag: row.querySelector('.feature-tag').value
             }));
+
+            const savingThrowsData = Array.from(savingThrowsContainer.querySelectorAll('input:checked')).map(input => input.value);
             
             const maxHp = form.maxHitPoints.value;
             const currentHp = agentIdField.value ? document.getElementById('char-hp')?.textContent.split('/')[0] || maxHp : maxHp;
@@ -497,6 +617,7 @@
                 features: featuresData.filter(f => f.name || f.description),
                 attacks: attacksData.filter(a => a.name || a.bonus || a.damage),
                 skills: skillsData,
+                savingThrowProficiencies: savingThrowsData,
                 attributes: {
                     str: parseInt(form.str.value), con: parseInt(form.con.value),
                     dex: parseInt(form.dex.value), int: parseInt(form.int.value),
@@ -528,3 +649,4 @@
     </script>
 </body>
 </html>
+

@@ -17,6 +17,8 @@
             border-left: 5px solid #444; 
             transition: all 0.2s ease-in-out; 
             position: relative; /* Adicionado para posicionar a tag 'privado' */
+            -webkit-touch-callout: none; /* Previne o menu de contexto no iOS */
+            user-select: none; /* Previne a seleção de texto durante o long press */
         }
         .agent-card.main { border-left-color: #facc15; }
         .agent-card:hover { border-left-color: #b91c1c; }
@@ -155,6 +157,7 @@
 
         let characterData = [];
         let longPressTimer;
+        let longPressOccurred = false; // Flag para controlar o long press
         const LONG_PRESS_DURATION = 500;
 
         function setupHeaderAndNav() {
@@ -204,7 +207,7 @@
                 const ownerUsername = agent.userId ? agent.userId.username : 'Anônimo';
 
                 agentElement.innerHTML = `
-                     <a href="id.html?id=${agent._id}" class="flex items-center gap-4 flex-grow w-full">
+                     <a href="companion-app.html?id=${agent._id}" class="flex items-center gap-4 flex-grow w-full">
                         <img src="${thumbnailUrl}" alt="Thumbnail of ${agent.name}" class="agent-thumb flex-shrink-0" onerror="this.src='https://placehold.co/64x64/2d2d2d/f5f5f5?text=BPRD'">
                         <div class="flex-grow">
                             <h2 class="text-xl font-bold text-white flex-wrap">${agent.name.toUpperCase()}</h2>
@@ -218,15 +221,36 @@
             });
         }
         
+        function handleInvalidToken() {
+            localStorage.removeItem('bprd_token');
+            localStorage.removeItem('main_character_id');
+            alert('Sua sessão expirou ou o token é inválido. Por favor, faça o login novamente.');
+            window.location.href = 'login.html';
+        }
+
         async function loadCharacters() {
             let allVisibleCharacters = [];
             try {
                 const publicResponse = await fetch(`${API_URL}/characters/public`);
-                if (publicResponse.ok) allVisibleCharacters.push(...await publicResponse.json());
+                if (publicResponse.ok) {
+                    allVisibleCharacters.push(...await publicResponse.json());
+                } else {
+                    console.error('Falha ao carregar personagens públicos.');
+                }
 
                 if (token) {
                     const myResponse = await fetch(`${API_URL}/characters/mine`, { headers: { 'x-auth-token': token } });
-                    if (myResponse.ok) allVisibleCharacters.push(...await myResponse.json());
+                    
+                    if (myResponse.status === 401) {
+                        handleInvalidToken();
+                        return; // Aborta a execução da função
+                    }
+
+                    if (myResponse.ok) {
+                        allVisibleCharacters.push(...await myResponse.json());
+                    } else {
+                        console.error('Falha ao carregar personagens do usuário.');
+                    }
                 }
 
                 const uniqueCharacters = Array.from(new Map(allVisibleCharacters.map(char => [char._id, char])).values());
@@ -246,6 +270,12 @@
                     method: 'DELETE',
                     headers: { 'x-auth-token': token }
                 });
+
+                if(response.status === 401) {
+                    handleInvalidToken();
+                    return;
+                }
+
                 if (!response.ok) throw new Error('Não foi possível deletar o personagem.');
                 loadCharacters();
             } catch (error) {
@@ -273,17 +303,14 @@
                 modalContent.appendChild(button);
             });
             
-            // --- LÓGICA DE POSICIONAMENTO CORRIGIDA ---
             const cardRect = cardElement.getBoundingClientRect();
             const modalWidth = optionsModal.offsetWidth;
             const modalHeight = optionsModal.offsetHeight;
             const margin = 8;
 
-            // Usa coordenadas relativas à viewport (tela visível), pois o modal está num container 'fixed'
             let top = cardRect.top;
             let left = cardRect.right + margin;
 
-            // Evita que o menu saia da tela
             if (left + modalWidth > window.innerWidth) {
                 left = cardRect.left - modalWidth - margin;
             }
@@ -308,17 +335,39 @@
         }
 
         // --- Lógica de Eventos ---
+        
+        agentListContainer.addEventListener('click', e => {
+            if (longPressOccurred) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }, true);
+        
+        // Previne o menu de contexto padrão (clique direito / toque longo no mobile)
+        // mas NÃO abre o menu customizado. Isso é responsabilidade do 'long press'.
+        agentListContainer.addEventListener('contextmenu', e => {
+            const card = e.target.closest('.agent-card');
+            if (card) {
+                e.preventDefault();
+            }
+        });
+
+        // Eventos para iniciar e terminar o clique/toque
         agentListContainer.addEventListener('mousedown', handlePressStart);
         agentListContainer.addEventListener('touchstart', handlePressStart, { passive: true });
+        
         agentListContainer.addEventListener('mouseup', handlePressEnd);
         agentListContainer.addEventListener('mouseleave', handlePressEnd);
         agentListContainer.addEventListener('touchend', handlePressEnd);
-        agentListContainer.addEventListener('touchmove', handlePressEnd);
+        agentListContainer.addEventListener('touchmove', handlePressEnd); // Cancela se o dedo mover
 
         function handlePressStart(e) {
+            // A lógica agora é a mesma para qualquer clique do mouse ou toque.
             const card = e.target.closest('.agent-card');
             if (!card) return;
             
+            longPressOccurred = false; 
+
             const agentId = card.dataset.agentId;
             const agent = characterData.find(c => c._id === agentId);
             const loggedInUserId = getLoggedInUserId();
@@ -326,7 +375,7 @@
             if (!agent || !agent.userId || !agent.userId._id || agent.userId._id !== loggedInUserId) return;
 
             longPressTimer = setTimeout(() => {
-                e.preventDefault();
+                longPressOccurred = true; 
                 openOptionsMenu(agent, card);
             }, LONG_PRESS_DURATION);
         }

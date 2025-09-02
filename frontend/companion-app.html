@@ -21,6 +21,12 @@
             background-position: center;
             background-attachment: fixed;
         }
+        @media (min-width: 640px) {
+            body {
+                background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23333333' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+                background-size: auto;
+            }
+        }
         .sheet-container {
             background-color: rgba(10, 10, 10, 0.9);
             backdrop-filter: blur(10px);
@@ -88,12 +94,16 @@
         .skill-row:last-child { border-bottom: none; }
         .skill-attr { font-family: 'Special Elite', monospace; color: #9ca3af; }
         .skill-bonus { font-weight: bold; font-size: 1.1rem; text-align: center; }
-        .advantage-tag {
-            width: 24px; height: 27px; background-color: #16a34a; /* green-600 */
+        
+        .skill-state-tag {
+            width: 24px; height: 27px;
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
             display: flex; justify-content: center; align-items: center;
             color: white; font-weight: bold; font-size: 0.9rem; margin: 0 auto;
         }
+        .skill-state-tag.advantage { background-color: #16a34a; } /* green-600 */
+        .skill-state-tag.disadvantage { background-color: #b91c1c; } /* red-700 */
+
         .proficiency-dot {
             width: 10px; height: 10px; background-color: #b91c1c;
             border-radius: 50%; margin: 0 auto;
@@ -123,14 +133,72 @@
         .attack-ammo { font-size: 0.8rem; color: #9ca3af; padding-top: 0.5rem; border-top: 1px solid #444; margin-top: 0.5rem;}
         .ammo-value { cursor: pointer; font-weight: bold; color: #f5f5f5; padding: 0.1rem 0.5rem; border-radius: 4px; transition: background-color 0.2s;}
         .ammo-value:hover { background-color: rgba(255,255,255,0.1); }
+        .feature-tag {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-left: auto;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .tag-origem { background-color: #be123c; } /* rose-700 */
+        .tag-função { background-color: #0d9488; } /* teal-600 */
+        .tag-vida-antes { background-color: #6d28d9; } /* violet-700 */
+        .tag-recrutamento { background-color: #1d4ed8; } /* blue-700 */
+        .tag-especialização { background-color: #ca8a04; } /* yellow-600 */
+        .tag-homebrew { background-color: #64748b; } /* slate-500 */
 
-        /* Estilos para o Toggle Switch de Salva-Guarda */
-        .toggle-switch { position: relative; display: inline-block; width: 34px; height: 20px; }
-        .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .4s; border-radius: 20px; }
-        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #b91c1c; }
-        input:checked + .slider:before { transform: translateX(14px); }
+        /* --- MODAL STYLES --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease-in-out;
+        }
+        .modal-overlay.visible { opacity: 1; pointer-events: auto; }
+
+        .modal-box {
+            background-color: #2d2d2d;
+            border: 1px solid #444;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            max-width: 90vw;
+            width: 400px;
+            transform: scale(0.95);
+            transition: transform 0.2s ease-in-out;
+        }
+        .modal-overlay.visible .modal-box { transform: scale(1); }
+
+        .options-menu {
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            right: 0;
+            background-color: #2d2d2d;
+            border: 1px solid #444;
+            border-radius: 0.5rem;
+            z-index: 60;
+            width: 200px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .options-menu-item {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            color: #f5f5f5;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+        .options-menu-item:hover { background-color: #3f3f3f; }
     </style>
 </head>
 <body class="p-4 sm:p-8">
@@ -138,32 +206,47 @@
     <div id="loading" class="text-center text-2xl font-special">Carregando dados do agente...</div>
     
     <div id="character-sheet" class="sheet-container max-w-2xl mx-auto hidden rounded-lg p-6 sm:p-8">
-        <header class="space-y-4 mb-8">
-             <div class="flex justify-between items-center">
-                <div class="w-6"></div> <!-- Spacer -->
+        <header class="space-y-4 mb-6">
+             <div class="flex justify-around items-center pt-2 px-2 bg-black bg-opacity-20 rounded-t-lg -mt-6 -mx-8 sm:-mt-8 sm:-mx-8">
+                <img src="https://i.postimg.cc/wBjsnJKZ/bprd-logo-color.png" class="h-10 w-auto" alt="Logo do BPRD">
                 <div class="text-center">
-                    <h1 id="char-name" class="text-3xl font-bold font-special"></h1>
-                    <p id="char-role-level" class="text-md text-gray-400"></p>
+                    <h1 id="char-name" class="text-2xl sm:text-3xl font-bold font-special"></h1>
+                    <p id="char-role-level" class="text-sm sm:text-md text-gray-400"></p>
                 </div>
-                 <div class="w-6 h-6 text-green-500 opacity-0 transition-opacity duration-500" id="save-indicator">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
+                <div class="relative">
+                    <button id="header-menu-btn" class="text-gray-400 hover:text-white p-2 focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    </button>
+                    <div id="header-options-menu" class="options-menu hidden">
+                        <!-- As opções do menu serão inseridas aqui pelo JS -->
+                    </div>
+                    <div id="save-indicator" class="absolute top-0 right-0 -mt-2 -mr-2 w-6 h-6 text-green-500 opacity-0 transition-opacity duration-500 pointer-events-none">
+                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                    </div>
                 </div>
             </div>
             <div class="flex justify-around items-center text-center">
-                <div class="flex-1 flex flex-col items-center justify-center">
-                    <div class="relative w-16 h-16 flex items-center justify-center">
-                        <i class="fas fa-shield-alt absolute text-6xl text-gray-700 opacity-40"></i>
-                        <div class="relative text-center">
-                            <p class="text-xs text-gray-400 uppercase tracking-wider leading-none">CA</p>
-                            <p id="char-ac" class="text-2xl font-bold text-white leading-tight">--</p>
+                <div class="flex-1 flex justify-around items-center">
+                    <div class="flex flex-col items-center justify-center">
+                        <div class="relative w-16 h-16 flex items-center justify-center">
+                            <i class="fas fa-shield-alt absolute text-6xl text-gray-700 opacity-40"></i>
+                            <div class="relative text-center">
+                                <p class="text-xs text-gray-400 uppercase tracking-wider leading-none">CA</p>
+                                <p id="char-ac" class="text-2xl font-bold text-white leading-tight">--</p>
+                            </div>
                         </div>
                     </div>
+                    <div class="flex-col items-center justify-center hidden sm:flex">
+                        <p class="text-xs text-gray-400 uppercase tracking-wider">Iniciativa</p>
+                        <p id="char-initiative" class="text-3xl font-bold text-white">--</p>
+                        <p class="text-xs text-gray-400 uppercase tracking-wider">&nbsp;</p>
+                   </div>
                 </div>
+                
                 <div class="flex-shrink-0 mx-2">
-                    <img id="char-pic" src="" class="w-20 h-20 rounded-full border-2 border-gray-500 object-cover" alt="Character Portrait">
+                    <img id="char-pic" src="" class="w-20 h-20 rounded-full border-2 border-gray-500 object-cover" alt="Retrato do Personagem">
                 </div>
+                
                 <div class="flex-1 text-center px-2">
                     <p class="text-xs text-gray-400 uppercase tracking-wider">HP Atual</p>
                     <div id="hp-container" class="text-3xl font-bold text-white">
@@ -174,14 +257,7 @@
                     </div>
                 </div>
             </div>
-            <div class="flex justify-start items-center my-2">
-                <label class="toggle-switch">
-                    <input type="checkbox" id="save-toggle">
-                    <span class="slider"></span>
-                </label>
-                <label for="save-toggle" class="font-special text-sm ml-3">Salva-guardas</label>
-            </div>
-            <div class="grid grid-cols-6 gap-2">
+            <div class="grid grid-cols-6 gap-2 mt-4">
                 <div id="attr-str" class="stat-card rounded-lg"></div> 
                 <div id="attr-dex" class="stat-card rounded-lg"></div>
                 <div id="attr-con" class="stat-card rounded-lg"></div> 
@@ -190,6 +266,8 @@
                 <div id="attr-cha" class="stat-card rounded-lg"></div>
             </div>
         </header>
+
+        <hr class="border-t-2 border-gray-700 my-6">
 
         <main>
             <div class="tab-container">
@@ -203,6 +281,11 @@
                     <div id="features-list" class="space-y-3"></div>
                 </div>
                 <div id="pericias-panel" class="tab-panel">
+                     <h3 class="text-xl font-bold text-center mb-4 font-special">Salva-guardas</h3>
+                     <div id="saving-throws-list" class="grid grid-cols-6 gap-2 mb-6">
+                        <!-- Salva-guardas serão renderizados aqui pelo JS -->
+                     </div>
+                     <hr class="border-gray-600 my-4">
                      <h3 class="text-xl font-bold text-center mb-4 font-special">Perícias</h3>
                      <div id="skills-list"></div>
                 </div>
@@ -221,6 +304,15 @@
         </div>
     </div>
 
+    <!-- Info Modal -->
+    <div id="info-modal-overlay" class="modal-overlay">
+        <div id="info-modal-box" class="modal-box text-center">
+            <h3 id="info-modal-title" class="text-xl font-bold font-special mb-4"></h3>
+            <div id="info-modal-content" class="text-lg mb-6"></div>
+            <button id="info-modal-close" class="btn bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-6 rounded">FECHAR</button>
+        </div>
+    </div>
+
     <script src="auth.js"></script>
     <script>
         const loadingDiv = document.getElementById('loading');
@@ -229,25 +321,20 @@
         const tabPanels = document.querySelectorAll('.tab-panel');
         const attacksListContainer = document.getElementById('attacks-list');
         const saveIndicator = document.getElementById('save-indicator');
-        const saveToggle = document.getElementById('save-toggle');
+        const headerMenuBtn = document.getElementById('header-menu-btn');
+        const headerOptionsMenu = document.getElementById('header-options-menu');
+        
+        const infoModalOverlay = document.getElementById('info-modal-overlay');
+        const infoModalBox = document.getElementById('info-modal-box');
+        const infoModalTitle = document.getElementById('info-modal-title');
+        const infoModalContent = document.getElementById('info-modal-content');
+        const infoModalClose = document.getElementById('info-modal-close');
 
         let currentCharacter = null;
         let saveTimeout;
 
         const attributeMap = { str: 'FOR', dex: 'DES', con: 'CON', int: 'INT', wis: 'SAB', cha: 'CAR' };
-        // NOTE: Saving throw proficiencies need to be stored in the database. 
-        // For now, it's hardcoded based on common class types.
-        const SAVING_THROW_PROFICIENCIES = {
-            // Martial / Front liners
-            'guerreiro': ['str', 'con'], 'bárbaro': ['str', 'con'], 'paladino': ['wis', 'cha'],
-            // Skill / Agile
-            'ladino': ['dex', 'int'], 'ranger': ['str', 'dex'], 'monge': ['str', 'dex'],
-            // Casters
-            'mago': ['int', 'wis'], 'feiticeiro': ['con', 'cha'], 'clérigo': ['wis', 'cha'], 'bardo': ['dex', 'cha'],
-            // Default
-            'default': ['con']
-        };
-
+        
         const MASTER_SKILLS_LIST = [
             { name: 'Atletismo', attr: 'str' }, { name: 'Acrobacia', attr: 'dex' },
             { name: 'Mãos Firmes', attr: 'dex' }, { name: 'Furtividade', attr: 'dex' },
@@ -268,6 +355,15 @@
                 document.getElementById(`${button.dataset.tab}-panel`).classList.add('active');
             });
         });
+
+        function getProficiencyBonus(level) {
+            const lvl = parseInt(level, 10);
+            if (lvl >= 17) return 6;
+            if (lvl >= 13) return 5;
+            if (lvl >= 9) return 4;
+            if (lvl >= 5) return 3;
+            return 2;
+        }
 
         function calculateModifier(score) {
             return Math.floor((score - 10) / 2);
@@ -298,53 +394,83 @@
                 console.error("Erro ao salvar personagem:", error);
             }
         }
-
-        function renderAllAttributes(showSaves = false) {
+        
+        function renderAllAttributes() {
             if (!currentCharacter) return;
             
-            const roleKey = currentCharacter.role.toLowerCase();
-            const proficiencies = SAVING_THROW_PROFICIENCIES[roleKey] || SAVING_THROW_PROFICIENCIES['default'];
-
             Object.keys(attributeMap).forEach(attr => {
                 const card = document.getElementById(`attr-${attr}`);
                 const score = currentCharacter.attributes[attr];
                 const modifier = calculateModifier(score);
-                const isProficient = proficiencies.includes(attr);
 
-                // Always set proficiency border
-                card.classList.toggle('proficient-save', isProficient);
-
-                if (showSaves) {
-                    const profBonus = Math.ceil(1 + currentCharacter.level / 4);
-                    const saveBonus = modifier + (isProficient ? profBonus : 0);
-                    card.innerHTML = `
-                        <p class="text-xs text-gray-400 font-bold uppercase">${attributeMap[attr]}</p>
-                        <p class="text-3xl font-bold text-white">${formatBonus(saveBonus)}</p>
-                    `;
-                } else {
-                    card.innerHTML = `
-                        <p class="text-xs text-gray-400 font-bold uppercase">${attributeMap[attr]}</p>
-                        <p class="text-3xl font-bold text-white">${formatBonus(modifier)}</p>
-                    `;
-                }
+                card.innerHTML = `
+                    <p class="text-xs text-gray-400 font-bold uppercase">${attributeMap[attr]}</p>
+                    <p class="text-3xl font-bold text-white">${formatBonus(modifier)}</p>
+                `;
             });
         }
 
-        saveToggle.addEventListener('change', () => {
-            renderAllAttributes(saveToggle.checked);
-        });
+        function renderSavingThrows(agent) {
+            const container = document.getElementById('saving-throws-list');
+            container.innerHTML = '';
 
-        function renderFeature(name, description) {
+            const proficiencies = agent.savingThrowProficiencies || [];
+            const profBonus = getProficiencyBonus(agent.level);
+
+            Object.keys(attributeMap).forEach(attr => {
+                const score = agent.attributes[attr];
+                const modifier = calculateModifier(score);
+                const isProficient = proficiencies.includes(attr);
+                const saveBonus = modifier + (isProficient ? profBonus : 0);
+
+                const card = document.createElement('div');
+                card.className = 'stat-card rounded-lg';
+                card.classList.toggle('proficient-save', isProficient);
+                
+                card.innerHTML = `
+                    <p class="text-xs text-gray-400 font-bold uppercase">${attributeMap[attr]}</p>
+                    <p class="text-2xl font-bold text-white">${formatBonus(saveBonus)}</p>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function simpleMarkdown(text) {
+            if (!text) return '';
+            let html = text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/^- (.*?)(\n|$)/gm, '<ul class="list-disc ml-5"><li>$1</li></ul>')
+                .replace(/<\/ul>\s*<ul class="list-disc ml-5">/g, '');
+            return html;
+        }
+
+        function normalizeForClass(text) {
+            if (!text) return '';
+            return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, '-');
+        }
+
+        function renderFeature(name, description, tag) {
             const list = document.getElementById('features-list');
             const featureElement = document.createElement('div');
             featureElement.className = 'feature-card rounded-lg overflow-hidden';
+            
+            const formattedDescription = simpleMarkdown(description);
+            
+            let tagHTML = '';
+            if (tag) {
+                const tagClass = 'tag-' + normalizeForClass(tag);
+                tagHTML = `<span class="feature-tag ${tagClass}">${tag}</span>`;
+            }
+
             featureElement.innerHTML = `
-                <button class="feature-header w-full flex justify-between items-center p-4 text-left">
+                <button class="feature-header w-full flex justify-between items-center p-4 text-left gap-4">
                     <span class="font-bold text-lg text-white">${name}</span>
-                    <svg class="chevron-icon h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                    ${tagHTML}
+                    <svg class="chevron-icon h-5 w-5 text-gray-400 flex-shrink-0 ml-auto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                 </button>
                 <div class="feature-details hidden p-4 border-t border-gray-600 bg-black bg-opacity-20">
-                    <p class="text-sm text-gray-300">${description}</p>
+                    <div class="text-sm text-gray-300 space-y-2">${formattedDescription}</div>
                 </div>`;
             list.appendChild(featureElement);
             const header = featureElement.querySelector('.feature-header');
@@ -355,21 +481,27 @@
         }
 
         function renderSkills(agent) {
-            const proficiencyBonus = Math.ceil(1 + agent.level / 4);
+            const proficiencyBonus = getProficiencyBonus(agent.level);
             const listContainer = document.getElementById('skills-list');
             listContainer.innerHTML = '';
 
             MASTER_SKILLS_LIST.forEach(skillInfo => {
-                const savedSkill = agent.skills.find(s => s.name === skillInfo.name);
+                const savedSkill = agent.skills.find(s => s.name === skillInfo.name) || {};
                 const score = agent.attributes[skillInfo.attr] || 10;
                 let modifier = calculateModifier(score);
                 
-                if (savedSkill?.proficient) {
+                if (savedSkill.proficient) {
                     modifier += proficiencyBonus;
                 }
 
-                const proficiencyIndicator = savedSkill?.proficient ? '<div class="proficiency-dot"></div>' : '<div></div>';
-                const advantageTag = savedSkill?.advantage ? '<div class="advantage-tag">A</div>' : '<div></div>';
+                const proficiencyIndicator = savedSkill.proficient ? '<div class="proficiency-dot"></div>' : '<div></div>';
+                
+                let advStateHTML = '<div></div>';
+                if (savedSkill.advState === 'advantage') {
+                    advStateHTML = '<div class="skill-state-tag advantage">V</div>';
+                } else if (savedSkill.advState === 'disadvantage') {
+                    advStateHTML = '<div class="skill-state-tag disadvantage">D</div>';
+                }
 
                 const skillElement = document.createElement('div');
                 skillElement.className = 'skill-row';
@@ -377,7 +509,7 @@
                     ${proficiencyIndicator}
                     <span class="skill-attr">${attributeMap[skillInfo.attr]}</span>
                     <span class="skill-name">${skillInfo.name}</span>
-                    ${advantageTag}
+                    ${advStateHTML}
                     <span class="skill-bonus">${formatBonus(modifier)}</span>
                 `;
                 listContainer.appendChild(skillElement);
@@ -506,40 +638,120 @@
             
             const dexModifier = calculateModifier(agent.attributes.dex);
             document.getElementById('char-ac').textContent = 10 + dexModifier;
+            document.getElementById('char-initiative').textContent = formatBonus(dexModifier);
             
             const initialHp = agent.hitPoints || '0/10';
             document.getElementById('char-hp').textContent = initialHp;
             updateHpBar(initialHp);
             makeHpEditable();
 
-            renderAllAttributes(saveToggle.checked);
+            renderAllAttributes();
+            renderSavingThrows(agent);
 
             const featuresList = document.getElementById('features-list');
             featuresList.innerHTML = '';
             if (agent.features && agent.features.length > 0) {
-                agent.features.forEach(f => renderFeature(f.name, f.description));
+                agent.features.forEach(f => renderFeature(f.name, f.description, f.tag));
             } else {
                 featuresList.innerHTML = '<p class="text-gray-400">Nenhuma habilidade listada.</p>';
             }
 
             renderSkills(agent);
             renderAttacks(agent.attacks);
+            
+            setupHeaderMenu();
 
             loadingDiv.classList.add('hidden');
             sheetDiv.classList.remove('hidden');
         }
+
+        function setupHeaderMenu() {
+            headerOptionsMenu.innerHTML = ''; // Limpa o menu
+            const loggedInUserId = getLoggedInUserId();
+            const isOwner = loggedInUserId && currentCharacter.userId && (currentCharacter.userId === loggedInUserId || currentCharacter.userId._id === loggedInUserId);
+            
+            const initiativeButton = document.createElement('button');
+            initiativeButton.className = 'options-menu-item';
+            initiativeButton.textContent = 'Iniciativa';
+            initiativeButton.onclick = () => {
+                const dexModifier = calculateModifier(currentCharacter.attributes.dex);
+                showInfoModal('Iniciativa', `<span class="text-3xl font-bold">${formatBonus(dexModifier)}</span>`);
+            };
+            headerOptionsMenu.appendChild(initiativeButton);
+
+            const idButton = document.createElement('button');
+            idButton.className = 'options-menu-item';
+            idButton.textContent = 'Exibir ID';
+            idButton.onclick = () => {
+                const idContent = `
+                    <div class="bg-black bg-opacity-20 p-2 rounded break-all text-sm">${currentCharacter._id}</div>
+                    <button id="copy-id-btn" class="btn bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm mt-4">Copiar</button>
+                `;
+                showInfoModal('ID do Agente', idContent);
+                document.getElementById('copy-id-btn').onclick = () => copyToClipboard(currentCharacter._id);
+            };
+            headerOptionsMenu.appendChild(idButton);
+
+            if (isOwner) {
+                const editButton = document.createElement('a');
+                editButton.className = 'options-menu-item';
+                editButton.textContent = 'Editar';
+                editButton.href = `create.html?edit=${currentCharacter._id}`;
+                headerOptionsMenu.appendChild(editButton);
+            }
+        }
+        
+        function showInfoModal(title, contentHTML) {
+            infoModalTitle.textContent = title;
+            infoModalContent.innerHTML = contentHTML;
+            infoModalOverlay.classList.add('visible');
+        }
+
+        function closeInfoModal() {
+            infoModalOverlay.classList.remove('visible');
+        }
+        
+        function copyToClipboard(text) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            const copyBtn = document.getElementById('copy-id-btn');
+            if(copyBtn) {
+                copyBtn.textContent = 'Copiado!';
+                setTimeout(() => { copyBtn.textContent = 'Copiar'; }, 2000);
+            }
+        }
+        
+        headerMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            headerOptionsMenu.classList.toggle('hidden');
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (!headerMenuBtn.contains(e.target) && !headerOptionsMenu.contains(e.target)) {
+                headerOptionsMenu.classList.add('hidden');
+            }
+        });
+
+        infoModalClose.addEventListener('click', closeInfoModal);
+        infoModalOverlay.addEventListener('click', (e) => {
+            if (e.target === infoModalOverlay) {
+                closeInfoModal();
+            }
+        });
 
         async function fetchCharacter(id) {
             const token = localStorage.getItem('bprd_token');
             try {
                 let character = null;
 
-                if (token) {
-                    const myResponse = await fetch(`${API_URL}/characters/mine`, { headers: { 'x-auth-token': token } });
-                    if (myResponse.ok) {
-                        const myChars = await myResponse.json();
-                        character = myChars.find(c => c._id === id);
-                    }
+                const myResponse = await fetch(`${API_URL}/characters/mine`, { headers: { 'x-auth-token': token } });
+                if (myResponse.ok) {
+                    const myChars = await myResponse.json();
+                    character = myChars.find(c => c._id === id);
                 }
 
                 if (!character) {
