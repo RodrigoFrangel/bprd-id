@@ -6,7 +6,7 @@ const User = require('../models/User');
 
 // --- ROTA DE REGISTRO ---
 router.post('/register', async (req, res) => {
-  const { username, email, password } = req.body;
+  const { username, email, password, role } = req.body;
 
   try {
     if (await User.findOne({ email })) {
@@ -16,10 +16,10 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ msg: 'Este nome de usuário já está em uso.' });
     }
 
-    const user = new User({ username, email, password });
+    const user = new User({ username, email, password, role });
     await user.save();
 
-    const payload = { user: { id: user.id } };
+    const payload = { user: { id: user.id, role: user.role } };
 
     jwt.sign(
       payload,
@@ -50,7 +50,7 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ msg: 'Credenciais inválidas.' });
     }
 
-    const payload = { user: { id: user.id } };
+    const payload = { user: { id: user.id, role: user.role } };
 
     jwt.sign(
       payload,

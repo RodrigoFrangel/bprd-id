@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B.P.R.D. - Criar Campanha</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="../public/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            background-color: #1a1a1a; 
+            font-family: 'Roboto Condensed', sans-serif; 
+            color: #f5f5f5;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23333333' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .main-container {
+            background-color: rgba(10, 10, 10, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid #444;
+        }
+        .font-special { font-family: 'Special Elite', monospace; }
+        .btn { font-family: 'Roboto Condensed', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; }
+        .form-input { background-color: #1a1a1a; border: 1px solid #555; color: #f5f5f5; }
+    </style>
+</head>
+<body class="p-4 sm:p-10 flex items-center justify-center min-h-screen">
+
+    <div class="max-w-md w-full mx-auto main-container rounded-lg p-6 sm:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold font-special">NOVA CAMPANHA</h1>
+        </header>
+
+        <form id="create-campaign-form">
+            <div>
+                <label for="name" class="font-special text-gray-400">NOME DA CAMPANHA</label>
+                <input type="text" id="name" name="name" class="form-input p-2 rounded w-full mt-1" required>
+            </div>
+
+            <div class="mt-8 flex flex-col-reverse sm:flex-row-reverse gap-4">
+                <button type="submit" class="btn bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-6 rounded w-full sm:w-auto">CRIAR</button>
+                <a href="campanhas.html" class="btn bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded w-full sm:w-auto text-center">CANCELAR</a>
+            </div>
+        </form>
+
+        <div id="result-container" class="mt-6 text-center hidden">
+            <h2 class="text-xl font-special text-green-400">Campanha Criada!</h2>
+            <p class="text-gray-300 mt-2">Use este código para convidar seus jogadores:</p>
+            <div id="invite-code" class="mt-2 p-2 bg-black bg-opacity-50 rounded font-mono text-2xl tracking-widest cursor-pointer" title="Clique para copiar"></div>
+            <a id="go-to-combat" href="#" class="btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded mt-4 inline-block">IR PARA O COMBATE</a>
+        </div>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        const form = document.getElementById('create-campaign-form');
+        const resultContainer = document.getElementById('result-container');
+        const inviteCodeEl = document.getElementById('invite-code');
+        const goToCombatLink = document.getElementById('go-to-combat');
+        const token = localStorage.getItem('bprd_token');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!token) {
+                alert('Você precisa estar logado para criar uma campanha.');
+                return;
+            }
+            const name = form.name.value;
+
+            try {
+                // API-NOTE: Esta rota cria a campanha e retorna o objeto completo, incluindo o inviteCode.
+                const response = await fetch(`${API_URL}/campaigns`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-auth-token': token
+                    },
+                    body: JSON.stringify({ name })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.msg || 'Não foi possível criar a campanha.');
+                }
+
+                const campaign = await response.json();
+                form.classList.add('hidden');
+                resultContainer.classList.remove('hidden');
+                inviteCodeEl.textContent = campaign.inviteCode;
+                goToCombatLink.href = `combate.html?id=${campaign._id}`;
+
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+
+        inviteCodeEl.addEventListener('click', () => {
+            navigator.clipboard.writeText(inviteCodeEl.textContent).then(() => {
+                alert('Código copiado!');
+            }, () => {
+                alert('Falha ao copiar o código.');
+            });
+        });
+    </script>
+</body>
+</html>

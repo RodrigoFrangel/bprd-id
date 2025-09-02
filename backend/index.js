@@ -27,6 +27,7 @@ app.use(express.json());
 // --- Rotas da API ---
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/characters', require('./routes/characters'));
+app.use('/api/campaigns', require('./routes/campaigns'));
 
 const PORT = process.env.PORT || 7000;
 

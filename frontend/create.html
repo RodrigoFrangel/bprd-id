@@ -107,11 +107,21 @@
         
         .collapsible-header {
             transition: all 0.2s ease-in-out;
-            border-bottom: 2px solid #4a5568;
             padding-bottom: 0.5rem;
         }
+        details > summary {
+            border-bottom: 2px solid #4a5568;
+        }
+        details[open] > summary {
+            border-bottom: 2px solid transparent;
+        }
         .collapsible-header:hover { filter: brightness(1.25); }
-        .collapsible-content { padding-top: 1.5rem; }
+        .collapsible-content { 
+            padding-top: 1.5rem; 
+            border-top: 2px solid #4a5568;
+            margin-top: -2px;
+        }
+
         .details-arrow { transition: transform 0.2s; }
         details[open] > summary .details-arrow { transform: rotate(180deg); }
 
@@ -136,12 +146,7 @@
         .prose blockquote { border-left: 4px solid #4a5568; padding-left: 1rem; color: #d1d5db; }
         .prose code { background-color: #1a1a1a; padding: 2px 4px; border-radius: 4px; font-family: monospace; }
         .hidden { display: none; }
-
-        .section-title {
-            border-bottom: 2px solid #4a5568;
-            padding-bottom: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
+        
         .feature-tag-select {
             background-color: #1a1a1a;
             border: 1px solid #555;
@@ -162,122 +167,162 @@
             <p class="text-gray-400">BUREAU FOR PARANORMAL RESEARCH AND DEFENSE</p>
         </div>
 
-        <form id="agent-form">
+        <form id="agent-form" class="space-y-8">
             <input type="hidden" id="agentId" name="agentId">
             
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-6">
-                <!-- Coluna 1: Dados Básicos -->
-                <section>
-                    <h2 class="section-title text-2xl font-bold text-red-500">DADOS BÁSICOS</h2>
-                    <div class="space-y-4">
-                        <div><label for="name" class="form-label">NOME DO PERSONAGEM</label><input type="text" id="name" name="name" class="w-full p-2 rounded form-input" required></div>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div><label for="age" class="form-label">IDADE</label><input type="number" id="age" name="age" class="w-full p-2 rounded form-input"></div>
-                            <div><label for="height" class="form-label">ALTURA (cm)</label><input type="number" id="height" name="height" class="w-full p-2 rounded form-input"></div>
-                            <div><label for="weight" class="form-label">PESO (kg)</label><input type="number" id="weight" name="weight" class="w-full p-2 rounded form-input"></div>
+            <!-- Seção de Dados Básicos e Atributos -->
+            <details open>
+                <summary class="collapsible-header text-2xl font-bold text-red-500 flex justify-between items-center">
+                    <span>INFORMAÇÕES GERAIS</span>
+                    <svg class="details-arrow w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </summary>
+                <div class="collapsible-content grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-6">
+                    <!-- Coluna 1: Dados Básicos -->
+                    <section>
+                        <h3 class="font-special text-lg text-gray-400 mb-4">DADOS BÁSICOS</h3>
+                        <div class="space-y-4">
+                            <div><label for="name" class="form-label">NOME DO PERSONAGEM</label><input type="text" id="name" name="name" class="w-full p-2 rounded form-input" required></div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div><label for="age" class="form-label">IDADE</label><input type="number" id="age" name="age" class="w-full p-2 rounded form-input"></div>
+                                <div><label for="height" class="form-label">ALTURA (cm)</label><input type="number" id="height" name="height" class="w-full p-2 rounded form-input"></div>
+                                <div><label for="weight" class="form-label">PESO (kg)</label><input type="number" id="weight" name="weight" class="w-full p-2 rounded form-input"></div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div><label for="role" class="form-label">FUNÇÃO (ROLE)</label><input type="text" id="role" name="role" class="w-full p-2 rounded form-input" required></div>
+                                <div><label for="department" class="form-label">DEPARTAMENTO</label><input type="text" id="department" name="department" class="w-full p-2 rounded form-input" required></div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div><label for="level" class="form-label">NÍVEL</label><input type="number" id="level" name="level" class="w-full p-2 rounded form-input" min="1" max="20" required></div>
+                                <div><label for="maxHitPoints" class="form-label">HP MÁXIMO</label><input type="number" id="maxHitPoints" name="maxHitPoints" placeholder="ex: 12" class="w-full p-2 rounded form-input"></div>
+                            </div>
+                            <div><label for="profilePic" class="form-label">URL DA IMAGEM DE PERFIL</label><input type="url" id="profilePic" name="profilePic" class="w-full p-2 rounded form-input"></div>
                         </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div><label for="role" class="form-label">FUNÇÃO (ROLE)</label><input type="text" id="role" name="role" class="w-full p-2 rounded form-input" required></div>
-                            <div><label for="department" class="form-label">DEPARTAMENTO</label><input type="text" id="department" name="department" class="w-full p-2 rounded form-input" required></div>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div><label for="level" class="form-label">NÍVEL</label><input type="number" id="level" name="level" class="w-full p-2 rounded form-input" min="1" max="20" required></div>
-                            <div><label for="maxHitPoints" class="form-label">HP MÁXIMO</label><input type="number" id="maxHitPoints" name="maxHitPoints" placeholder="ex: 12" class="w-full p-2 rounded form-input"></div>
-                        </div>
-                        <div><label for="profilePic" class="form-label">URL DA IMAGEM DE PERFIL</label><input type="url" id="profilePic" name="profilePic" class="w-full p-2 rounded form-input"></div>
-                    </div>
-                </section>
+                    </section>
 
-                <!-- Coluna 2: Habilidades & Privacidade -->
-                <section>
-                    <h2 class="section-title text-2xl font-bold text-red-500">ÍNDICE DE HABILIDADES</h2>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label for="str" class="form-label">FORÇA</label>
-                            <div class="relative flex items-center"><input type="number" id="str" name="str" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
+                    <!-- Coluna 2: Habilidades & Privacidade -->
+                    <section>
+                        <h3 class="font-special text-lg text-gray-400 mb-4">ÍNDICE DE HABILIDADES</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="str" class="form-label">FORÇA</label>
+                                <div class="relative flex items-center"><input type="number" id="str" name="str" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
+                            </div>
+                            <div>
+                                <label for="con" class="form-label">CONSTITUIÇÃO</label>
+                                <div class="relative flex items-center"><input type="number" id="con" name="con" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
+                            </div>
+                            <div>
+                                <label for="dex" class="form-label">DESTREZA</label>
+                                <div class="relative flex items-center"><input type="number" id="dex" name="dex" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
+                            </div>
+                            <div>
+                                <label for="int" class="form-label">INTELIGÊNCIA</label>
+                                <div class="relative flex items-center"><input type="number" id="int" name="int" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
+                            </div>
+                            <div>
+                                <label for="wis" class="form-label">SABEDORIA</label>
+                                <div class="relative flex items-center"><input type="number" id="wis" name="wis" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
+                            </div>
+                            <div>
+                                <label for="cha" class="form-label">CARISMA</label>
+                                <div class="relative flex items-center"><input type="number" id="cha" name="cha" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
+                            </div>
                         </div>
-                        <div>
-                            <label for="con" class="form-label">CONSTITUIÇÃO</label>
-                            <div class="relative flex items-center"><input type="number" id="con" name="con" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
+                        
+                        <h3 class="font-special text-lg text-gray-400 mt-8 mb-4">PRIVACIDADE</h3>
+                        <div class="flex items-center justify-between p-4 bg-black bg-opacity-20 rounded-lg">
+                           <label for="isPublic" class="form-label">PERSONAGEM PÚBLICO?</label>
+                           <label class="toggle-switch"><input type="checkbox" id="isPublic" name="isPublic"><span class="slider"></span></label>
                         </div>
-                        <div>
-                            <label for="dex" class="form-label">DESTREZA</label>
-                            <div class="relative flex items-center"><input type="number" id="dex" name="dex" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
-                        </div>
-                        <div>
-                            <label for="int" class="form-label">INTELIGÊNCIA</label>
-                            <div class="relative flex items-center"><input type="number" id="int" name="int" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
-                        </div>
-                        <div>
-                            <label for="wis" class="form-label">SABEDORIA</label>
-                            <div class="relative flex items-center"><input type="number" id="wis" name="wis" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
-                        </div>
-                        <div>
-                            <label for="cha" class="form-label">CARISMA</label>
-                            <div class="relative flex items-center"><input type="number" id="cha" name="cha" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
-                        </div>
-                    </div>
-                    
-                    <h2 class="section-title text-2xl font-bold text-red-500 mt-8">PRIVACIDADE</h2>
-                    <div class="flex items-center justify-between p-4 bg-black bg-opacity-20 rounded-lg">
-                       <label for="isPublic" class="form-label">PERSONAGEM PÚBLICO?</label>
-                       <label class="toggle-switch"><input type="checkbox" id="isPublic" name="isPublic"><span class="slider"></span></label>
-                    </div>
-                </section>
-            </div>
+                    </section>
+                </div>
+            </details>
             
              <!-- Seção de Salva-guardas -->
-            <section class="mt-8">
-                <h2 class="section-title text-2xl font-bold text-red-500">SALVA-GUARDAS</h2>
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" id="saving-throws-container">
+            <details>
+                <summary class="collapsible-header text-2xl font-bold text-red-500 flex justify-between items-center">
+                    <span>SALVA-GUARDAS</span>
+                    <svg class="details-arrow w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </summary>
+                <div class="collapsible-content grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" id="saving-throws-container">
                     <!-- Checkboxes de Salva-guarda serão gerados aqui -->
                 </div>
-            </section>
+            </details>
             
             <!-- Seção de Classificação -->
-            <section class="mt-8">
-                <h2 class="section-title text-2xl font-bold text-red-500">CLASSIFICAÇÃO</h2>
-                 <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+            <details>
+                <summary class="collapsible-header text-2xl font-bold text-red-500 flex justify-between items-center">
+                    <span>CLASSIFICAÇÃO</span>
+                    <svg class="details-arrow w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </summary>
+                <div class="collapsible-content grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
                     <div><label for="origin" class="form-label">ORIGEM</label><input type="text" id="origin" name="origin" class="w-full p-2 rounded form-input" required></div>
                     <div><label for="recruitment" class="form-label">RECRUTAMENTO</label><input type="text" id="recruitment" name="recruitment" class="w-full p-2 rounded form-input" required></div>
                     <div><label for="lifeBefore" class="form-label">VIDA ANTES DA B.P.R.D.</label><input type="text" id="lifeBefore" name="lifeBefore" class="w-full p-2 rounded form-input"></div>
                     <div><label for="drive" class="form-label">MOTIVAÇÃO (DRIVE)</label><input type="text" id="drive" name="drive" class="w-full p-2 rounded form-input"></div>
                     <div class="md:col-span-2"><label for="psych" class="form-label">AVALIAÇÃO PSICOLÓGICA (um por linha)</label><textarea id="psych" name="psych" rows="3" class="w-full p-2 rounded form-input"></textarea></div>
-                 </div>
-            </section>
+                </div>
+            </details>
 
             <!-- Seção de Habilidades e Equipamentos -->
-            <section class="mt-8">
-                <h2 class="section-title text-2xl font-bold text-red-500">HABILIDADES E EQUIPAMENTOS</h2>
-                <div id="features-container" class="space-y-3"></div>
-                <button type="button" id="add-feature-btn" class="mt-4 w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition-colors btn flex items-center justify-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
-                    ADICIONAR HABILIDADE
-                </button>
-            </section>
+            <details>
+                <summary class="collapsible-header text-2xl font-bold text-red-500 flex justify-between items-center">
+                    <span>HABILIDADES E EQUIPAMENTOS</span>
+                    <svg class="details-arrow w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </summary>
+                <div class="collapsible-content">
+                    <div id="features-container" class="space-y-3"></div>
+                    <button type="button" id="add-feature-btn" class="mt-4 w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition-colors btn flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                        ADICIONAR HABILIDADE
+                    </button>
+                </div>
+            </details>
 
              <!-- Seção de Perícias -->
-            <section class="mt-8">
-                 <details>
-                    <summary class="collapsible-header text-2xl font-bold text-red-500 flex justify-between items-center">
-                        <span>PERÍCIAS</span>
-                         <svg class="details-arrow w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                    </summary>
-                    <div class="collapsible-content grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-4" id="skills-container">
+            <details>
+                <summary class="collapsible-header text-2xl font-bold text-red-500 flex justify-between items-center">
+                    <span>PERÍCIAS</span>
+                    <svg class="details-arrow w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </summary>
+                <div class="collapsible-content">
+                    <div class="hidden sm:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 text-center font-special text-xs text-gray-400 uppercase mb-2">
+                        <div class="grid grid-cols-[1fr_auto_auto]" style="gap: 0.75rem;">
+                            <span class="text-left">Perícia</span>
+                            <span class="w-[30px]">Prof</span>
+                            <span class="w-[30px]">V/D</span>
+                        </div>
+                        <div class="grid grid-cols-[1fr_auto_auto]" style="gap: 0.75rem;">
+                            <span class="text-left">Perícia</span>
+                            <span class="w-[30px]">Prof</span>
+                            <span class="w-[30px]">V/D</span>
+                        </div>
+                        <div class="hidden md:grid grid-cols-[1fr_auto_auto]" style="gap: 0.75rem;">
+                            <span class="text-left">Perícia</span>
+                            <span class="w-[30px]">Prof</span>
+                            <span class="w-[30px]">V/D</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-4" id="skills-container">
                         <!-- Skills will be generated by JS here -->
                     </div>
-                </details>
-            </section>
+                </div>
+            </details>
 
              <!-- Seção de Ataques -->
-            <section class="mt-8">
-                <h2 class="section-title text-2xl font-bold text-red-500">ARMAS E ATAQUES</h2>
-                <div id="attacks-container" class="space-y-3"></div>
-                <button type="button" id="add-attack-btn" class="mt-4 w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition-colors btn flex items-center justify-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
-                    ADICIONAR ARMA
-                </button>
-            </section>
+            <details>
+                <summary class="collapsible-header text-2xl font-bold text-red-500 flex justify-between items-center">
+                    <span>ARMAS E ATAQUES</span>
+                    <svg class="details-arrow w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </summary>
+                <div class="collapsible-content">
+                    <div id="attacks-container" class="space-y-3"></div>
+                    <button type="button" id="add-attack-btn" class="mt-4 w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition-colors btn flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                        ADICIONAR ARMA
+                    </button>
+                </div>
+            </details>
             
             <div class="mt-8 pt-6 border-t border-gray-700 flex flex-col-reverse sm:flex-row-reverse gap-4">
                 <button id="submit-button" type="submit" class="w-full sm:w-auto bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-6 rounded transition-colors btn">SALVAR PERSONAGEM</button>

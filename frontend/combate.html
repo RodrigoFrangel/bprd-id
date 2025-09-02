@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B.P.R.D. - Combate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="../public/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            background-color: #1a1a1a; 
+            font-family: 'Roboto Condensed', sans-serif; 
+            color: #f5f5f5;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23333333' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .main-container {
+            background-color: rgba(10, 10, 10, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid #444;
+        }
+        .font-special { font-family: 'Special Elite', monospace; }
+        .btn { font-family: 'Roboto Condensed', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; }
+        .character-card {
+            background-color: #2d2d2d;
+            border-left: 4px solid #444;
+            transition: all 0.2s ease-in-out;
+        }
+        .character-card.active-turn {
+            border-left-color: #facc15; /* Amarelo */
+            transform: scale(1.02);
+            box-shadow: 0 0 15px rgba(250, 204, 21, 0.3);
+        }
+        .initiative-roll {
+            font-family: 'Special Elite', monospace;
+            font-size: 2rem;
+            min-width: 60px;
+        }
+        .char-thumb {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #4a5568;
+        }
+        .roll-btn {
+            background-color: #4a5568;
+            padding: 0.25rem 1rem;
+            font-size: 0.8rem;
+        }
+        .roll-btn:hover {
+            background-color: #6b7280;
+        }
+        .roll-btn:disabled {
+            background-color: #374151;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-10">
+
+    <div class="max-w-xl mx-auto main-container rounded-lg p-6 sm:p-8">
+        <header class="text-center mb-8">
+            <h1 id="campaign-name" class="text-4xl font-bold font-special">COMBATE</h1>
+            <p class="text-gray-400">ORDEM DE TURNO</p>
+        </header>
+
+        <div id="loading" class="text-center text-xl font-special">Carregando dados do combate...</div>
+        
+        <main>
+            <div id="character-list" class="space-y-3">
+                <!-- Personagens serão inseridos aqui -->
+            </div>
+        </main>
+
+        <footer id="footer-controls" class="mt-8 pt-6 border-t border-gray-600 flex flex-col sm:flex-row gap-4 justify-center">
+             <a href="campanhas.html" class="btn bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded w-full sm:w-auto text-center">VOLTAR</a>
+             <button id="next-turn-btn" class="btn bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-6 rounded w-full sm:w-auto hidden">PRÓXIMO TURNO</button>
+        </footer>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        const loadingDiv = document.getElementById('loading');
+        const characterList = document.getElementById('character-list');
+        const nextTurnBtn = document.getElementById('next-turn-btn');
+        const campaignNameEl = document.getElementById('campaign-name');
+        
+        let campaign = null;
+        let pollingInterval;
+        const token = localStorage.getItem('bprd_token');
+        const loggedInUserId = getLoggedInUserId();
+
+        function calculateModifier(score) {
+            return Math.floor((score - 10) / 2);
+        }
+
+        function renderList() {
+            if (!campaign) return;
+            characterList.innerHTML = '';
+            
+            // Ordena a lista para exibição
+            const sortedParticipants = [...campaign.participants].sort((a, b) => {
+                if (a.initiativeResult === null) return 1;
+                if (b.initiativeResult === null) return -1;
+                return b.initiativeResult - a.initiativeResult;
+            });
+
+            sortedParticipants.forEach(participant => {
+                const char = participant.characterId; // O objeto do personagem está aninhado
+                if (!char) return; // Pula se o personagem não foi populado
+                
+                const isMyTurn = char._id === campaign.currentTurnCharacterId;
+                const canIRoll = (participant.userId === loggedInUserId) || (participant.isNpc && campaign.masterId === loggedInUserId);
+                
+                const ac = 10 + calculateModifier(char.attributes.dex);
+                const hp = char.hitPoints ? char.hitPoints.split('/')[0] : 'N/A';
+                const hasRolled = participant.initiativeResult !== null;
+                
+                const card = document.createElement('div');
+                card.className = `character-card p-3 rounded-lg flex items-center gap-4 ${isMyTurn ? 'active-turn' : ''}`;
+                card.dataset.charId = char._id;
+
+                card.innerHTML = `
+                    <div class="initiative-roll text-center ${hasRolled ? 'text-white' : 'text-gray-500'}">${hasRolled ? participant.initiativeResult : '--'}</div>
+                    <img src="${char.profilePic || 'https://placehold.co/48x48/2d2d2d/f5f5f5?text=BPRD'}" alt="Retrato de ${char.name}" class="char-thumb">
+                    <div class="flex-grow">
+                        <h2 class="font-bold">${char.name.toUpperCase()}</h2>
+                        <div class="flex gap-4 text-xs text-gray-400">
+                            <span>HP: ${hp}</span>
+                            <span>CA: ${ac}</span>
+                        </div>
+                    </div>
+                    ${!hasRolled && canIRoll ? `<button class="roll-btn btn" data-id="${char._id}">Rolar</button>` : `<div class="w-[70px]"></div>`}
+                `;
+                characterList.appendChild(card);
+            });
+        }
+
+        async function loadCampaignData(campaignId) {
+            try {
+                // API-NOTE: Rota que busca os dados da campanha, populando os 'characterId'
+                const response = await fetch(`${API_URL}/campaigns/${campaignId}`, {
+                    headers: { 'x-auth-token': token }
+                });
+                if (!response.ok) throw new Error('Falha ao carregar dados do combate');
+                
+                const newCampaignData = await response.json();
+                campaign = newCampaignData;
+                
+                campaignNameEl.textContent = campaign.name.toUpperCase();
+                
+                const allHaveRolled = campaign.participants.every(p => p.initiativeResult !== null);
+                const isMyTurn = campaign.currentTurnCharacterId === getLoggedInCharacterIdInCampaign();
+                const isMaster = campaign.masterId === loggedInUserId;
+
+                if (allHaveRolled) {
+                    nextTurnBtn.classList.remove('hidden');
+                    nextTurnBtn.disabled = !isMyTurn && !isMaster;
+                } else {
+                    nextTurnBtn.classList.add('hidden');
+                }
+
+                renderList();
+            } catch (error) {
+                console.error(error);
+                characterList.innerHTML = `<p class="text-red-500 text-center">${error.message}</p>`;
+                clearInterval(pollingInterval);
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+
+        async function handleRoll(charId) {
+            const campaignId = new URLSearchParams(window.location.search).get('id');
+            // API-NOTE: Rota para salvar a rolagem de iniciativa de um personagem
+            await fetch(`${API_URL}/campaigns/${campaignId}/roll-initiative`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-auth-token': token
+                },
+                body: JSON.stringify({ characterId: charId })
+            });
+            // A atualização acontecerá no próximo polling, mas podemos forçar para uma resposta mais rápida
+            loadCampaignData(campaignId); 
+        }
+
+        async function handleNextTurn() {
+            const campaignId = new URLSearchParams(window.location.search).get('id');
+            nextTurnBtn.disabled = true;
+            // API-NOTE: Rota para avançar o turno
+            await fetch(`${API_URL}/campaigns/${campaignId}/next-turn`, {
+                method: 'PUT',
+                headers: { 'x-auth-token': token }
+            });
+            loadCampaignData(campaignId);
+        }
+
+        function getLoggedInCharacterIdInCampaign() {
+            if (!campaign) return null;
+            const participant = campaign.participants.find(p => p.userId === loggedInUserId);
+            return participant ? participant.characterId._id : null;
+        }
+
+        characterList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('roll-btn')) {
+                e.target.disabled = true; // Prevenir cliques duplos
+                handleRoll(e.target.dataset.id);
+            }
+        });
+
+        nextTurnBtn.addEventListener('click', handleNextTurn);
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const campaignId = new URLSearchParams(window.location.search).get('id');
+            if (!campaignId) {
+                loadingDiv.textContent = 'ID da campanha não fornecido.';
+                return;
+            }
+            if (!token) {
+                 loadingDiv.innerHTML = '<p class="text-yellow-400">Você precisa estar logado para ver o combate.</p>';
+                 return;
+            }
+            
+            loadCampaignData(campaignId);
+            pollingInterval = setInterval(() => loadCampaignData(campaignId), 5000); // Atualiza a cada 5 segundos
+        });
+
+        window.addEventListener('beforeunload', () => {
+            clearInterval(pollingInterval); // Limpa o intervalo ao sair da página
+        });
+    </script>
+</body>
+</html>

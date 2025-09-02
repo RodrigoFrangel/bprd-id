@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B.P.R.D. - Campanhas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="../public/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            background-color: #1a1a1a; 
+            font-family: 'Roboto Condensed', sans-serif; 
+            color: #f5f5f5;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23333333' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .main-container {
+            background-color: rgba(10, 10, 10, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid #444;
+        }
+        .font-special { font-family: 'Special Elite', monospace; }
+        .btn { font-family: 'Roboto Condensed', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; }
+        .campaign-card {
+            background-color: #2d2d2d;
+            border-left: 4px solid #b91c1c;
+            transition: all 0.2s ease-in-out;
+        }
+        .campaign-card:hover {
+            transform: translateY(-2px);
+            border-left-color: #facc15;
+        }
+        .form-input { background-color: #1a1a1a; border: 1px solid #555; color: #f5f5f5; }
+    </style>
+</head>
+<body class="p-4 sm:p-10">
+    <div class="max-w-2xl mx-auto main-container rounded-lg p-6 sm:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold font-special">CAMPANHAS</h1>
+            <p class="text-gray-400">SESSÕES DE JOGO ATIVAS</p>
+        </header>
+
+        <div id="loading" class="text-center text-xl font-special">Carregando...</div>
+
+        <main>
+            <div id="campaign-list" class="space-y-4">
+                <!-- Lista de campanhas será inserida aqui -->
+            </div>
+        </main>
+
+        <footer class="mt-8 pt-6 border-t border-gray-600 space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <a href="criar-campanha.html" class="btn bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-6 rounded w-full text-center">CRIAR NOVA CAMPANHA</a>
+                <a href="index.html" class="btn bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded w-full text-center">VOLTAR</a>
+            </div>
+            <div class="flex items-center gap-2">
+                <input type="text" id="join-code-input" placeholder="CÓDIGO DO CONVITE" class="form-input p-2 rounded w-full font-special text-center">
+                <button id="join-campaign-btn" class="btn bg-blue-600 hover:bg-blue-700 text-white font-bold p-2 rounded">ENTRAR</button>
+            </div>
+        </footer>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        const loadingDiv = document.getElementById('loading');
+        const campaignList = document.getElementById('campaign-list');
+        const joinCodeInput = document.getElementById('join-code-input');
+        const joinCampaignBtn = document.getElementById('join-campaign-btn');
+        const token = localStorage.getItem('bprd_token');
+
+        async function loadCampaigns() {
+            if (!token) {
+                loadingDiv.innerHTML = '<p class="text-yellow-400">Você precisa estar logado para ver suas campanhas.</p>';
+                return;
+            }
+            try {
+                // API-NOTE: Esta rota deve retornar todas as campanhas onde o masterId é o userId
+                // ou onde o userId está na lista de 'participants'.
+                const response = await fetch(`${API_URL}/campaigns/my-campaigns`, {
+                    headers: { 'x-auth-token': token }
+                });
+                if (!response.ok) throw new Error('Falha ao carregar campanhas');
+                const campaigns = await response.json();
+                
+                renderList(campaigns);
+            } catch (error) {
+                console.error(error);
+                campaignList.innerHTML = `<p class="text-red-500 text-center">${error.message}</p>`;
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+
+        function renderList(campaigns) {
+            campaignList.innerHTML = '';
+            if (campaigns.length === 0) {
+                campaignList.innerHTML = '<p class="text-gray-400 text-center">Você ainda não participa de nenhuma campanha.</p>';
+                return;
+            }
+            campaigns.forEach(campaign => {
+                const card = document.createElement('a');
+                card.href = `combate.html?id=${campaign._id}`;
+                card.className = 'campaign-card block p-4 rounded-lg';
+                card.innerHTML = `
+                    <h2 class="text-xl font-bold">${campaign.name.toUpperCase()}</h2>
+                    <p class="text-sm text-gray-400">Mestre: ${campaign.masterId.username}</p>
+                    <p class="text-xs text-gray-500 mt-1">${campaign.participants.length} participante(s)</p>
+                `;
+                campaignList.appendChild(card);
+            });
+        }
+
+        async function joinCampaign() {
+            const inviteCode = joinCodeInput.value.trim();
+            if (!inviteCode) {
+                alert('Por favor, insira um código de convite.');
+                return;
+            }
+            if (!localStorage.getItem('main_character_id')) {
+                alert('Você precisa definir um personagem principal antes de entrar em uma campanha.');
+                window.location.href = 'personagens.html';
+                return;
+            }
+
+            try {
+                // API-NOTE: Esta rota adiciona o 'main_character_id' do usuário à campanha
+                const response = await fetch(`${API_URL}/campaigns/join`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-auth-token': token
+                    },
+                    body: JSON.stringify({ 
+                        inviteCode,
+                        characterId: localStorage.getItem('main_character_id')
+                    })
+                });
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.msg || 'Não foi possível entrar na campanha.');
+                }
+                const campaign = await response.json();
+                alert(`Você entrou na campanha "${campaign.name}"!`);
+                window.location.href = `combate.html?id=${campaign._id}`;
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        joinCampaignBtn.addEventListener('click', joinCampaign);
+        window.addEventListener('DOMContentLoaded', loadCampaigns);
+    </script>
+</body>
+</html>

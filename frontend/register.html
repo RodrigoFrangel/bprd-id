@@ -39,6 +39,14 @@
             text-transform: uppercase;
             transition: background-color 0.2s;
         }
+        .role-label {
+            color: #9ca3af;
+        }
+        input[type="radio"]:checked + .role-label {
+            background-color: #b91c1c;
+            color: white;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4">
@@ -69,6 +77,17 @@
                     <input type="password" id="confirm-password" name="confirm-password" class="w-full p-3 rounded form-input" required>
                 </div>
                 
+                <div class="mb-6">
+                    <label class="form-label block mb-2">QUAL O SEU PAPEL?</label>
+                    <div class="flex justify-around items-center bg-black bg-opacity-20 rounded-lg p-1">
+                        <input type="radio" id="role-player" name="role" value="Player" class="hidden" checked>
+                        <label for="role-player" class="role-label flex-1 text-center p-2 rounded-md cursor-pointer transition-colors">JOGADOR</label>
+                        
+                        <input type="radio" id="role-dm" name="role" value="Mestre" class="hidden">
+                        <label for="role-dm" class="role-label flex-1 text-center p-2 rounded-md cursor-pointer transition-colors">MESTRE</label>
+                    </div>
+                </div>
+
                 <div id="error-message" class="text-red-500 text-center mb-4" style="display: none;"></div>
 
                 <button type="submit" class="w-full bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-4 rounded transition-colors btn">
@@ -91,10 +110,11 @@
             event.preventDefault();
             errorMessage.style.display = 'none';
 
-            const username = this.username.value; // Pega o valor do novo campo
+            const username = this.username.value;
             const email = this.email.value;
             const password = this.password.value;
             const confirmPassword = this['confirm-password'].value;
+            const role = this.role.value; // Pega o valor do papel selecionado
 
             if (password !== confirmPassword) {
                 errorMessage.textContent = 'As senhas não coincidem.';
@@ -106,7 +126,7 @@
                 const response = await fetch(`${API_URL}/auth/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, email, password })
+                    body: JSON.stringify({ username, email, password, role }) // Envia o papel para a API
                 });
 
                 const data = await response.json();

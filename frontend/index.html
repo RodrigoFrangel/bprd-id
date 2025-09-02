@@ -49,39 +49,73 @@
         const token = localStorage.getItem('bprd_token');
         const mainCharacterId = localStorage.getItem('main_character_id');
 
-        let companionButtonHTML = '';
+        function getUserRole(token) {
+            if (!token) return null;
+            try {
+                // Decodifica o token para pegar o payload.
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                // Procura pelo 'role' em locais comuns no payload do token
+                if (payload.user && payload.user.role) {
+                    return payload.user.role;
+                }
+                return payload.role; // Tenta a raiz do payload se não encontrar aninhado
+            } catch (e) {
+                console.error("Erro ao decodificar o token:", e);
+                // Se o token estiver corrompido ou inválido, desloga o usuário
+                logout();
+                return null;
+            }
+        }
+
+        let primaryButtonHTML = '';
+        const userRole = getUserRole(token);
 
         if (token) {
-            // Se o usuário está logado, montamos o botão do Companion
-            if (mainCharacterId) {
-                // Se um personagem principal está definido, o link vai direto para ele
-                companionButtonHTML = `
-                    <a href="companion-app.html?id=${mainCharacterId}" class="nav-btn nav-btn-main w-64 text-white font-bold py-3 px-4 rounded">
-                        Companion App
+            // Usuário está logado
+            if (userRole === 'Mestre') {
+                // Se for Mestre
+                navLinksContainer.innerHTML = `
+                    <a href="campanhas.html" class="nav-btn nav-btn-main w-64 text-white font-bold py-3 px-4 rounded">
+                        Minhas Campanhas
                     </a>
+                    <a href="criar-campanha.html" class="nav-btn w-64 text-white font-bold py-3 px-4 rounded">
+                        Criar Nova Campanha
+                    </a>
+                     <a href="personagens.html" class="nav-btn w-64 text-white font-bold py-3 px-4 rounded">
+                        Ver Personagens
+                    </a>
+                    <button onclick="logout()" class="nav-btn w-64 bg-gray-700 border-gray-700 text-white font-bold py-3 px-4 rounded">
+                        Logout
+                    </button>
                 `;
             } else {
-                // Se não, o link leva para a lista de personagens para que um seja escolhido
-                companionButtonHTML = `
-                    <a href="personagens.html" class="nav-btn w-64 text-white font-bold py-3 px-4 rounded" title="Selecione um personagem como principal para ter acesso rápido.">
-                        Companion App
+                // Se for Jogador
+                if (mainCharacterId) {
+                    primaryButtonHTML = `
+                        <a href="companion-app.html?id=${mainCharacterId}" class="nav-btn nav-btn-main w-64 text-white font-bold py-3 px-4 rounded">
+                            Companion App
+                        </a>
+                    `;
+                } else {
+                    primaryButtonHTML = `
+                        <a href="personagens.html" class="nav-btn w-64 text-white font-bold py-3 px-4 rounded" title="Selecione um personagem como principal para ter acesso rápido.">
+                            Companion App
+                        </a>
+                    `;
+                }
+                navLinksContainer.innerHTML = `
+                    ${primaryButtonHTML}
+                    <a href="personagens.html" class="nav-btn w-64 text-white font-bold py-3 px-4 rounded">
+                        Ver Personagens
                     </a>
+                    <a href="create.html" class="nav-btn w-64 text-white font-bold py-3 px-4 rounded">
+                        Criar Novo Personagem
+                    </a>
+                    <button onclick="logout()" class="nav-btn w-64 bg-gray-700 border-gray-700 text-white font-bold py-3 px-4 rounded">
+                        Logout
+                    </button>
                 `;
             }
-
-            // Usuário está logado
-            navLinksContainer.innerHTML = `
-                ${companionButtonHTML}
-                <a href="personagens.html" class="nav-btn w-64 text-white font-bold py-3 px-4 rounded">
-                    Ver Personagens
-                </a>
-                <a href="create.html" class="nav-btn w-64 text-white font-bold py-3 px-4 rounded">
-                    Criar Novo
-                </a>
-                <button onclick="logout()" class="nav-btn w-64 bg-gray-700 border-gray-700 text-white font-bold py-3 px-4 rounded">
-                    Logout
-                </button>
-            `;
         } else {
             // Usuário não está logado
             navLinksContainer.innerHTML = `

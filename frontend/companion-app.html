@@ -109,6 +109,18 @@
             border-radius: 50%; margin: 0 auto;
         }
 
+        .save-row {
+            display: grid;
+            grid-template-columns: 24px 1fr 40px;
+            gap: 0.75rem;
+            align-items: center;
+            padding: 0.5rem;
+            background-color: rgba(0,0,0,0.1);
+            border-radius: 0.25rem;
+        }
+        .save-name { font-family: 'Special Elite', monospace; color: #f5f5f5; font-size: 1.1rem; }
+        .save-bonus { font-weight: bold; font-size: 1.1rem; text-align: center; }
+
         .attack-header {
             display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem;
             padding: 0 0.75rem; margin-bottom: 0.5rem; color: #9ca3af;
@@ -134,12 +146,11 @@
         .ammo-value { cursor: pointer; font-weight: bold; color: #f5f5f5; padding: 0.1rem 0.5rem; border-radius: 4px; transition: background-color 0.2s;}
         .ammo-value:hover { background-color: rgba(255,255,255,0.1); }
         .feature-tag {
-            font-size: 0.7rem;
-            padding: 2px 8px;
+            font-size: 0.65rem; /* Smaller font */
+            padding: 2px 6px; /* Adjusted padding */
             border-radius: 10px;
             font-weight: bold;
             text-transform: uppercase;
-            margin-left: auto;
             color: #fff;
             flex-shrink: 0;
         }
@@ -149,34 +160,6 @@
         .tag-recrutamento { background-color: #1d4ed8; } /* blue-700 */
         .tag-especialização { background-color: #ca8a04; } /* yellow-600 */
         .tag-homebrew { background-color: #64748b; } /* slate-500 */
-
-        /* --- MODAL STYLES --- */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
-            z-index: 50;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease-in-out;
-        }
-        .modal-overlay.visible { opacity: 1; pointer-events: auto; }
-
-        .modal-box {
-            background-color: #2d2d2d;
-            border: 1px solid #444;
-            border-radius: 0.5rem;
-            padding: 1.5rem;
-            max-width: 90vw;
-            width: 400px;
-            transform: scale(0.95);
-            transition: transform 0.2s ease-in-out;
-        }
-        .modal-overlay.visible .modal-box { transform: scale(1); }
 
         .options-menu {
             position: absolute;
@@ -282,8 +265,9 @@
                 </div>
                 <div id="pericias-panel" class="tab-panel">
                      <h3 class="text-xl font-bold text-center mb-4 font-special">Salva-guardas</h3>
-                     <div id="saving-throws-list" class="grid grid-cols-6 gap-2 mb-6">
-                        <!-- Salva-guardas serão renderizados aqui pelo JS -->
+                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 mb-6">
+                        <div id="save-col-1" class="space-y-2"></div>
+                        <div id="save-col-2" class="space-y-2"></div>
                      </div>
                      <hr class="border-gray-600 my-4">
                      <h3 class="text-xl font-bold text-center mb-4 font-special">Perícias</h3>
@@ -304,15 +288,6 @@
         </div>
     </div>
 
-    <!-- Info Modal -->
-    <div id="info-modal-overlay" class="modal-overlay">
-        <div id="info-modal-box" class="modal-box text-center">
-            <h3 id="info-modal-title" class="text-xl font-bold font-special mb-4"></h3>
-            <div id="info-modal-content" class="text-lg mb-6"></div>
-            <button id="info-modal-close" class="btn bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-6 rounded">FECHAR</button>
-        </div>
-    </div>
-
     <script src="auth.js"></script>
     <script>
         const loadingDiv = document.getElementById('loading');
@@ -324,12 +299,6 @@
         const headerMenuBtn = document.getElementById('header-menu-btn');
         const headerOptionsMenu = document.getElementById('header-options-menu');
         
-        const infoModalOverlay = document.getElementById('info-modal-overlay');
-        const infoModalBox = document.getElementById('info-modal-box');
-        const infoModalTitle = document.getElementById('info-modal-title');
-        const infoModalContent = document.getElementById('info-modal-content');
-        const infoModalClose = document.getElementById('info-modal-close');
-
         let currentCharacter = null;
         let saveTimeout;
 
@@ -411,27 +380,36 @@
         }
 
         function renderSavingThrows(agent) {
-            const container = document.getElementById('saving-throws-list');
-            container.innerHTML = '';
+            const col1 = document.getElementById('save-col-1');
+            const col2 = document.getElementById('save-col-2');
+            col1.innerHTML = '';
+            col2.innerHTML = '';
 
             const proficiencies = agent.savingThrowProficiencies || [];
             const profBonus = getProficiencyBonus(agent.level);
+            const attributes = Object.keys(attributeMap); 
 
-            Object.keys(attributeMap).forEach(attr => {
+            attributes.forEach((attr, index) => {
                 const score = agent.attributes[attr];
                 const modifier = calculateModifier(score);
                 const isProficient = proficiencies.includes(attr);
                 const saveBonus = modifier + (isProficient ? profBonus : 0);
-
-                const card = document.createElement('div');
-                card.className = 'stat-card rounded-lg';
-                card.classList.toggle('proficient-save', isProficient);
                 
-                card.innerHTML = `
-                    <p class="text-xs text-gray-400 font-bold uppercase">${attributeMap[attr]}</p>
-                    <p class="text-2xl font-bold text-white">${formatBonus(saveBonus)}</p>
+                const proficiencyIndicator = isProficient ? '<div class="proficiency-dot"></div>' : '<div class="w-[10px] h-[10px]"></div>';
+
+                const saveElement = document.createElement('div');
+                saveElement.className = 'save-row';
+                saveElement.innerHTML = `
+                    <div class="flex justify-center items-center">${proficiencyIndicator}</div>
+                    <span class="save-name">${attributeMap[attr]}</span>
+                    <span class="save-bonus">${formatBonus(saveBonus)}</span>
                 `;
-                container.appendChild(card);
+                
+                if (index < 3) {
+                    col1.appendChild(saveElement);
+                } else {
+                    col2.appendChild(saveElement);
+                }
             });
         }
 
@@ -464,10 +442,10 @@
             }
 
             featureElement.innerHTML = `
-                <button class="feature-header w-full flex justify-between items-center p-4 text-left gap-4">
-                    <span class="font-bold text-lg text-white">${name}</span>
+                 <button class="feature-header w-full flex items-center p-4 text-left gap-2">
+                    <span class="font-bold text-lg text-white flex-grow truncate">${name}</span>
                     ${tagHTML}
-                    <svg class="chevron-icon h-5 w-5 text-gray-400 flex-shrink-0 ml-auto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                    <svg class="chevron-icon h-5 w-5 text-gray-400 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                 </button>
                 <div class="feature-details hidden p-4 border-t border-gray-600 bg-black bg-opacity-20">
                     <div class="text-sm text-gray-300 space-y-2">${formattedDescription}</div>
@@ -670,26 +648,16 @@
             const loggedInUserId = getLoggedInUserId();
             const isOwner = loggedInUserId && currentCharacter.userId && (currentCharacter.userId === loggedInUserId || currentCharacter.userId._id === loggedInUserId);
             
-            const initiativeButton = document.createElement('button');
+            const initiativeButton = document.createElement('a');
             initiativeButton.className = 'options-menu-item';
             initiativeButton.textContent = 'Iniciativa';
-            initiativeButton.onclick = () => {
-                const dexModifier = calculateModifier(currentCharacter.attributes.dex);
-                showInfoModal('Iniciativa', `<span class="text-3xl font-bold">${formatBonus(dexModifier)}</span>`);
-            };
+            initiativeButton.href = `combate.html`;
             headerOptionsMenu.appendChild(initiativeButton);
 
-            const idButton = document.createElement('button');
+            const idButton = document.createElement('a');
             idButton.className = 'options-menu-item';
             idButton.textContent = 'Exibir ID';
-            idButton.onclick = () => {
-                const idContent = `
-                    <div class="bg-black bg-opacity-20 p-2 rounded break-all text-sm">${currentCharacter._id}</div>
-                    <button id="copy-id-btn" class="btn bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded text-sm mt-4">Copiar</button>
-                `;
-                showInfoModal('ID do Agente', idContent);
-                document.getElementById('copy-id-btn').onclick = () => copyToClipboard(currentCharacter._id);
-            };
+            idButton.href = `id.html?id=${currentCharacter._id}`;
             headerOptionsMenu.appendChild(idButton);
 
             if (isOwner) {
@@ -698,30 +666,6 @@
                 editButton.textContent = 'Editar';
                 editButton.href = `create.html?edit=${currentCharacter._id}`;
                 headerOptionsMenu.appendChild(editButton);
-            }
-        }
-        
-        function showInfoModal(title, contentHTML) {
-            infoModalTitle.textContent = title;
-            infoModalContent.innerHTML = contentHTML;
-            infoModalOverlay.classList.add('visible');
-        }
-
-        function closeInfoModal() {
-            infoModalOverlay.classList.remove('visible');
-        }
-        
-        function copyToClipboard(text) {
-            const ta = document.createElement('textarea');
-            ta.value = text;
-            document.body.appendChild(ta);
-            ta.select();
-            document.execCommand('copy');
-            document.body.removeChild(ta);
-            const copyBtn = document.getElementById('copy-id-btn');
-            if(copyBtn) {
-                copyBtn.textContent = 'Copiado!';
-                setTimeout(() => { copyBtn.textContent = 'Copiar'; }, 2000);
             }
         }
         
@@ -736,22 +680,18 @@
             }
         });
 
-        infoModalClose.addEventListener('click', closeInfoModal);
-        infoModalOverlay.addEventListener('click', (e) => {
-            if (e.target === infoModalOverlay) {
-                closeInfoModal();
-            }
-        });
 
         async function fetchCharacter(id) {
             const token = localStorage.getItem('bprd_token');
             try {
                 let character = null;
 
-                const myResponse = await fetch(`${API_URL}/characters/mine`, { headers: { 'x-auth-token': token } });
-                if (myResponse.ok) {
-                    const myChars = await myResponse.json();
-                    character = myChars.find(c => c._id === id);
+                if (token) {
+                    const myResponse = await fetch(`${API_URL}/characters/mine`, { headers: { 'x-auth-token': token } });
+                    if (myResponse.ok) {
+                        const myChars = await myResponse.json();
+                        character = myChars.find(c => c._id === id);
+                    }
                 }
 
                 if (!character) {
