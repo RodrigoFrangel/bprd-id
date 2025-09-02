@@ -16,74 +16,59 @@
             --header-height: 60px;
         }
         body { 
-            background-color: #111; 
+            background-color: #1a1a1a; 
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23333333' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
             font-family: 'Roboto Condensed', sans-serif; 
             color: #f5f5f5; 
             overflow-x: hidden;
         }
         .app-header {
-            position: sticky;
-            top: 0;
-            z-index: 20;
+            position: sticky; top: 0; z-index: 20;
             height: var(--header-height);
-            background-color: rgba(18, 18, 18, 0.8);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background-color: rgba(18, 18, 18, 0.9);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             border-bottom: 1px solid #2a2a2a;
         }
         .main-content {
-            padding-top: var(--header-height);
-            padding-bottom: var(--bottom-nav-height);
+            /* Removido o padding-top excessivo */
+            padding-bottom: calc(var(--bottom-nav-height) + 0.5rem);
         }
         .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: var(--bottom-nav-height);
-            z-index: 20;
-            background-color: rgba(18, 18, 18, 0.8);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            position: fixed; bottom: 0; left: 0; right: 0;
+            height: var(--bottom-nav-height); z-index: 20;
+            background-color: rgba(18, 18, 18, 0.9);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
             border-top: 1px solid #2a2a2a;
         }
-        .nav-item {
-            color: #9ca3af;
-            transition: all 0.2s ease-in-out;
-        }
-        .nav-item:hover, .nav-item.active {
-            color: #f5f5f5;
-            transform: translateY(-2px);
-        }
+        .nav-item { color: #9ca3af; transition: all 0.2s ease-in-out; }
+        .nav-item:hover, .nav-item.active { color: #f5f5f5; transform: translateY(-2px); }
         .fab {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 56px; height: 56px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             transition: all 0.2s ease-in-out;
         }
-        .fab:hover {
-            transform: scale(1.1) rotate(10deg);
-        }
+        .fab:hover { transform: scale(1.1) rotate(10deg); box-shadow: 0 8px 20px rgba(185, 28, 28, 0.4); }
         .agent-card { 
             background-color: #2d2d2d; 
             border-left: 5px solid #444; 
             transition: all 0.2s ease-in-out; 
             position: relative;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -1px rgba(0,0,0,0.1);
         }
         .agent-card.main { border-left-color: #facc15; }
-        .agent-card:hover { border-left-color: #b91c1c; }
+        .agent-card:hover { 
+            border-left-color: #b91c1c; 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3), 0 4px 6px -2px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
         .private-badge {
-            position: absolute; top: 1rem; right: 1rem;
             font-size: 0.7rem; background-color: #4b5563; color: #e5e7eb; 
             padding: 2px 8px; border-radius: 12px; line-height: initial;
         }
         .agent-thumb {
-            width: 56px; height: 56px;
-            object-fit: cover; border-radius: 0.25rem; border: 2px solid #4b5563;
+            width: 56px; height: 56px; object-fit: cover; 
+            border-radius: 0.25rem; border: 2px solid #4b5563;
         }
         .modal-overlay {
             transition: opacity 0.2s ease-in-out, backdrop-filter 0.2s ease-in-out;
@@ -91,20 +76,18 @@
             backdrop-filter: blur(0px); -webkit-backdrop-filter: blur(0px);
         }
         .modal-box {
-            transition: all 0.15s ease-in-out;
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5), 0 4px 6px -2px rgba(0,0,0,0.25);
+            transition: all 0.2s ease-out;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             background-color: #2d2d2d; border: 1px solid #4b5563;
         }
         .modal-overlay.visible {
             opacity: 1; pointer-events: auto; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
         }
-        .modal-overlay.visible .modal-box {
-            opacity: 1; transform: translateY(0) scale(1);
-        }
+        .modal-overlay.visible .modal-box { opacity: 1; transform: translateY(0) scale(1); }
         .modal-option {
-            display: flex; align-items: center; width: 100%; padding: 10px 6px;
+            display: flex; align-items: center; width: 100%; padding: 10px 12px;
             background-color: transparent; color: #e5e7eb; border-radius: 0.375rem;
-            text-align: left; font-weight: normal; transition: background-color 0.2s; font-size: 0.9rem;
+            text-align: left; font-weight: normal; transition: background-color 0.2s; font-size: 1rem;
         }
         .modal-option:hover { background-color: #383c41; }
         .modal-option i.fa-fw { margin-right: 12px; color: #9ca3af; width: 20px; text-align: center; }
@@ -113,110 +96,169 @@
         #modal-close-btn { font-size: 1.5rem; line-height: 1; padding: 0 8px; color: #9ca3af; transition: color 0.2s; }
         #modal-close-btn:hover { color: white; }
         .options-btn {
-            background-color: transparent; color: #9ca3af; transition: color 0.2s;
+            background-color: transparent; color: #9ca3af; transition: all 0.2s;
             border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
         }
-        .options-btn:hover { background-color: #4a5568; color: white; }
+        .options-btn:hover { background-color: #4a5568; color: white; transform: scale(1.1); }
+        .loader {
+            width: 48px; height: 48px; border: 5px solid #FFF;
+            border-bottom-color: #b91c1c; border-radius: 50%;
+            display: block; animation: rotation 1s linear infinite; margin: 40px auto;
+        }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* --- Filtros --- */
+        .filter-bar {
+            background-color: rgba(45, 45, 45, 0.9);
+            backdrop-filter: blur(5px);
+            padding: 0.5rem 0.75rem;
+        }
+        .search-input {
+            background-color: #1a1a1a;
+            border: 1px solid #4b5563;
+        }
+        .filter-btn {
+            background-color: transparent;
+            border: 1px solid #4b5563;
+            color: #9ca3af;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        .filter-btn.active {
+            background-color: #b91c1c;
+            border-color: #b91c1c;
+            color: white;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
-    <header class="app-header flex items-center justify-center">
-        <h1 class="text-2xl font-bold tracking-wider" style="font-family: 'Special Elite', monospace;">PERSONAGENS</h1>
-    </header>
-
     <main class="main-content">
-        <div id="agent-list" class="space-y-3 p-3 max-w-4xl mx-auto">
-            <!-- Lista de agentes será inserida aqui -->
+        <div class="filter-bar z-10 mb-2 max-w-4xl mx-auto">
+            <div class="flex items-center justify-between gap-3">
+                 <!-- Search input (initially hidden) -->
+                <div id="search-wrapper" class="hidden w-full flex-grow items-center gap-2">
+                    <input type="search" id="search-input" placeholder="Buscar por nome..." class="search-input w-full p-2 rounded-lg text-sm">
+                    <button id="close-search-btn" class="text-gray-400 hover:text-white text-2xl leading-none px-2">&times;</button>
+                </div>
+
+                <!-- Filter buttons and search toggle (initially visible) -->
+                <div id="filters-wrapper" class="flex w-full items-center justify-between gap-2">
+                    <div id="filter-buttons" class="flex items-center justify-center gap-2">
+                        <button class="filter-btn active" data-filter="all">Todos</button>
+                        <button class="filter-btn" data-filter="mine">Meus</button>
+                        <button class="filter-btn" data-filter="npcs">NPCs</button>
+                    </div>
+                    <button id="open-search-btn" class="text-gray-400 hover:text-white p-2">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="agent-list" class="space-y-3 max-w-4xl mx-auto px-3 pt-2">
+            <div id="loader" class="loader"></div>
         </div>
     </main>
 
     <!-- Menu de Contexto -->
     <div id="options-modal-overlay" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center opacity-0 pointer-events-none p-4">
-        <div id="options-modal" class="modal-box rounded-lg w-full max-w-xs transform opacity-0 scale-95" style="width: 260px;">
+        <div id="options-modal" class="modal-box rounded-lg w-full max-w-xs transform opacity-0 scale-95 -translate-y-4" style="width: 280px;">
             <div id="modal-header" class="p-2 border-b border-gray-700/50 flex justify-between items-center">
                  <h3 id="modal-title" class="text-sm font-bold text-gray-300 px-2 truncate">Opções</h3>
                  <button id="modal-close-btn">&times;</button>
             </div>
-            <div id="modal-content" class="p-2 space-y-1">
-            </div>
+            <div id="modal-content" class="p-2 space-y-1"></div>
         </div>
     </div>
 
     <!-- Barra de Navegação Inferior -->
     <footer class="bottom-nav">
-        <div class="w-full h-full max-w-4xl mx-auto flex items-center justify-around relative" id="nav-container">
-            <!-- Conteúdo da Navegação será injetado aqui -->
-        </div>
+        <div class="w-full h-full max-w-4xl mx-auto flex items-center justify-around relative" id="nav-container"></div>
     </footer>
 
     <script src="auth.js"></script>
     <script>
         const agentListContainer = document.getElementById('agent-list');
+        const loader = document.getElementById('loader');
         const token = localStorage.getItem('bprd_token');
         const optionsModalOverlay = document.getElementById('options-modal-overlay');
         const modalContent = document.getElementById('modal-content');
         const modalTitle = document.getElementById('modal-title');
         const modalCloseBtn = document.getElementById('modal-close-btn');
+        
+        // --- Filter Elements ---
+        const searchInput = document.getElementById('search-input');
+        const filterButtonsContainer = document.getElementById('filter-buttons');
+        const openSearchBtn = document.getElementById('open-search-btn');
+        const closeSearchBtn = document.getElementById('close-search-btn');
+        const searchWrapper = document.getElementById('search-wrapper');
+        const filtersWrapper = document.getElementById('filters-wrapper');
 
-        let characterData = [];
+        let allCharacters = [];
+        let activeFilter = 'all';
+        let searchQuery = '';
 
         function setupHeaderAndNav() {
             const navContainer = document.getElementById('nav-container');
             if (token) {
                 navContainer.innerHTML = `
-                    <a href="index.html" class="nav-item flex flex-col items-center gap-1 text-center w-20">
-                        <i class="fas fa-home fa-lg"></i>
-                        <span class="text-xs font-bold uppercase hidden sm:block">Início</span>
-                    </a>
-                    <a id="create-character-btn" href="create.html" class="fab bg-red-700 hover:bg-red-800 text-white absolute bottom-4" style="left: 50%; transform: translateX(-50%);">
-                        <i class="fas fa-plus fa-lg"></i>
-                    </a>
-                    <button onclick="logout()" class="nav-item flex flex-col items-center gap-1 text-center w-20">
-                        <i class="fas fa-sign-out-alt fa-lg"></i>
-                        <span class="text-xs font-bold uppercase hidden sm:block">Sair</span>
-                    </button>
+                    <a href="index.html" class="nav-item flex flex-col items-center gap-1 text-center w-20"><i class="fas fa-home fa-lg"></i><span class="text-xs font-bold uppercase hidden sm:block">Início</span></a>
+                    <a id="create-character-btn" href="create.html" class="fab bg-red-700 hover:bg-red-800 text-white absolute bottom-4" style="left: 50%; transform: translateX(-50%);"><i class="fas fa-plus fa-lg"></i></a>
+                    <button onclick="logout()" class="nav-item flex flex-col items-center gap-1 text-center w-20"><i class="fas fa-sign-out-alt fa-lg"></i><span class="text-xs font-bold uppercase hidden sm:block">Sair</span></button>
                 `;
             } else {
                 navContainer.innerHTML = `
-                    <a href="index.html" class="nav-item flex flex-col items-center gap-1 text-center w-20">
-                        <i class="fas fa-home fa-lg"></i>
-                        <span class="text-xs font-bold uppercase hidden sm:block">Início</span>
-                    </a>
-                    <a href="login.html" class="nav-item flex flex-col items-center gap-1 text-center w-20">
-                        <i class="fas fa-sign-in-alt fa-lg"></i>
-                        <span class="text-xs font-bold uppercase hidden sm:block">Login</span>
-                    </a>
+                    <a href="index.html" class="nav-item flex flex-col items-center gap-1 text-center w-20"><i class="fas fa-home fa-lg"></i><span class="text-xs font-bold uppercase hidden sm:block">Início</span></a>
+                    <a href="login.html" class="nav-item flex flex-col items-center gap-1 text-center w-20"><i class="fas fa-sign-in-alt fa-lg"></i><span class="text-xs font-bold uppercase hidden sm:block">Login</span></a>
                 `;
-                document.getElementById('agent-list').innerHTML = '<p class="text-center text-gray-400 mt-10">Você precisa fazer login para ver seus personagens.</p>';
+                loader.style.display = 'none';
+                agentListContainer.innerHTML = '<p class="text-center text-gray-400 pt-4">Você precisa fazer login para ver seus personagens.</p>';
             }
         }
         
         async function setMainCharacter(id) {
             closeOptionsMenu();
             try {
-                const response = await fetch(`${API_URL}/characters/set-main/${id}`, {
-                    method: 'PUT',
-                    headers: { 'x-auth-token': token }
-                });
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.msg || 'Falha ao definir personagem principal.');
-                }
+                const response = await fetch(`${API_URL}/characters/set-main/${id}`, { method: 'PUT', headers: { 'x-auth-token': token } });
+                if (!response.ok) throw new Error((await response.json()).msg || 'Falha ao definir personagem principal.');
                 await loadCharacters();
             } catch (error) {
-                console.error('Erro ao definir personagem principal:', error);
-                alert(error.message);
+                console.error('Erro:', error); alert(error.message);
             }
         }
 
+        function applyFiltersAndRender() {
+            const loggedInUserId = getLoggedInUserId();
+            let filteredAgents = [...allCharacters];
+
+            if (searchQuery) {
+                filteredAgents = filteredAgents.filter(agent => agent.name.toLowerCase().includes(searchQuery));
+            }
+
+            if (activeFilter === 'mine') {
+                filteredAgents = filteredAgents.filter(agent => agent.userId && agent.userId._id === loggedInUserId);
+            } else if (activeFilter === 'npcs') {
+                filteredAgents = filteredAgents.filter(agent => agent.npc);
+            }
+
+            renderAgents(filteredAgents);
+        }
+
         function renderAgents(agents) {
-            characterData = agents;
+            loader.style.display = 'none';
             agentListContainer.innerHTML = ''; 
             const loggedInUserId = getLoggedInUserId();
 
             if (!agents || agents.length === 0) {
-                agentListContainer.innerHTML = '<p class="text-center text-gray-400 mt-10">Nenhum personagem encontrado. Seja o primeiro a criar um!</p>';
+                agentListContainer.innerHTML = `
+                    <div class="text-center text-gray-400 pt-10">
+                        <i class="fas fa-search fa-3x mb-4 text-gray-500"></i>
+                        <h3 class="text-lg font-bold">Nenhum Resultado</h3>
+                        <p class="text-sm">Tente ajustar seus filtros de busca.</p>
+                    </div>`;
                 return;
             }
 
@@ -227,82 +269,69 @@
                 const isMain = agent.isMainCharacter;
                 
                 const agentElement = document.createElement('div');
-                agentElement.className = `agent-card p-3 rounded-lg shadow-lg flex items-center gap-4 ${isMain ? 'main' : ''}`;
+                agentElement.className = `agent-card p-3 rounded-lg flex items-center gap-4 ${isMain ? 'main' : ''}`;
                 
-                const privateBadgeHTML = !agent.isPublic && isOwner ? '<span class="private-badge">Privado</span>' : '';
                 const thumbnailUrl = agent.profilePic || `https://placehold.co/64x64/2d2d2d/f5f5f5?text=BPRD`;
                 const ownerUsername = agent.userId ? agent.userId.username : 'Anônimo';
 
-                let optionsButtonHTML = '';
+                let topControlsHTML = '';
                 if (isOwner) {
-                    optionsButtonHTML = `
-                        <button class="options-btn ml-auto flex-shrink-0" data-agent-id="${agent._id}">
-                            <i class="fas fa-ellipsis-v"></i>
-                        </button>
-                    `;
+                    const privateBadgeHTML = !agent.isPublic ? '<span class="private-badge">Privado</span>' : '';
+                    const optionsButtonHTML = `<button class="options-btn flex-shrink-0" data-agent-id="${agent._id}"><i class="fas fa-ellipsis-v"></i></button>`;
+                    topControlsHTML = `<div class="absolute top-2 right-2 flex items-center gap-2 z-10">${privateBadgeHTML}${optionsButtonHTML}</div>`;
                 }
 
                 agentElement.innerHTML = `
-                     <a href="id.html?id=${agent._id}" class="flex items-center gap-3 flex-grow">
+                    ${topControlsHTML}
+                     <a href="id.html?id=${agent._id}" class="flex items-center gap-3 flex-grow w-full">
                         <img src="${thumbnailUrl}" alt="Thumbnail of ${agent.name}" class="agent-thumb" onerror="this.src='https://placehold.co/64x64/2d2d2d/f5f5f5?text=BPRD'">
                         <div class="flex-grow">
                             <h2 class="text-lg font-bold text-white flex-wrap">${agent.name.toUpperCase()}</h2>
                             <p class="text-gray-300 font-light text-sm" style="font-family: 'Special Elite', monospace;">${agent.role}</p>
-                            <p class="text-xs text-gray-400 mt-1">Criado por: ${ownerUsername}</p>
+                            <p class="text-xs text-gray-500 mt-1">Criado por: ${ownerUsername}</p>
                         </div>
                     </a>
-                    ${privateBadgeHTML}
-                    ${optionsButtonHTML}
                 `;
                 agentListContainer.appendChild(agentElement);
             });
         }
         
         async function loadCharacters() {
-            if (!token) return; // Não carrega personagens se não estiver logado
+            if (!token) { loader.style.display = 'none'; return; } 
+            loader.style.display = 'block';
 
-            let allVisibleCharacters = [];
+            let fetchedCharacters = [];
             try {
                 const publicResponse = await fetch(`${API_URL}/characters/public`);
-                if (publicResponse.ok) allVisibleCharacters.push(...await publicResponse.json());
+                if (publicResponse.ok) fetchedCharacters.push(...await publicResponse.json());
 
                 const myResponse = await fetch(`${API_URL}/characters/mine`, { headers: { 'x-auth-token': token } });
-                if (myResponse.ok) allVisibleCharacters.push(...await myResponse.json());
+                if (myResponse.ok) fetchedCharacters.push(...await myResponse.json());
 
-                const uniqueCharacters = Array.from(new Map(allVisibleCharacters.map(char => [char._id, char])).values());
+                allCharacters = Array.from(new Map(fetchedCharacters.map(char => [char._id, char])).values());
                 
-                const mainChar = uniqueCharacters.find(char => char.isMainCharacter && char.userId._id === getLoggedInUserId());
-                if (mainChar) {
-                    localStorage.setItem('main_character_id', mainChar._id);
-                } else {
-                    localStorage.removeItem('main_character_id');
-                }
-
-                renderAgents(uniqueCharacters);
+                const mainChar = allCharacters.find(char => char.isMainCharacter && char.userId._id === getLoggedInUserId());
+                localStorage.setItem('main_character_id', mainChar ? mainChar._id : '');
+                
+                applyFiltersAndRender();
             } catch (error) {
-                console.error('Erro ao carregar personagens:', error);
-                agentListContainer.innerHTML = `<p class="text-center text-red-500 mt-10">Não foi possível carregar os personagens.</p>`;
+                console.error('Erro ao carregar:', error);
+                loader.style.display = 'none';
+                agentListContainer.innerHTML = `<p class="text-center text-red-500 pt-4">Não foi possível carregar os personagens.</p>`;
             }
         }
 
         async function deleteCharacter(id) {
-            if (!confirm('Tem certeza que deseja apagar este personagem? Esta ação não pode ser desfeita.')) return;
-            
+            if (!confirm('Tem certeza?')) return;
             closeOptionsMenu();
             try {
-                const response = await fetch(`${API_URL}/characters/${id}`, {
-                    method: 'DELETE',
-                    headers: { 'x-auth-token': token }
-                });
-                if (!response.ok) throw new Error('Não foi possível deletar o personagem.');
+                const response = await fetch(`${API_URL}/characters/${id}`, { method: 'DELETE', headers: { 'x-auth-token': token } });
+                if (!response.ok) throw new Error('Não foi possível deletar.');
                 loadCharacters();
-            } catch (error) {
-                console.error('Erro ao deletar:', error);
-            }
+            } catch (error) { console.error('Erro ao deletar:', error); }
         }
 
         function openOptionsMenu(agent) {
-            const modal = document.getElementById('options-modal');
             modalContent.innerHTML = '';
             modalTitle.textContent = agent.name;
             const isMain = agent.isMainCharacter;
@@ -310,8 +339,8 @@
             const options = [
                  { text: 'Companion App', icon: 'fa-chart-bar', action: () => { window.location.href = `companion-app.html?id=${agent._id}` } },
                  { text: isMain ? 'Desmarcar Principal' : 'Marcar Principal', icon: 'fa-star', action: () => setMainCharacter(agent._id) },
-                 { text: 'Editar Personagem', icon: 'fa-pencil-alt', action: () => { window.location.href = `create.html?edit=${agent._id}` } },
-                 { text: 'Apagar Personagem', icon: 'fa-trash-alt', class: 'delete', action: () => deleteCharacter(agent._id) }
+                 { text: 'Editar', icon: 'fa-pencil-alt', action: () => { window.location.href = `create.html?edit=${agent._id}` } },
+                 { text: 'Apagar', icon: 'fa-trash-alt', class: 'delete', action: () => deleteCharacter(agent._id) }
             ];
 
             options.forEach(opt => {
@@ -321,26 +350,51 @@
                 button.onclick = opt.action;
                 modalContent.appendChild(button);
             });
-            
             optionsModalOverlay.classList.add('visible');
         }
 
-        function closeOptionsMenu() {
-            optionsModalOverlay.classList.remove('visible');
-        }
+        function closeOptionsMenu() { optionsModalOverlay.classList.remove('visible'); }
 
         agentListContainer.addEventListener('click', (e) => {
             const optionsButton = e.target.closest('.options-btn');
             if (optionsButton) {
                 const agentId = optionsButton.dataset.agentId;
-                const agent = characterData.find(c => c._id === agentId);
+                const agent = allCharacters.find(c => c._id === agentId);
                 if (agent) openOptionsMenu(agent);
             }
         });
         
         modalCloseBtn.addEventListener('click', closeOptionsMenu);
-        optionsModalOverlay.addEventListener('click', (e) => {
-            if (e.target === optionsModalOverlay) closeOptionsMenu();
+        optionsModalOverlay.addEventListener('click', (e) => { if (e.target === optionsModalOverlay) closeOptionsMenu(); });
+
+        searchInput.addEventListener('input', (e) => {
+            searchQuery = e.target.value.toLowerCase().trim();
+            applyFiltersAndRender();
+        });
+
+        filterButtonsContainer.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                document.querySelector('.filter-btn.active').classList.remove('active');
+                e.target.classList.add('active');
+                activeFilter = e.target.dataset.filter;
+                applyFiltersAndRender();
+            }
+        });
+
+        openSearchBtn.addEventListener('click', () => {
+            filtersWrapper.classList.add('hidden');
+            searchWrapper.classList.remove('hidden');
+            searchWrapper.classList.add('flex');
+            searchInput.focus();
+        });
+
+        closeSearchBtn.addEventListener('click', () => {
+            searchWrapper.classList.remove('flex');
+            searchWrapper.classList.add('hidden');
+            filtersWrapper.classList.remove('hidden');
+            searchInput.value = '';
+            searchQuery = '';
+            applyFiltersAndRender();
         });
 
         document.addEventListener('DOMContentLoaded', () => {
