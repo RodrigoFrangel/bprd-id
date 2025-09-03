@@ -6,7 +6,6 @@ const User = require('../models/User');
 
 // --- ROTA DE REGISTRO ---
 router.post('/register', async (req, res) => {
-  // CORREÇÃO: Adicionado 'role' na desestruturação
   const { username, email, password, role } = req.body;
 
   try {
@@ -17,11 +16,9 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ msg: 'Este nome de usuário já está em uso.' });
     }
 
-    // CORREÇÃO: 'role' agora é passado ao criar o novo usuário
     const user = new User({ username, email, password, role });
     await user.save();
 
-    // MELHORIA: Adicionado 'role' ao payload do token
     const payload = { user: { id: user.id, role: user.role } };
 
     jwt.sign(
@@ -53,7 +50,6 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ msg: 'Credenciais inválidas.' });
     }
 
-    // MELHORIA: Adicionado 'role' ao payload do token
     const payload = { user: { id: user.id, role: user.role } };
 
     jwt.sign(

@@ -14,7 +14,7 @@
         body { background-color: #1a1a1a; font-family: 'Roboto Condensed', sans-serif; color: #f5f5f5; }
         .form-container { background-color: #2d2d2d; border: 1px solid #444; }
         .form-label { font-family: 'Special Elite', monospace; color: #ccc; }
-        .form-input { background-color: #1a1a1a; border: 1px solid #555; color: #f5f5f5; }
+        .form-input, .form-select { background-color: #1a1a1a; border: 1px solid #555; color: #f5f5f5; }
         .btn { font-family: 'Roboto Condensed', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; }
         
         .ability-modifier { pointer-events: none; }
@@ -67,6 +67,23 @@
             border-color: #b91c1c;
         }
         .skill-grid input[type="checkbox"] { display: none; }
+
+        .skill-state-btn {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 30px;
+            height: 30px;
+            border: 1px solid #555;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.8rem;
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+        }
+        .skill-state-btn.state-none { background-color: transparent; color: #555; }
+        .skill-state-btn.state-advantage { background-color: #16a34a; color: white; border-color: #16a34a; }
+        .skill-state-btn.state-disadvantage { background-color: #b91c1c; color: white; border-color: #b91c1c; }
         
         .form-checkbox {
             appearance: none;
@@ -90,11 +107,21 @@
         
         .collapsible-header {
             transition: all 0.2s ease-in-out;
-            border-bottom: 2px solid #4a5568;
             padding-bottom: 0.5rem;
         }
+        details > summary {
+            border-bottom: 2px solid #4a5568;
+        }
+        details[open] > summary {
+            border-bottom: 2px solid transparent;
+        }
         .collapsible-header:hover { filter: brightness(1.25); }
-        .collapsible-content { padding-top: 1.5rem; }
+        .collapsible-content { 
+            padding-top: 1.5rem; 
+            border-top: 2px solid #4a5568;
+            margin-top: -2px;
+        }
+
         .details-arrow { transition: transform 0.2s; }
         details[open] > summary .details-arrow { transform: rotate(180deg); }
 
@@ -119,6 +146,17 @@
         .prose blockquote { border-left: 4px solid #4a5568; padding-left: 1rem; color: #d1d5db; }
         .prose code { background-color: #1a1a1a; padding: 2px 4px; border-radius: 4px; font-family: monospace; }
         .hidden { display: none; }
+        
+        .feature-tag-select {
+            background-color: #1a1a1a;
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-family: 'Roboto Condensed', sans-serif;
+            margin-left: auto;
+        }
     </style>
 </head>
 <body class="p-4 sm:p-6 md:p-10">
@@ -129,151 +167,162 @@
             <p class="text-gray-400">BUREAU FOR PARANORMAL RESEARCH AND DEFENSE</p>
         </div>
 
-        <form id="agent-form">
+        <form id="agent-form" class="space-y-8">
             <input type="hidden" id="agentId" name="agentId">
             
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-6">
-                <!-- Coluna 1: Dados Básicos -->
-                <section>
-                    <details open>
-                        <summary class="collapsible-header text-2xl font-bold text-red-500 flex justify-between items-center">
-                            <span>DADOS BÁSICOS</span>
-                            <svg class="details-arrow w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                        </summary>
-                        <div class="collapsible-content">
-                            <div class="space-y-4">
-                                <div><label for="name" class="form-label">NOME DO PERSONAGEM</label><input type="text" id="name" name="name" class="w-full p-2 rounded form-input" required></div>
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                    <div><label for="age" class="form-label">IDADE</label><input type="number" id="age" name="age" class="w-full p-2 rounded form-input"></div>
-                                    <div><label for="height" class="form-label">ALTURA (cm)</label><input type="number" id="height" name="height" class="w-full p-2 rounded form-input"></div>
-                                    <div><label for="weight" class="form-label">PESO (kg)</label><input type="number" id="weight" name="weight" class="w-full p-2 rounded form-input"></div>
-                                </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div><label for="role" class="form-label">FUNÇÃO (ROLE)</label><input type="text" id="role" name="role" class="w-full p-2 rounded form-input" required></div>
-                                    <div><label for="department" class="form-label">DEPARTAMENTO</label><input type="text" id="department" name="department" class="w-full p-2 rounded form-input" required></div>
-                                </div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <div><label for="level" class="form-label">NÍVEL</label><input type="number" id="level" name="level" class="w-full p-2 rounded form-input" required></div>
-                                    <div><label for="maxHitPoints" class="form-label">HP MÁXIMO</label><input type="number" id="maxHitPoints" name="maxHitPoints" placeholder="ex: 12" class="w-full p-2 rounded form-input"></div>
-                                </div>
-                                <div><label for="profilePic" class="form-label">URL DA IMAGEM DE PERFIL</label><input type="url" id="profilePic" name="profilePic" class="w-full p-2 rounded form-input"></div>
+            <!-- Seção de Dados Básicos e Atributos -->
+            <details open>
+                <summary class="collapsible-header text-2xl font-bold text-red-500 flex justify-between items-center">
+                    <span>INFORMAÇÕES GERAIS</span>
+                    <svg class="details-arrow w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </summary>
+                <div class="collapsible-content grid grid-cols-1 lg:grid-cols-2 gap-x-8 gap-y-6">
+                    <!-- Coluna 1: Dados Básicos -->
+                    <section>
+                        <h3 class="font-special text-lg text-gray-400 mb-4">DADOS BÁSICOS</h3>
+                        <div class="space-y-4">
+                            <div><label for="name" class="form-label">NOME DO PERSONAGEM</label><input type="text" id="name" name="name" class="w-full p-2 rounded form-input" required></div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div><label for="age" class="form-label">IDADE</label><input type="number" id="age" name="age" class="w-full p-2 rounded form-input"></div>
+                                <div><label for="height" class="form-label">ALTURA (cm)</label><input type="number" id="height" name="height" class="w-full p-2 rounded form-input"></div>
+                                <div><label for="weight" class="form-label">PESO (kg)</label><input type="number" id="weight" name="weight" class="w-full p-2 rounded form-input"></div>
                             </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div><label for="role" class="form-label">FUNÇÃO (ROLE)</label><input type="text" id="role" name="role" class="w-full p-2 rounded form-input" required></div>
+                                <div><label for="department" class="form-label">DEPARTAMENTO</label><input type="text" id="department" name="department" class="w-full p-2 rounded form-input" required></div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div><label for="level" class="form-label">NÍVEL</label><input type="number" id="level" name="level" class="w-full p-2 rounded form-input" min="1" max="20" required></div>
+                                <div><label for="maxHitPoints" class="form-label">HP MÁXIMO</label><input type="number" id="maxHitPoints" name="maxHitPoints" placeholder="ex: 12" class="w-full p-2 rounded form-input"></div>
+                            </div>
+                            <div><label for="profilePic" class="form-label">URL DA IMAGEM DE PERFIL</label><input type="url" id="profilePic" name="profilePic" class="w-full p-2 rounded form-input"></div>
                         </div>
-                    </details>
-                </section>
+                    </section>
 
-                <!-- Coluna 2: Habilidades & Privacidade -->
-                <section>
-                     <details>
-                        <summary class="collapsible-header text-2xl font-bold text-red-500 flex justify-between items-center">
-                            <span>ÍNDICE DE HABILIDADES</span>
-                            <svg class="details-arrow w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                        </summary>
-                        <div class="collapsible-content">
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label for="str" class="form-label">FORÇA</label>
-                                    <div class="relative flex items-center"><input type="number" id="str" name="str" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
-                                </div>
-                                <div>
-                                    <label for="con" class="form-label">CONSTITUIÇÃO</label>
-                                    <div class="relative flex items-center"><input type="number" id="con" name="con" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
-                                </div>
-                                <div>
-                                    <label for="dex" class="form-label">DESTREZA</label>
-                                    <div class="relative flex items-center"><input type="number" id="dex" name="dex" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
-                                </div>
-                                <div>
-                                    <label for="int" class="form-label">INTELIGÊNCIA</label>
-                                    <div class="relative flex items-center"><input type="number" id="int" name="int" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
-                                </div>
-                                <div>
-                                    <label for="wis" class="form-label">SABEDORIA</label>
-                                    <div class="relative flex items-center"><input type="number" id="wis" name="wis" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
-                                </div>
-                                <div>
-                                    <label for="cha" class="form-label">CARISMA</label>
-                                    <div class="relative flex items-center"><input type="number" id="cha" name="cha" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
-                                </div>
+                    <!-- Coluna 2: Habilidades & Privacidade -->
+                    <section>
+                        <h3 class="font-special text-lg text-gray-400 mb-4">ÍNDICE DE HABILIDADES</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="str" class="form-label">FORÇA</label>
+                                <div class="relative flex items-center"><input type="number" id="str" name="str" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
                             </div>
-                            
-                            <div class="mt-8">
-                                <h3 class="collapsible-header text-2xl font-bold text-red-500">PRIVACIDADE</h3>
-                                <div class="collapsible-content flex items-center justify-between p-4 bg-black bg-opacity-20 rounded-lg">
-                                   <label for="isPublic" class="form-label">PERSONAGEM PÚBLICO?</label>
-                                   <label class="toggle-switch"><input type="checkbox" id="isPublic" name="isPublic"><span class="slider"></span></label>
-                                </div>
+                            <div>
+                                <label for="con" class="form-label">CONSTITUIÇÃO</label>
+                                <div class="relative flex items-center"><input type="number" id="con" name="con" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
+                            </div>
+                            <div>
+                                <label for="dex" class="form-label">DESTREZA</label>
+                                <div class="relative flex items-center"><input type="number" id="dex" name="dex" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
+                            </div>
+                            <div>
+                                <label for="int" class="form-label">INTELIGÊNCIA</label>
+                                <div class="relative flex items-center"><input type="number" id="int" name="int" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
+                            </div>
+                            <div>
+                                <label for="wis" class="form-label">SABEDORIA</label>
+                                <div class="relative flex items-center"><input type="number" id="wis" name="wis" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
+                            </div>
+                            <div>
+                                <label for="cha" class="form-label">CARISMA</label>
+                                <div class="relative flex items-center"><input type="number" id="cha" name="cha" class="w-full p-2 rounded form-input ability-input" required><span class="ability-modifier absolute right-3 text-lg font-bold text-gray-400"></span></div>
                             </div>
                         </div>
-                    </details>
-                </section>
-            </div>
+                        
+                        <h3 class="font-special text-lg text-gray-400 mt-8 mb-4">PRIVACIDADE</h3>
+                        <div class="flex items-center justify-between p-4 bg-black bg-opacity-20 rounded-lg">
+                           <label for="isPublic" class="form-label">PERSONAGEM PÚBLICO?</label>
+                           <label class="toggle-switch"><input type="checkbox" id="isPublic" name="isPublic"><span class="slider"></span></label>
+                        </div>
+                    </section>
+                </div>
+            </details>
+            
+             <!-- Seção de Salva-guardas -->
+            <details>
+                <summary class="collapsible-header text-2xl font-bold text-red-500 flex justify-between items-center">
+                    <span>SALVA-GUARDAS</span>
+                    <svg class="details-arrow w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </summary>
+                <div class="collapsible-content grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" id="saving-throws-container">
+                    <!-- Checkboxes de Salva-guarda serão gerados aqui -->
+                </div>
+            </details>
             
             <!-- Seção de Classificação -->
-            <section class="mt-8">
-                <details>
-                    <summary class="collapsible-header text-2xl font-bold text-red-500 flex justify-between items-center">
-                        <span>CLASSIFICAÇÃO</span>
-                        <svg class="details-arrow w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                    </summary>
-                    <div class="collapsible-content">
-                         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                            <div><label for="origin" class="form-label">ORIGEM</label><input type="text" id="origin" name="origin" class="w-full p-2 rounded form-input" required></div>
-                            <div><label for="recruitment" class="form-label">RECRUTAMENTO</label><input type="text" id="recruitment" name="recruitment" class="w-full p-2 rounded form-input" required></div>
-                            <div><label for="lifeBefore" class="form-label">VIDA ANTES DA B.P.R.D.</label><input type="text" id="lifeBefore" name="lifeBefore" class="w-full p-2 rounded form-input"></div>
-                            <div><label for="drive" class="form-label">MOTIVAÇÃO (DRIVE)</label><input type="text" id="drive" name="drive" class="w-full p-2 rounded form-input"></div>
-                            <div class="md:col-span-2"><label for="psych" class="form-label">AVALIAÇÃO PSICOLÓGICA (um por linha)</label><textarea id="psych" name="psych" rows="3" class="w-full p-2 rounded form-input"></textarea></div>
-                         </div>
-                    </div>
-                </details>
-            </section>
+            <details>
+                <summary class="collapsible-header text-2xl font-bold text-red-500 flex justify-between items-center">
+                    <span>CLASSIFICAÇÃO</span>
+                    <svg class="details-arrow w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </summary>
+                <div class="collapsible-content grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                    <div><label for="origin" class="form-label">ORIGEM</label><input type="text" id="origin" name="origin" class="w-full p-2 rounded form-input" required></div>
+                    <div><label for="recruitment" class="form-label">RECRUTAMENTO</label><input type="text" id="recruitment" name="recruitment" class="w-full p-2 rounded form-input" required></div>
+                    <div><label for="lifeBefore" class="form-label">VIDA ANTES DA B.P.R.D.</label><input type="text" id="lifeBefore" name="lifeBefore" class="w-full p-2 rounded form-input"></div>
+                    <div><label for="drive" class="form-label">MOTIVAÇÃO (DRIVE)</label><input type="text" id="drive" name="drive" class="w-full p-2 rounded form-input"></div>
+                    <div class="md:col-span-2"><label for="psych" class="form-label">AVALIAÇÃO PSICOLÓGICA (um por linha)</label><textarea id="psych" name="psych" rows="3" class="w-full p-2 rounded form-input"></textarea></div>
+                </div>
+            </details>
 
             <!-- Seção de Habilidades e Equipamentos -->
-            <section class="mt-8">
-                 <details>
-                    <summary class="collapsible-header text-2xl font-bold text-red-500 flex justify-between items-center">
-                        <span>HABILIDADES E EQUIPAMENTOS</span>
-                         <svg class="details-arrow w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                    </summary>
-                    <div class="collapsible-content">
-                        <div id="features-container" class="space-y-3"></div>
-                        <button type="button" id="add-feature-btn" class="mt-4 w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition-colors btn flex items-center justify-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
-                            ADICIONAR HABILIDADE
-                        </button>
-                    </div>
-                </details>
-            </section>
+            <details>
+                <summary class="collapsible-header text-2xl font-bold text-red-500 flex justify-between items-center">
+                    <span>HABILIDADES E EQUIPAMENTOS</span>
+                    <svg class="details-arrow w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </summary>
+                <div class="collapsible-content">
+                    <div id="features-container" class="space-y-3"></div>
+                    <button type="button" id="add-feature-btn" class="mt-4 w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition-colors btn flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                        ADICIONAR HABILIDADE
+                    </button>
+                </div>
+            </details>
 
              <!-- Seção de Perícias -->
-            <section class="mt-8">
-                 <details>
-                    <summary class="collapsible-header text-2xl font-bold text-red-500 flex justify-between items-center">
-                        <span>PERÍCIAS</span>
-                         <svg class="details-arrow w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                    </summary>
-                    <div class="collapsible-content grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-4" id="skills-container">
+            <details>
+                <summary class="collapsible-header text-2xl font-bold text-red-500 flex justify-between items-center">
+                    <span>PERÍCIAS</span>
+                    <svg class="details-arrow w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </summary>
+                <div class="collapsible-content">
+                    <div class="hidden sm:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 text-center font-special text-xs text-gray-400 uppercase mb-2">
+                        <div class="grid grid-cols-[1fr_auto_auto]" style="gap: 0.75rem;">
+                            <span class="text-left">Perícia</span>
+                            <span class="w-[30px]">Prof</span>
+                            <span class="w-[30px]">V/D</span>
+                        </div>
+                        <div class="grid grid-cols-[1fr_auto_auto]" style="gap: 0.75rem;">
+                            <span class="text-left">Perícia</span>
+                            <span class="w-[30px]">Prof</span>
+                            <span class="w-[30px]">V/D</span>
+                        </div>
+                        <div class="hidden md:grid grid-cols-[1fr_auto_auto]" style="gap: 0.75rem;">
+                            <span class="text-left">Perícia</span>
+                            <span class="w-[30px]">Prof</span>
+                            <span class="w-[30px]">V/D</span>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-4" id="skills-container">
                         <!-- Skills will be generated by JS here -->
                     </div>
-                </details>
-            </section>
+                </div>
+            </details>
 
              <!-- Seção de Ataques -->
-            <section class="mt-8">
-                <details>
-                    <summary class="collapsible-header text-2xl font-bold text-red-500 flex justify-between items-center">
-                        <span>ARMAS E ATAQUES</span>
-                         <svg class="details-arrow w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                    </summary>
-                    <div class="collapsible-content">
-                        <div id="attacks-container" class="space-y-3"></div>
-                        <button type="button" id="add-attack-btn" class="mt-4 w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition-colors btn flex items-center justify-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
-                            ADICIONAR ARMA
-                        </button>
-                    </div>
-                </details>
-            </section>
+            <details>
+                <summary class="collapsible-header text-2xl font-bold text-red-500 flex justify-between items-center">
+                    <span>ARMAS E ATAQUES</span>
+                    <svg class="details-arrow w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                </summary>
+                <div class="collapsible-content">
+                    <div id="attacks-container" class="space-y-3"></div>
+                    <button type="button" id="add-attack-btn" class="mt-4 w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition-colors btn flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                        ADICIONAR ARMA
+                    </button>
+                </div>
+            </details>
             
             <div class="mt-8 pt-6 border-t border-gray-700 flex flex-col-reverse sm:flex-row-reverse gap-4">
                 <button id="submit-button" type="submit" class="w-full sm:w-auto bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-6 rounded transition-colors btn">SALVAR PERSONAGEM</button>
@@ -295,6 +344,9 @@
         const attacksContainer = document.getElementById('attacks-container');
         const addAttackBtn = document.getElementById('add-attack-btn');
         const skillsContainer = document.getElementById('skills-container');
+        const savingThrowsContainer = document.getElementById('saving-throws-container');
+
+        const attributeMap = { str: 'FOR', dex: 'DES', con: 'CON', int: 'INT', wis: 'SAB', cha: 'CAR' };
 
         const MASTER_SKILLS_LIST = [
             { name: 'Atletismo', attr: 'str' }, { name: 'Acrobacia', attr: 'dex' },
@@ -307,6 +359,15 @@
             { name: 'Percepção', attr: 'wis' }, { name: 'Sobrevivência', attr: 'wis' },
             { name: 'Intimidação', attr: 'cha' }, { name: 'Persuasão', attr: 'cha' }
         ];
+        
+        const FEATURE_TAGS = {
+            'Origem': 'Origem',
+            'Função': 'Função',
+            'Vida Antes': 'Vida Antes',
+            'Recrutamento': 'Recrutamento',
+            'Especialização': 'Especialização',
+            'Homebrew': 'Homebrew'
+        };
 
         const abilityInputs = form.querySelectorAll('.ability-input');
         function calculateModifier(score) {
@@ -324,13 +385,24 @@
             input.addEventListener('input', () => updateModifier(input));
         });
 
-        function addFeatureInput(name = '', description = '') {
+        function addFeatureInput(name = '', description = '', tag = '') {
             const featureDiv = document.createElement('div');
             featureDiv.className = 'feature-item relative p-3 rounded bg-black bg-opacity-20';
+            
+            const tagOptions = Object.keys(FEATURE_TAGS).map(key => 
+                `<option value="${key}" ${key === tag ? 'selected' : ''}>${FEATURE_TAGS[key]}</option>`
+            ).join('');
+
             featureDiv.innerHTML = `
                 <button type="button" class="remove-btn">&times;</button>
-                <input type="text" placeholder="Nome da Habilidade" class="w-full p-2 rounded form-input feature-name" value="${name}">
-                <div class="mt-2">
+                <div class="flex items-center gap-4 mb-2">
+                    <input type="text" placeholder="Nome da Habilidade" class="w-full p-2 rounded form-input feature-name" value="${name}">
+                    <select class="feature-tag-select feature-tag form-select">
+                        <option value="">Sem Tag</option>
+                        ${tagOptions}
+                    </select>
+                </div>
+                <div>
                     <div class="flex border-b border-gray-700 text-sm">
                         <button type="button" class="markdown-tab active p-2" data-tab="write">Escrever</button>
                         <button type="button" class="markdown-tab p-2" data-tab="preview">Visualizar</button>
@@ -416,21 +488,57 @@
                     <span class="skill-label">${skill.name}</span>
                     <input type="checkbox" id="prof-${skillId}" class="skill-proficient">
                     <label for="prof-${skillId}" class="skill-checkbox-label" title="Proficiência">P</label>
-                    <input type="checkbox" id="adv-${skillId}" class="skill-advantage">
-                    <label for="adv-${skillId}" class="skill-checkbox-label" title="Vantagem">A</label>`;
+                    <button type="button" class="skill-state-btn" data-state="none" title="Vantagem/Desvantagem">-</button>
+                `;
                 skillsContainer.appendChild(skillDiv);
             });
+
+            skillsContainer.addEventListener('click', (e) => {
+                if (e.target.classList.contains('skill-state-btn')) {
+                    const btn = e.target;
+                    let currentState = btn.dataset.state;
+                    
+                    if (currentState === 'none') {
+                        btn.dataset.state = 'advantage';
+                        btn.textContent = 'V';
+                        btn.className = 'skill-state-btn state-advantage';
+                    } else if (currentState === 'advantage') {
+                        btn.dataset.state = 'disadvantage';
+                        btn.textContent = 'D';
+                        btn.className = 'skill-state-btn state-disadvantage';
+                    } else { // disadvantage
+                        btn.dataset.state = 'none';
+                        btn.textContent = '-';
+                        btn.className = 'skill-state-btn state-none';
+                    }
+                }
+            });
         }
+        
+        function initializeSavingThrows() {
+            savingThrowsContainer.innerHTML = '';
+            Object.keys(attributeMap).forEach(attr => {
+                const attrId = `save-prof-${attr}`;
+                const div = document.createElement('div');
+                div.className = 'flex items-center gap-2';
+                div.innerHTML = `
+                    <input type="checkbox" id="${attrId}" name="savingThrowProficiencies" value="${attr}" class="form-checkbox">
+                    <label for="${attrId}" class="form-label text-sm cursor-pointer select-none">${attributeMap[attr]}</label>
+                `;
+                savingThrowsContainer.appendChild(div);
+            });
+        }
+
 
         function populateForm(agent) {
             Object.keys(agent).forEach(key => {
                 const element = form[key];
                 if(element && typeof agent[key] !== 'object' && agent[key] !== null) {
-                    if (element.type === 'checkbox') {
+                     if (element.type === 'checkbox') {
                          element.checked = String(agent[key]) === 'true';
-                    } else {
+                     } else {
                          element.value = agent[key];
-                    }
+                     }
                 }
             });
 
@@ -442,7 +550,7 @@
             abilityInputs.forEach(updateModifier);
 
             featuresContainer.innerHTML = '';
-            agent.features?.forEach(f => addFeatureInput(f.name, f.description));
+            agent.features?.forEach(f => addFeatureInput(f.name, f.description, f.tag));
             
             attacksContainer.innerHTML = '';
             agent.attacks?.forEach(a => addAttackInput(a.name, a.bonus, a.damage, a.hasAmmo, a.currentAmmo));
@@ -450,10 +558,29 @@
             agent.skills?.forEach(savedSkill => {
                 const skillRow = skillsContainer.querySelector(`[data-skill-name="${savedSkill.name}"]`);
                 if(skillRow) {
-                    skillRow.querySelector('.skill-proficient').checked = String(savedSkill.proficient) === 'true';
-                    skillRow.querySelector('.skill-advantage').checked = String(savedSkill.advantage) === 'true';
+                    skillRow.querySelector('.skill-proficient').checked = savedSkill.proficient;
+                    
+                    const stateBtn = skillRow.querySelector('.skill-state-btn');
+                    const state = savedSkill.advState || 'none';
+                    stateBtn.dataset.state = state;
+                    if (state === 'advantage') {
+                        stateBtn.textContent = 'V';
+                        stateBtn.className = 'skill-state-btn state-advantage';
+                    } else if (state === 'disadvantage') {
+                        stateBtn.textContent = 'D';
+                        stateBtn.className = 'skill-state-btn state-disadvantage';
+                    } else {
+                        stateBtn.textContent = '-';
+                        stateBtn.className = 'skill-state-btn state-none';
+                    }
                 }
             });
+            
+            agent.savingThrowProficiencies?.forEach(prof => {
+                const checkbox = savingThrowsContainer.querySelector(`input[value="${prof}"]`);
+                if (checkbox) checkbox.checked = true;
+            });
+
 
             pageTitle.textContent = "EDITAR PERSONAGEM";
             submitButton.textContent = "ATUALIZAR DADOS";
@@ -461,6 +588,7 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             initializeSkillsList();
+            initializeSavingThrows();
             const params = new URLSearchParams(window.location.search);
             const editId = params.get('edit');
             agentIdField.value = editId || '';
@@ -486,11 +614,14 @@
         form.addEventListener('submit', async function(event) {
             event.preventDefault();
 
-            const skillsData = Array.from(skillsContainer.querySelectorAll('.skill-grid')).map(row => ({
-                name: row.dataset.skillName,
-                proficient: row.querySelector('.skill-proficient').checked,
-                advantage: row.querySelector('.skill-advantage').checked,
-            }));
+            const skillsData = Array.from(skillsContainer.querySelectorAll('.skill-grid')).map(row => {
+                const state = row.querySelector('.skill-state-btn').dataset.state;
+                return {
+                    name: row.dataset.skillName,
+                    proficient: row.querySelector('.skill-proficient').checked,
+                    advState: state === 'none' ? null : state,
+                }
+            });
 
             const attacksData = Array.from(attacksContainer.querySelectorAll('.attack-item')).map(row => ({
                 name: row.querySelector('.attack-name').value,
@@ -503,13 +634,14 @@
             const featuresData = Array.from(featuresContainer.querySelectorAll('.feature-item')).map(row => ({
                  name: row.querySelector('.feature-name').value,
                  description: row.querySelector('.feature-description').value,
+                 tag: row.querySelector('.feature-tag').value
             }));
+
+            const savingThrowsData = Array.from(savingThrowsContainer.querySelectorAll('input:checked')).map(input => input.value);
             
             const maxHp = form.maxHitPoints.value;
             const currentHp = agentIdField.value ? document.getElementById('char-hp')?.textContent.split('/')[0] || maxHp : maxHp;
             const hitPointsValue = maxHp ? `${currentHp}/${maxHp}` : '';
-            
-            const userRole = getLoggedInUserRole();
 
             const agentData = {
                 name: form.name.value,
@@ -526,11 +658,11 @@
                 drive: form.drive.value,
                 psych: form.psych.value.split('\n').filter(line => line.trim() !== ''),
                 isPublic: document.getElementById('isPublic').checked,
-                npc: userRole === 'DM',
                 hitPoints: hitPointsValue,
                 features: featuresData.filter(f => f.name || f.description),
                 attacks: attacksData.filter(a => a.name || a.bonus || a.damage),
                 skills: skillsData,
+                savingThrowProficiencies: savingThrowsData,
                 attributes: {
                     str: parseInt(form.str.value), con: parseInt(form.con.value),
                     dex: parseInt(form.dex.value), int: parseInt(form.int.value),

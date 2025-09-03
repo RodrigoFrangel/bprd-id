@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth'); // Middleware de autenticação
+const auth = require('../middleware/auth');
 const Character = require('../models/Character');
 
 // --- CRIAR UM PERSONAGEM ---
@@ -11,7 +11,7 @@ router.post('/', auth, async (req, res) => {
   try {
     const newCharacter = new Character({
       ...req.body,
-      userId: req.user.id, // Associa o personagem ao usuário logado
+      userId: req.user.id,
     });
 
     const character = await newCharacter.save();

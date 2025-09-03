@@ -46,18 +46,21 @@ const CharacterSchema = new mongoose.Schema({
     wis: { type: Number, required: true },
     cha: { type: Number, required: true },
   },
+  
+  savingThrowProficiencies: [{ type: String }],
 
   // Habilidades
   features: [{
     name: { type: String },
-    description: { type: String }
+    description: { type: String },
+    tag: { type: String }
   }],
 
   // Perícias
   skills: [{
       name: { type: String },
       proficient: { type: Boolean },
-      advantage: { type: Boolean }
+      advState: { type: String, default: null } // Can be 'advantage', 'disadvantage', or null
   }],
 
   // Ataques
@@ -78,4 +81,3 @@ const CharacterSchema = new mongoose.Schema({
 const Character = mongoose.model('Character', CharacterSchema);
 
 module.exports = Character;
-

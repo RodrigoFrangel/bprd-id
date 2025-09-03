@@ -9,7 +9,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
-    <!-- Font Awesome for shield icon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         body { 
@@ -20,6 +19,12 @@
             background-size: cover;
             background-position: center;
             background-attachment: fixed;
+        }
+        @media (min-width: 640px) {
+            body {
+                background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23333333' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2-H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+                background-size: auto;
+            }
         }
         .sheet-container {
             background-color: rgba(10, 10, 10, 0.9);
@@ -88,16 +93,32 @@
         .skill-row:last-child { border-bottom: none; }
         .skill-attr { font-family: 'Special Elite', monospace; color: #9ca3af; }
         .skill-bonus { font-weight: bold; font-size: 1.1rem; text-align: center; }
-        .advantage-tag {
-            width: 24px; height: 27px; background-color: #16a34a; /* green-600 */
+        
+        .skill-state-tag {
+            width: 24px; height: 27px;
             clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
             display: flex; justify-content: center; align-items: center;
             color: white; font-weight: bold; font-size: 0.9rem; margin: 0 auto;
         }
+        .skill-state-tag.advantage { background-color: #16a34a; } /* green-600 */
+        .skill-state-tag.disadvantage { background-color: #b91c1c; } /* red-700 */
+
         .proficiency-dot {
             width: 10px; height: 10px; background-color: #b91c1c;
             border-radius: 50%; margin: 0 auto;
         }
+
+        .save-row {
+            display: grid;
+            grid-template-columns: 24px 1fr 40px;
+            gap: 0.75rem;
+            align-items: center;
+            padding: 0.5rem;
+            background-color: rgba(0,0,0,0.1);
+            border-radius: 0.25rem;
+        }
+        .save-name { font-family: 'Special Elite', monospace; color: #f5f5f5; font-size: 1.1rem; }
+        .save-bonus { font-weight: bold; font-size: 1.1rem; text-align: center; }
 
         .attack-header {
             display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem;
@@ -123,47 +144,208 @@
         .attack-ammo { font-size: 0.8rem; color: #9ca3af; padding-top: 0.5rem; border-top: 1px solid #444; margin-top: 0.5rem;}
         .ammo-value { cursor: pointer; font-weight: bold; color: #f5f5f5; padding: 0.1rem 0.5rem; border-radius: 4px; transition: background-color 0.2s;}
         .ammo-value:hover { background-color: rgba(255,255,255,0.1); }
+        .feature-tag {
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .tag-origem { background-color: #be123c; } /* rose-700 */
+        .tag-função { background-color: #0d9488; } /* teal-600 */
+        .tag-vida-antes { background-color: #6d28d9; } /* violet-700 */
+        .tag-recrutamento { background-color: #1d4ed8; } /* blue-700 */
+        .tag-especialização { background-color: #ca8a04; } /* yellow-600 */
+        .tag-homebrew { background-color: #64748b; } /* slate-500 */
 
-        /* Estilos para o Toggle Switch de Salva-Guarda */
-        .toggle-switch { position: relative; display: inline-block; width: 34px; height: 20px; }
-        .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .4s; border-radius: 20px; }
-        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #b91c1c; }
-        input:checked + .slider:before { transform: translateX(14px); }
+        .options-menu {
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            right: 0;
+            background-color: #2d2d2d;
+            border: 1px solid #444;
+            border-radius: 0.5rem;
+            z-index: 60;
+            width: 200px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .options-menu-item {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            color: #f5f5f5;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+        .options-menu-item:hover { background-color: #3f3f3f; }
+        
+        .collapsible-header {
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .collapsible-content {
+            transition: max-height 0.3s ease-in-out;
+            overflow: hidden;
+        }
+        
+        /* Sticky Bubble */
+        .sticky-bubble {
+            position: fixed;
+            bottom: 1.5rem; /* 24px */
+            left: 1.5rem; /* 24px */
+            background-color: #b91c1c; /* red-700 */
+            color: white;
+            border-radius: 9999px; /* Full rounded */
+            width: 3.5rem; /* 56px */
+            height: 3.5rem; /* 56px */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+            z-index: 50;
+        }
+        .sticky-bubble:hover {
+            background-color: #ef4444; /* red-500 */
+            transform: scale(1.05);
+        }
+         .sticky-bubble > i {
+            font-size: 1.25rem;
+        }
+
+        /* Feature filter styles */
+        .custom-select-wrapper {
+            position: relative;
+            width: 110px; /* Fixed width for the dropdown */
+            flex-shrink: 0;
+        }
+
+        .custom-select {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #2d2d2d;
+            border: 1px solid #444;
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 0.875rem;
+            color: #f5f5f5;
+            width: 100%;
+        }
+        
+        #selected-tag-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+
+        .custom-select:hover {
+            background-color: #3f3f3f;
+        }
+
+        .custom-options {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background-color: #3f3f46;
+            border: 1px solid #444;
+            border-radius: 0.375rem;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .custom-option {
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 0.875rem;
+            color: #f5f5f5;
+        }
+
+        .custom-option:hover {
+            background-color: #52525b;
+        }
+
+        .custom-option.selected {
+            background-color: #1a1a1a;
+            color: #b91c1c;
+            font-weight: bold;
+        }
+
+        #feature-search-input {
+            background-color: #2d2d2d;
+            border: 1px solid #444;
+            color: #f5f5f5;
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            width: 100%;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        #feature-search-input:focus {
+             outline: none;
+             border-color: #b91c1c;
+             box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.5);
+        }
     </style>
 </head>
-<body class="p-4 sm:p-8">
+<body class="p-4 sm:py-6 sm:px-8">
 
     <div id="loading" class="text-center text-2xl font-special">Carregando dados do agente...</div>
     
     <div id="character-sheet" class="sheet-container max-w-2xl mx-auto hidden rounded-lg p-6 sm:p-8">
-        <header class="space-y-4 mb-8">
-             <div class="flex justify-between items-center">
-                <div class="w-6"></div> <!-- Spacer -->
+        <header class="space-y-4 mb-6">
+             <div class="flex justify-around items-center pt-4 px-4 rounded-t-lg -mt-6 -mx-8 sm:-mt-8 sm:-mx-8">
+                <img src="https://i.postimg.cc/wBjsnJKZ/bprd-logo-color.png" class="h-10 w-auto" alt="Logo do BPRD">
                 <div class="text-center">
-                    <h1 id="char-name" class="text-3xl font-bold font-special"></h1>
-                    <p id="char-role-level" class="text-md text-gray-400"></p>
+                    <h1 id="char-name" class="text-2xl sm:text-3xl font-bold font-special"></h1>
+                    <p id="char-role-level" class="text-sm sm:text-md text-gray-400"></p>
                 </div>
-                 <div class="w-6 h-6 text-green-500 opacity-0 transition-opacity duration-500" id="save-indicator">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
+                <div class="relative">
+                    <button id="header-menu-btn" class="text-gray-400 hover:text-white focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    </button>
+                    <div id="header-options-menu" class="options-menu hidden">
+                    </div>
+                    <div id="save-indicator" class="absolute top-0 right-0 -mt-2 -mr-2 w-6 h-6 text-green-500 opacity-0 transition-opacity duration-500 pointer-events-none">
+                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                    </div>
                 </div>
             </div>
             <div class="flex justify-around items-center text-center">
-                <div class="flex-1 flex flex-col items-center justify-center">
-                    <div class="relative w-16 h-16 flex items-center justify-center">
-                        <i class="fas fa-shield-alt absolute text-6xl text-gray-700 opacity-40"></i>
-                        <div class="relative text-center">
-                            <p class="text-xs text-gray-400 uppercase tracking-wider leading-none">CA</p>
-                            <p id="char-ac" class="text-2xl font-bold text-white leading-tight">--</p>
+                <div class="flex-1 flex justify-around items-center">
+                    <div class="flex flex-col items-center justify-center">
+                        <div class="relative w-16 h-16 flex items-center justify-center">
+                            <i class="fas fa-shield-alt absolute text-6xl text-gray-700 opacity-40"></i>
+                            <div class="relative text-center">
+                                <p class="text-xs text-gray-400 uppercase tracking-wider leading-none">CA</p>
+                                <p id="char-ac" class="text-2xl font-bold text-white leading-tight">--</p>
+                            </div>
                         </div>
                     </div>
+                    <div class="flex-col items-center justify-center hidden sm:flex">
+                        <p class="text-xs text-gray-400 uppercase tracking-wider">Iniciativa</p>
+                        <p id="char-initiative" class="text-3xl font-bold text-white">--</p>
+                        <p class="text-xs text-gray-400 uppercase tracking-wider">&nbsp;</p>
+                   </div>
                 </div>
+                
                 <div class="flex-shrink-0 mx-2">
-                    <img id="char-pic" src="" class="w-20 h-20 rounded-full border-2 border-gray-500 object-cover" alt="Character Portrait">
+                    <img id="char-pic" src="" class="w-20 h-20 rounded-full border-2 border-gray-500 object-cover" alt="Retrato do Personagem">
                 </div>
+                
                 <div class="flex-1 text-center px-2">
                     <p class="text-xs text-gray-400 uppercase tracking-wider">HP Atual</p>
                     <div id="hp-container" class="text-3xl font-bold text-white">
@@ -174,14 +356,7 @@
                     </div>
                 </div>
             </div>
-            <div class="flex justify-start items-center my-2">
-                <label class="toggle-switch">
-                    <input type="checkbox" id="save-toggle">
-                    <span class="slider"></span>
-                </label>
-                <label for="save-toggle" class="font-special text-sm ml-3">Salva-guardas</label>
-            </div>
-            <div class="grid grid-cols-6 gap-2">
+            <div class="grid grid-cols-6 gap-2 mt-4">
                 <div id="attr-str" class="stat-card rounded-lg"></div> 
                 <div id="attr-dex" class="stat-card rounded-lg"></div>
                 <div id="attr-con" class="stat-card rounded-lg"></div> 
@@ -190,6 +365,8 @@
                 <div id="attr-cha" class="stat-card rounded-lg"></div>
             </div>
         </header>
+
+        <hr class="border-t-2 border-gray-700 my-6">
 
         <main>
             <div class="tab-container">
@@ -200,11 +377,39 @@
             <div id="tab-content" class="relative mt-4">
                 <div id="habilidades-panel" class="tab-panel active">
                     <h3 class="text-xl font-bold text-center mb-4 font-special">Habilidades</h3>
+                    <div id="feature-filter-controls" class="flex items-center gap-2 mb-4">
+                        <div class="custom-select-wrapper">
+                            <div id="tag-select" class="custom-select">
+                                <span id="selected-tag-text" data-tag-value="all">Tags</span>
+                                <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                            </div>
+                            <div id="tag-options" class="custom-options"></div>
+                        </div>
+                        <div class="flex-grow">
+                            <input type="text" id="feature-search-input" placeholder="Buscar..." />
+                        </div>
+                    </div>
                     <div id="features-list" class="space-y-3"></div>
                 </div>
                 <div id="pericias-panel" class="tab-panel">
-                     <h3 class="text-xl font-bold text-center mb-4 font-special">Perícias</h3>
-                     <div id="skills-list"></div>
+                     <div id="saves-collapsible">
+                        <button class="collapsible-header w-full text-center mb-4">
+                            <h3 class="text-xl font-bold font-special">Salva-guardas</h3>
+                            <svg class="chevron-icon h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                        </button>
+                         <div id="saves-content" class="collapsible-content grid grid-cols-2 gap-x-4 sm:gap-x-8 mb-6">
+                            <div id="save-col-1" class="space-y-2"></div>
+                            <div id="save-col-2" class="space-y-2"></div>
+                         </div>
+                     </div>
+                     <hr class="border-gray-600 my-4">
+                     <div id="skills-collapsible">
+                        <button class="collapsible-header w-full text-center mb-4">
+                             <h3 class="text-xl font-bold font-special">Perícias</h3>
+                             <svg class="chevron-icon h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                        </button>
+                        <div id="skills-list" class="collapsible-content"></div>
+                     </div>
                 </div>
                 <div id="ataques-panel" class="tab-panel">
                      <h3 class="text-xl font-bold text-center mb-4 font-special">Ataques</h3>
@@ -215,11 +420,11 @@
                 </div>
             </div>
         </main>
-        
-        <div class="mt-8 text-center">
-             <a href="personagens.html" class="inline-block bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded transition-colors btn">VOLTAR</a>
-        </div>
     </div>
+
+    <a href="personagens.html" class="sticky-bubble">
+        <i class="fas fa-chevron-left"></i>
+    </a>
 
     <script src="auth.js"></script>
     <script>
@@ -229,25 +434,20 @@
         const tabPanels = document.querySelectorAll('.tab-panel');
         const attacksListContainer = document.getElementById('attacks-list');
         const saveIndicator = document.getElementById('save-indicator');
-        const saveToggle = document.getElementById('save-toggle');
+        const headerMenuBtn = document.getElementById('header-menu-btn');
+        const headerOptionsMenu = document.getElementById('header-options-menu');
+        
+        const tagSelect = document.getElementById('tag-select');
+        const selectedTagText = document.getElementById('selected-tag-text');
+        const tagOptions = document.getElementById('tag-options');
+        const featureSearchInput = document.getElementById('feature-search-input');
 
         let currentCharacter = null;
         let saveTimeout;
-
+        let allFeatures = [];
+        
         const attributeMap = { str: 'FOR', dex: 'DES', con: 'CON', int: 'INT', wis: 'SAB', cha: 'CAR' };
-        // NOTE: Saving throw proficiencies need to be stored in the database. 
-        // For now, it's hardcoded based on common class types.
-        const SAVING_THROW_PROFICIENCIES = {
-            // Martial / Front liners
-            'guerreiro': ['str', 'con'], 'bárbaro': ['str', 'con'], 'paladino': ['wis', 'cha'],
-            // Skill / Agile
-            'ladino': ['dex', 'int'], 'ranger': ['str', 'dex'], 'monge': ['str', 'dex'],
-            // Casters
-            'mago': ['int', 'wis'], 'feiticeiro': ['con', 'cha'], 'clérigo': ['wis', 'cha'], 'bardo': ['dex', 'cha'],
-            // Default
-            'default': ['con']
-        };
-
+        
         const MASTER_SKILLS_LIST = [
             { name: 'Atletismo', attr: 'str' }, { name: 'Acrobacia', attr: 'dex' },
             { name: 'Mãos Firmes', attr: 'dex' }, { name: 'Furtividade', attr: 'dex' },
@@ -268,6 +468,35 @@
                 document.getElementById(`${button.dataset.tab}-panel`).classList.add('active');
             });
         });
+        
+        function setupCollapsibles() {
+            const collapsibles = document.querySelectorAll('.collapsible-header');
+            collapsibles.forEach(header => {
+                const content = header.nextElementSibling;
+                const chevron = header.querySelector('.chevron-icon');
+                header.addEventListener('click', () => {
+                    const isHidden = content.style.maxHeight === '0px' || !content.style.maxHeight;
+                    if (isHidden) {
+                        content.style.maxHeight = content.scrollHeight + "px";
+                        chevron.style.transform = 'rotate(180deg)';
+                    } else {
+                        content.style.maxHeight = '0px';
+                        chevron.style.transform = 'rotate(0deg)';
+                    }
+                });
+                content.style.maxHeight = content.scrollHeight + "px";
+                chevron.style.transform = 'rotate(180deg)';
+            });
+        }
+
+        function getProficiencyBonus(level) {
+            const lvl = parseInt(level, 10);
+            if (lvl >= 17) return 6;
+            if (lvl >= 13) return 5;
+            if (lvl >= 9) return 4;
+            if (lvl >= 5) return 3;
+            return 2;
+        }
 
         function calculateModifier(score) {
             return Math.floor((score - 10) / 2);
@@ -298,53 +527,80 @@
                 console.error("Erro ao salvar personagem:", error);
             }
         }
-
-        function renderAllAttributes(showSaves = false) {
+        
+        function renderAllAttributes() {
             if (!currentCharacter) return;
-            
-            const roleKey = currentCharacter.role.toLowerCase();
-            const proficiencies = SAVING_THROW_PROFICIENCIES[roleKey] || SAVING_THROW_PROFICIENCIES['default'];
-
             Object.keys(attributeMap).forEach(attr => {
                 const card = document.getElementById(`attr-${attr}`);
                 const score = currentCharacter.attributes[attr];
                 const modifier = calculateModifier(score);
-                const isProficient = proficiencies.includes(attr);
-
-                // Always set proficiency border
-                card.classList.toggle('proficient-save', isProficient);
-
-                if (showSaves) {
-                    const profBonus = Math.ceil(1 + currentCharacter.level / 4);
-                    const saveBonus = modifier + (isProficient ? profBonus : 0);
-                    card.innerHTML = `
-                        <p class="text-xs text-gray-400 font-bold uppercase">${attributeMap[attr]}</p>
-                        <p class="text-3xl font-bold text-white">${formatBonus(saveBonus)}</p>
-                    `;
-                } else {
-                    card.innerHTML = `
-                        <p class="text-xs text-gray-400 font-bold uppercase">${attributeMap[attr]}</p>
-                        <p class="text-3xl font-bold text-white">${formatBonus(modifier)}</p>
-                    `;
-                }
+                card.innerHTML = `
+                    <p class="text-xs text-gray-400 font-bold uppercase">${attributeMap[attr]}</p>
+                    <p class="text-3xl font-bold text-white">${formatBonus(modifier)}</p>
+                `;
             });
         }
 
-        saveToggle.addEventListener('change', () => {
-            renderAllAttributes(saveToggle.checked);
-        });
+        function renderSavingThrows(agent) {
+            const col1 = document.getElementById('save-col-1');
+            const col2 = document.getElementById('save-col-2');
+            col1.innerHTML = ''; col2.innerHTML = '';
+            const proficiencies = agent.savingThrowProficiencies || [];
+            const profBonus = getProficiencyBonus(agent.level);
+            const attributes = Object.keys(attributeMap); 
 
-        function renderFeature(name, description) {
+            attributes.forEach((attr, index) => {
+                const score = agent.attributes[attr];
+                const modifier = calculateModifier(score);
+                const isProficient = proficiencies.includes(attr);
+                const saveBonus = modifier + (isProficient ? profBonus : 0);
+                const proficiencyIndicator = isProficient ? '<div class="proficiency-dot"></div>' : '<div class="w-[10px] h-[10px]"></div>';
+                const saveElement = document.createElement('div');
+                saveElement.className = 'save-row';
+                saveElement.innerHTML = `
+                    <div class="flex justify-center items-center">${proficiencyIndicator}</div>
+                    <span class="save-name">${attributeMap[attr]}</span>
+                    <span class="save-bonus">${formatBonus(saveBonus)}</span>
+                `;
+                if (index < 3) col1.appendChild(saveElement);
+                else col2.appendChild(saveElement);
+            });
+        }
+
+        function simpleMarkdown(text) {
+            if (!text) return '';
+            let html = text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/^- (.*?)(\n|$)/gm, '<ul class="list-disc ml-5"><li>$1</li></ul>')
+                .replace(/<\/ul>\s*<ul class="list-disc ml-5">/g, '');
+            return html;
+        }
+
+        function normalizeForClass(text) {
+            if (!text) return '';
+            return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, '-');
+        }
+
+        function renderFeature(feature) {
             const list = document.getElementById('features-list');
             const featureElement = document.createElement('div');
             featureElement.className = 'feature-card rounded-lg overflow-hidden';
+            const formattedDescription = simpleMarkdown(feature.description);
+            let tagHTML = '';
+            if (feature.tag) {
+                const tagClass = 'tag-' + normalizeForClass(feature.tag);
+                tagHTML = `<span class="feature-tag ${tagClass}">${feature.tag}</span>`;
+            }
+
             featureElement.innerHTML = `
-                <button class="feature-header w-full flex justify-between items-center p-4 text-left">
-                    <span class="font-bold text-lg text-white">${name}</span>
-                    <svg class="chevron-icon h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                 <button class="feature-header w-full flex items-center p-4 text-left gap-2">
+                    <span class="font-bold text-lg text-white flex-grow truncate">${feature.name}</span>
+                    ${tagHTML}
+                    <svg class="chevron-icon h-5 w-5 text-gray-400 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                 </button>
                 <div class="feature-details hidden p-4 border-t border-gray-600 bg-black bg-opacity-20">
-                    <p class="text-sm text-gray-300">${description}</p>
+                    <div class="text-sm text-gray-300 space-y-2">${formattedDescription}</div>
                 </div>`;
             list.appendChild(featureElement);
             const header = featureElement.querySelector('.feature-header');
@@ -355,29 +611,25 @@
         }
 
         function renderSkills(agent) {
-            const proficiencyBonus = Math.ceil(1 + agent.level / 4);
+            const proficiencyBonus = getProficiencyBonus(agent.level);
             const listContainer = document.getElementById('skills-list');
             listContainer.innerHTML = '';
-
             MASTER_SKILLS_LIST.forEach(skillInfo => {
-                const savedSkill = agent.skills.find(s => s.name === skillInfo.name);
+                const savedSkill = agent.skills.find(s => s.name === skillInfo.name) || {};
                 const score = agent.attributes[skillInfo.attr] || 10;
                 let modifier = calculateModifier(score);
-                
-                if (savedSkill?.proficient) {
-                    modifier += proficiencyBonus;
-                }
-
-                const proficiencyIndicator = savedSkill?.proficient ? '<div class="proficiency-dot"></div>' : '<div></div>';
-                const advantageTag = savedSkill?.advantage ? '<div class="advantage-tag">A</div>' : '<div></div>';
-
+                if (savedSkill.proficient) modifier += proficiencyBonus;
+                const proficiencyIndicator = savedSkill.proficient ? '<div class="proficiency-dot"></div>' : '<div></div>';
+                let advStateHTML = '<div></div>';
+                if (savedSkill.advState === 'advantage') advStateHTML = '<div class="skill-state-tag advantage">V</div>';
+                else if (savedSkill.advState === 'disadvantage') advStateHTML = '<div class="skill-state-tag disadvantage">D</div>';
                 const skillElement = document.createElement('div');
                 skillElement.className = 'skill-row';
                 skillElement.innerHTML = `
                     ${proficiencyIndicator}
                     <span class="skill-attr">${attributeMap[skillInfo.attr]}</span>
                     <span class="skill-name">${skillInfo.name}</span>
-                    ${advantageTag}
+                    ${advStateHTML}
                     <span class="skill-bonus">${formatBonus(modifier)}</span>
                 `;
                 listContainer.appendChild(skillElement);
@@ -393,7 +645,6 @@
             attacks.forEach((attack, index) => {
                 const attackElement = document.createElement('div');
                 attackElement.className = 'attack-row';
-
                 let ammoHTML = '';
                 if (attack.hasAmmo) {
                     ammoHTML = `<div class="attack-ammo text-right">
@@ -404,7 +655,6 @@
                     attackElement.style.gridTemplateAreas = '"name bonus damage"';
                     attackElement.style.gap = '0.5rem 1rem'; 
                 }
-
                 attackElement.innerHTML = `
                     <span class="attack-name font-bold">${attack.name || 'N/A'}</span>
                     <span class="attack-bonus">${attack.bonus || '+0'}</span>
@@ -416,37 +666,28 @@
         }
         
         attacksListContainer.addEventListener('click', (e) => {
-            if (e.target.classList.contains('ammo-value')) {
-                makeAmmoEditable(e.target);
-            }
+            if (e.target.classList.contains('ammo-value')) makeAmmoEditable(e.target);
         });
 
         function makeAmmoEditable(ammoElement) {
             const attackIndex = ammoElement.dataset.attackIndex;
             const originalValue = ammoElement.textContent;
-
             const input = document.createElement('input');
             input.type = 'text';
             input.value = originalValue === '--' ? '' : originalValue;
             input.className = 'bg-gray-700 text-white text-center w-20 text-sm font-bold rounded';
-            
             ammoElement.replaceWith(input);
-            input.focus();
-            input.select();
-
+            input.focus(); input.select();
             const saveAmmo = () => {
                 const newValue = input.value.trim() || '--';
                 currentCharacter.attacks[attackIndex].currentAmmo = newValue;
                 saveCharacterUpdate(currentCharacter);
                 renderAttacks(currentCharacter.attacks);
             };
-
             input.addEventListener('blur', saveAmmo);
             input.addEventListener('keydown', (e) => {
                 if(e.key === 'Enter') input.blur();
-                if(e.key === 'Escape') {
-                    renderAttacks(currentCharacter.attacks);
-                }
+                if(e.key === 'Escape') renderAttacks(currentCharacter.attacks);
             });
         }
 
@@ -470,11 +711,9 @@
                 input.className = 'bg-gray-700 text-white text-center w-full text-3xl font-bold rounded';
                 hpContainer.replaceChild(input, hpTextElement);
                 input.focus(); input.select();
-                
                 const saveChanges = () => {
                     let newCurrentHp = parseInt(input.value, 10);
                     if (isNaN(newCurrentHp)) newCurrentHp = parseInt(currentHp.trim(), 10);
-                    
                     const newHpValue = `${newCurrentHp}/${maxHp.trim()}`;
                     currentCharacter.hitPoints = newHpValue;
                     hpTextElement.textContent = newHpValue;
@@ -496,44 +735,131 @@
             return (quoteMatch && quoteMatch[1]) || (fullName.includes(' ') ? fullName.split(' ')[0] : fullName);
         }
 
+        function setupFeatureTagFilter() {
+            const uniqueTags = ['Todas as Tags', ...new Set(allFeatures.map(f => f.tag).filter(Boolean).sort())];
+            tagOptions.innerHTML = '';
+            uniqueTags.forEach(tag => {
+                const option = document.createElement('div');
+                option.className = 'custom-option';
+                option.textContent = tag;
+                option.dataset.tagValue = tag === 'Todas as Tags' ? 'all' : normalizeForClass(tag);
+                tagOptions.appendChild(option);
+                option.addEventListener('click', () => {
+                    selectedTagText.textContent = tag;
+                    selectedTagText.dataset.tagValue = option.dataset.tagValue;
+                    tagOptions.style.display = 'none';
+                    applyFeatureFilters();
+                });
+            });
+        }
+
+        function applyFeatureFilters() {
+            const selectedTagValue = selectedTagText.dataset.tagValue || 'all';
+            const searchTerm = featureSearchInput.value.toLowerCase().trim();
+            const featuresList = document.getElementById('features-list');
+            featuresList.innerHTML = '';
+
+            const filteredFeatures = allFeatures.filter(feature => {
+                const matchesTag = selectedTagValue === 'all' || normalizeForClass(feature.tag) === selectedTagValue;
+                const matchesSearch = !searchTerm || 
+                                      feature.name.toLowerCase().includes(searchTerm) || 
+                                      (feature.description && feature.description.toLowerCase().includes(searchTerm));
+                return matchesTag && matchesSearch;
+            });
+            
+            if (filteredFeatures.length === 0) {
+                featuresList.innerHTML = '<p class="text-gray-400 text-center py-4">Nenhuma habilidade encontrada.</p>';
+            } else {
+                filteredFeatures.forEach(renderFeature);
+            }
+        }
+
         function populateSheet(agent) {
             currentCharacter = agent;
+            allFeatures = agent.features || [];
             document.title = `Companion - ${agent.name}`;
             const formattedName = formatCharacterName(agent.name);
             document.getElementById('char-name').textContent = formattedName.toUpperCase();
             document.getElementById('char-role-level').textContent = `${agent.role}  |  Nível ${agent.level}`;
             document.getElementById('char-pic').src = agent.profilePic || 'https://placehold.co/80x80/2d2d2d/f5f5f5?text=BPRD';
-            
             const dexModifier = calculateModifier(agent.attributes.dex);
             document.getElementById('char-ac').textContent = 10 + dexModifier;
-            
+            document.getElementById('char-initiative').textContent = formatBonus(dexModifier);
             const initialHp = agent.hitPoints || '0/10';
             document.getElementById('char-hp').textContent = initialHp;
             updateHpBar(initialHp);
             makeHpEditable();
+            renderAllAttributes();
+            renderSavingThrows(agent);
 
-            renderAllAttributes(saveToggle.checked);
-
-            const featuresList = document.getElementById('features-list');
-            featuresList.innerHTML = '';
-            if (agent.features && agent.features.length > 0) {
-                agent.features.forEach(f => renderFeature(f.name, f.description));
+            if (allFeatures.length > 0) {
+                document.getElementById('feature-filter-controls').style.display = 'flex';
+                setupFeatureTagFilter();
+                applyFeatureFilters(); // Initial render
             } else {
-                featuresList.innerHTML = '<p class="text-gray-400">Nenhuma habilidade listada.</p>';
+                document.getElementById('feature-filter-controls').style.display = 'none';
+                document.getElementById('features-list').innerHTML = '<p class="text-gray-400 text-center py-4">Nenhuma habilidade listada.</p>';
             }
 
             renderSkills(agent);
             renderAttacks(agent.attacks);
-
+            setupHeaderMenu();
+            setupCollapsibles();
             loadingDiv.classList.add('hidden');
             sheetDiv.classList.remove('hidden');
         }
+
+        function setupHeaderMenu() {
+            headerOptionsMenu.innerHTML = ''; 
+            const loggedInUserId = getLoggedInUserId();
+            const isOwner = loggedInUserId && currentCharacter.userId && (currentCharacter.userId === loggedInUserId || currentCharacter.userId._id === loggedInUserId);
+            
+            const initiativeButton = document.createElement('a');
+            initiativeButton.className = 'options-menu-item';
+            initiativeButton.textContent = 'Iniciativa';
+            initiativeButton.href = `#`;
+            headerOptionsMenu.appendChild(initiativeButton);
+
+            const idButton = document.createElement('a');
+            idButton.className = 'options-menu-item';
+            idButton.textContent = 'Exibir ID';
+            idButton.href = `id.html?id=${currentCharacter._id}`;
+            headerOptionsMenu.appendChild(idButton);
+
+            if (isOwner) {
+                const editButton = document.createElement('a');
+                editButton.className = 'options-menu-item';
+                editButton.textContent = 'Editar';
+                editButton.href = `create.html?edit=${currentCharacter._id}`;
+                headerOptionsMenu.appendChild(editButton);
+            }
+        }
+        
+        headerMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            headerOptionsMenu.classList.toggle('hidden');
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (!headerMenuBtn.contains(e.target) && !headerOptionsMenu.contains(e.target)) {
+                headerOptionsMenu.classList.add('hidden');
+            }
+             if (!tagSelect.contains(e.target) && !tagOptions.contains(e.target)) {
+                tagOptions.style.display = 'none';
+            }
+        });
+
+        tagSelect.addEventListener('click', (e) => {
+            e.stopPropagation();
+            tagOptions.style.display = tagOptions.style.display === 'block' ? 'none' : 'block';
+        });
+
+        featureSearchInput.addEventListener('input', applyFeatureFilters);
 
         async function fetchCharacter(id) {
             const token = localStorage.getItem('bprd_token');
             try {
                 let character = null;
-
                 if (token) {
                     const myResponse = await fetch(`${API_URL}/characters/mine`, { headers: { 'x-auth-token': token } });
                     if (myResponse.ok) {
@@ -541,7 +867,6 @@
                         character = myChars.find(c => c._id === id);
                     }
                 }
-
                 if (!character) {
                     const publicResponse = await fetch(`${API_URL}/characters/public`);
                     if (publicResponse.ok) {
@@ -549,11 +874,8 @@
                         character = publicChars.find(c => c._id === id);
                     }
                 }
-
                 if (character) return character;
-                
                 throw new Error('Personagem não encontrado ou acesso negado.');
-
             } catch (error) {
                 console.error("Erro ao buscar personagem:", error);
                 loadingDiv.textContent = error.message;
@@ -574,4 +896,3 @@
     </script>
 </body>
 </html>
-
