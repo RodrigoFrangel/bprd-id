@@ -1,0 +1,12 @@
+.git
+.vscode
+node_modules
+npm-debug.log
+.env
+.gitignore
+Dockerfile
+.dockerignore
+gaylord
+public
+README.md
+vercel.json
