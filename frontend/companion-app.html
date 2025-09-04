@@ -589,7 +589,7 @@
 
         function normalizeForClass(text) {
             if (!text) return '';
-            return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, '-');
+            return text.normalize("NFD").replace(/[\]u0300-\]u036f]/g, "").toLowerCase().replace(/\s+/g, '-');
         }
 
         function renderFeature(feature) {
@@ -741,7 +741,7 @@
         
         function formatCharacterName(fullName) {
             if (!fullName) return '';
-            const quoteMatch = fullName.match(/"(.*?)"/);
+            const quoteMatch = fullName.match(/{ "(.*?)" }/);
             return (quoteMatch && quoteMatch[1]) || (fullName.includes(' ') ? fullName.split(' ')[0] : fullName);
         }
 
@@ -824,6 +824,12 @@
             const loggedInUserId = getLoggedInUserId();
             const isOwner = loggedInUserId && currentCharacter.userId && (currentCharacter.userId === loggedInUserId || currentCharacter.userId._id === loggedInUserId);
             
+            const mapButton = document.createElement('a');
+            mapButton.className = 'options-menu-item';
+            mapButton.textContent = 'Mapa';
+            mapButton.href = `map.html`;
+            headerOptionsMenu.appendChild(mapButton);
+
             const initiativeButton = document.createElement('a');
             initiativeButton.className = 'options-menu-item';
             initiativeButton.textContent = 'Iniciativa';

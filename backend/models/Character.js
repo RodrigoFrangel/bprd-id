@@ -30,6 +30,10 @@ const CharacterSchema = new mongoose.Schema({
   profilePic: { type: String },
   hitPoints: { type: String }, // Ex: "12/12"
   
+  // Posição no mapa
+  positionX: { type: Number, default: 50 },
+  positionY: { type: Number, default: 50 },
+
   // Classificação
   origin: { type: String, required: true },
   recruitment: { type: String, required: true },

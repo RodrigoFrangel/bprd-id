@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>B.P.R.D. - Mapa Tático</title>
+    <script src="https://cdn/tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="../public/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body { 
+            background-color: #1a1a1a; 
+            font-family: 'Roboto Condensed', sans-serif; 
+            color: #f5f5f5;
+            overflow: hidden; /* Previne scroll da página inteira */
+        }
+        #map-viewport {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+            cursor: grab;
+        }
+        #map-container {
+            width: 100%;
+            height: 100%;
+            transform-origin: 0 0; /* Ponto de origem para o zoom */
+            position: relative;
+        }
+        #map-background {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background-image: url('https://i0.wp.com/2minutetabletop.com/wp-content/uploads/2021/08/BluBerreys-Cyberpunk-Battle-Maps-Bar.jpg?ssl=1');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            transform: rotate(90deg);
+            pointer-events: none;
+        }
+        .token {
+            position: absolute;
+            width: 15px; 
+            height: 15px;
+            border-radius: 50%;
+            border: 1px solid #fff;
+            box-shadow: 0 0 8px rgba(0,0,0,0.7);
+            background-size: contain; /* Garante que a imagem inteira apareça */
+            background-repeat: no-repeat; /* Evita repetição da imagem */
+            background-position: center;
+            cursor: grab;
+            transition: box-shadow 0.2s;
+            box-sizing: border-box; 
+            transform: translate(-50%, -50%); /* Centraliza o token */
+            background-color: rgba(0,0,0,0.5); /* Fundo para caso a imagem não seja quadrada */
+        }
+        .token.draggable {
+            cursor: grabbing;
+            transform: translate(-50%, -50%) scale(1.1); /* Combina transforms */
+            box-shadow: 0 0 15px rgba(255, 255, 100, 0.9);
+            z-index: 1000;
+        }
+        .token.not-owned {
+            cursor: not-allowed;
+            border-color: #888;
+        }
+        .token-label {
+            position: absolute;
+            bottom: -25px; /* Posição inicial abaixo do token */
+            left: 50%;
+            background-color: rgba(0,0,0,0.8);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0; /* Escondido por padrão */
+            pointer-events: none; /* Não interfere com cliques */
+            transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+            transform: translateX(-50%) translateY(5px); /* Efeito de subida */
+        }
+        /* Mostra a label no hover em desktops */
+        @media (hover: hover) and (pointer: fine) {
+            .token:hover .token-label {
+                opacity: 1;
+                transform: translateX(-50%);
+            }
+        }
+        
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 2em;
+            background-color: rgba(0,0,0,0.5);
+            padding: 20px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="map-viewport">
+        <div id="map-container">
+            <div id="map-background"></div>
+        </div>
+    </div>
+    <div id="loading">Carregando mapa...</div>
+
+    <script src="auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const viewport = document.getElementById('map-viewport');
+            const mapContainer = document.getElementById('map-container');
+            const loadingIndicator = document.getElementById('loading');
+            const token = localStorage.getItem('bprd_token');
+            const loggedInUserId = getLoggedInUserId();
+
+            // Variáveis de estado do mapa
+            let scale = 1;
+            let panX = 0;
+            let panY = 0;
+            let isPanning = false;
+            let startPanX, startPanY;
+
+            // Variáveis de estado do token
+            let activeToken = null;
+            let tokenOffsetX, tokenOffsetY;
+
+            function applyTransform() {
+                mapContainer.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+            }
+
+            async function fetchMainCharacters() {
+                if (!token) {
+                    loadingIndicator.textContent = "Acesso negado. Faça login.";
+                    return;
+                }
+                try {
+                    const response = await fetch(`${API_URL}/characters/public`);
+                    if (!response.ok) throw new Error('Não foi possível carregar personagens.');
+                    
+                    const characters = await response.json();
+                    const mainCharacters = characters.filter(c => c.isMainCharacter);
+                    
+                    loadingIndicator.style.display = 'none';
+                    renderTokens(mainCharacters);
+
+                } catch (error) {
+                    console.error('Erro:', error);
+                    loadingIndicator.textContent = "Erro ao carregar o mapa.";
+                }
+            }
+
+            function renderTokens(characters) {
+                // Limpa apenas os tokens antigos, não o div do background
+                mapContainer.querySelectorAll('.token').forEach(t => t.remove());
+                
+                characters.forEach(char => {
+                    const tokenElement = document.createElement('div');
+                    tokenElement.className = 'token';
+                    tokenElement.id = `token-${char._id}`;
+                    tokenElement.style.backgroundImage = `url(${char.profilePic || 'https://placehold.co/50x50/2d2d2d/f5f5f5?text=BPRD'})`;
+                    
+                    tokenElement.style.left = `${char.positionX || 50}%`;
+                    tokenElement.style.top = `${char.positionY || 50}%`;
+
+                    const labelElement = document.createElement('div');
+                    labelElement.className = 'token-label';
+                    labelElement.textContent = char.name;
+                    tokenElement.appendChild(labelElement);
+
+                    if (loggedInUserId === char.userId._id) {
+                        tokenElement.addEventListener('mousedown', startTokenDrag);
+                        tokenElement.addEventListener('touchstart', startTokenDrag, { passive: false });
+                    } else {
+                        tokenElement.classList.add('not-owned');
+                    }
+                    
+                    mapContainer.appendChild(tokenElement);
+                });
+            }
+            
+            // --- Lógica de Arrastar Token ---
+            function startTokenDrag(e) {
+                if (e.type === 'mousedown' && e.button !== 0) return;
+                e.stopPropagation(); // Impede o início do pan do mapa
+                activeToken = e.currentTarget;
+                
+                if (activeToken.classList.contains('not-owned')) {
+                    activeToken = null;
+                    return;
+                }
+                
+                activeToken.classList.add('draggable');
+                const start = e.type === 'touchstart' ? e.touches[0] : e;
+                const rect = activeToken.getBoundingClientRect();
+                tokenOffsetX = start.clientX - rect.left;
+                tokenOffsetY = start.clientY - rect.top;
+
+                if (e.type === 'touchstart') {
+                    document.addEventListener('touchmove', dragToken, { passive: false });
+                    document.addEventListener('touchend', endTokenDrag, { once: true });
+                } else {
+                    document.addEventListener('mousemove', dragToken);
+                    document.addEventListener('mouseup', endTokenDrag, { once: true });
+                }
+            }
+
+            function dragToken(e) {
+                if (!activeToken) return;
+                e.preventDefault();
+                const move = e.type === 'touchmove' ? e.touches[0] : e;
+
+                const mapRect = mapContainer.getBoundingClientRect();
+                let x = move.clientX - mapRect.left;
+                let y = move.clientY - mapRect.top;
+
+                // Ajusta a posição do clique dentro do token, considerando a escala do mapa
+                let clientXInMap = (x - tokenOffsetX * scale) / scale;
+                let clientYInMap = (y - tokenOffsetY * scale) / scale;
+
+                let xPercent = (clientXInMap / mapContainer.offsetWidth) * 100;
+                let yPercent = (clientYInMap / mapContainer.offsetHeight) * 100;
+                
+                // Pega as dimensões do token em pixels e converte para porcentagem
+                const tokenWidthPercent = (activeToken.offsetWidth / mapContainer.offsetWidth) * 100;
+                const tokenHeightPercent = (activeToken.offsetHeight / mapContainer.offsetHeight) * 100;
+
+                // Limita a posição para que a borda do token não saia da imagem
+                xPercent = Math.max(tokenWidthPercent / 2, Math.min(xPercent, 100 - (tokenWidthPercent / 2)));
+                yPercent = Math.max(tokenHeightPercent / 2, Math.min(yPercent, 100 - (tokenHeightPercent / 2)));
+
+                activeToken.style.left = `${xPercent}%`;
+                activeToken.style.top = `${yPercent}%`;
+            }
+
+            async function endTokenDrag(e) {
+                if (!activeToken) return;
+                
+                const characterId = activeToken.id.replace('token-', '');
+                const newX = parseFloat(activeToken.style.left);
+                const newY = parseFloat(activeToken.style.top);
+
+                activeToken.classList.remove('draggable');
+                activeToken = null;
+                
+                if (e.type === 'touchend') {
+                    document.removeEventListener('touchmove', dragToken);
+                } else {
+                    document.removeEventListener('mousemove', dragToken);
+                }
+
+                try {
+                    await fetch(`${API_URL}/characters/${characterId}/position`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'x-auth-token': token },
+                        body: JSON.stringify({ positionX: newX, positionY: newY })
+                    });
+                } catch (error) {
+                    console.error('Erro ao salvar posição:', error);
+                    alert('Não foi possível salvar a nova posição.');
+                }
+            }
+
+            // --- Lógica de Pan (Arrastar Mapa) ---
+            function startPan(e) {
+                if (e.type === 'mousedown' && e.button !== 0) return;
+                e.preventDefault();
+                isPanning = true;
+                viewport.style.cursor = 'grabbing';
+
+                const start = e.type === 'touchstart' ? e.touches[0] : e;
+                startPanX = start.clientX - panX;
+                startPanY = start.clientY - panY;
+
+                if (e.type === 'touchstart') {
+                    viewport.addEventListener('touchmove', panMap, { passive: false });
+                    viewport.addEventListener('touchend', endPan, { once: true });
+                } else {
+                    viewport.addEventListener('mousemove', panMap);
+                    viewport.addEventListener('mouseup', endPan, { once: true });
+                }
+            }
+
+            function panMap(e) {
+                if (!isPanning) return;
+                e.preventDefault();
+                const move = e.type === 'touchmove' ? e.touches[0] : e;
+                panX = move.clientX - startPanX;
+                panY = move.clientY - startPanY;
+                applyTransform();
+            }
+
+            function endPan(e) {
+                isPanning = false;
+                viewport.style.cursor = 'grab';
+                if (e.type === 'touchend') {
+                    viewport.removeEventListener('touchmove', panMap);
+                } else {
+                    viewport.removeEventListener('mousemove', panMap);
+                }
+            }
+
+            // --- Lógica de Zoom ---
+            function zoom(e) {
+                e.preventDefault();
+                const zoomIntensity = 0.1;
+                const delta = e.deltaY > 0 ? -1 : 1;
+                const oldScale = scale;
+                scale += delta * zoomIntensity;
+                scale = Math.max(0.5, Math.min(scale, 3)); // Limita o zoom
+
+                const rect = viewport.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                // Ajusta o pan para que o zoom seja centrado no cursor do mouse
+                panX = mouseX - (mouseX - panX) * (scale / oldScale);
+                panY = mouseY - (mouseY - panY) * (scale / oldScale);
+
+                applyTransform();
+            }
+
+            // Adiciona os event listeners
+            viewport.addEventListener('mousedown', startPan);
+            viewport.addEventListener('touchstart', startPan, { passive: false });
+            viewport.addEventListener('wheel', zoom);
+
+            // Inicia o processo
+            fetchMainCharacters();
+        });
+    </script>
+</body>
+</html>
+
