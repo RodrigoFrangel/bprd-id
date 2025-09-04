@@ -188,6 +188,7 @@
             justify-content: center;
             align-items: center;
             gap: 0.5rem;
+            transition: margin-bottom 0.3s ease-in-out; /* <-- Adicione esta linha */
         }
         .collapsible-content {
             transition: max-height 0.3s ease-in-out;
@@ -393,7 +394,7 @@
                 </div>
                 <div id="pericias-panel" class="tab-panel">
                      <div id="saves-collapsible">
-                        <button class="collapsible-header w-full text-center mb-4">
+                        <button class="collapsible-header w-full text-center">
                             <h3 class="text-xl font-bold font-special">Salva-guardas</h3>
                             <svg class="chevron-icon h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                         </button>
@@ -404,7 +405,7 @@
                      </div>
                      <hr class="border-gray-600 my-4">
                      <div id="skills-collapsible">
-                        <button class="collapsible-header w-full text-center mb-4">
+                        <button class="collapsible-header w-full text-center">
                              <h3 class="text-xl font-bold font-special">Perícias</h3>
                              <svg class="chevron-icon h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                         </button>
@@ -474,18 +475,27 @@
             collapsibles.forEach(header => {
                 const content = header.nextElementSibling;
                 const chevron = header.querySelector('.chevron-icon');
+
                 header.addEventListener('click', () => {
-                    const isHidden = content.style.maxHeight === '0px' || !content.style.maxHeight;
-                    if (isHidden) {
+                    const isCurrentlyCollapsed = content.style.maxHeight === '0px' || !content.style.maxHeight;
+                    
+                    if (isCurrentlyCollapsed) {
+                        // Ação: EXPANDIR
                         content.style.maxHeight = content.scrollHeight + "px";
                         chevron.style.transform = 'rotate(180deg)';
+                        header.classList.add('mb-4'); // Adiciona margem quando expandido
                     } else {
+                        // Ação: MINIMIZAR
                         content.style.maxHeight = '0px';
                         chevron.style.transform = 'rotate(0deg)';
+                        header.classList.remove('mb-4'); // Remove margem quando minimizado
                     }
                 });
+
+                // Define o estado inicial ao carregar a página: EXPANDIDO
                 content.style.maxHeight = content.scrollHeight + "px";
                 chevron.style.transform = 'rotate(180deg)';
+                header.classList.add('mb-4'); // Adiciona a margem no estado inicial
             });
         }
 

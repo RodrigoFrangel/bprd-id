@@ -139,13 +139,11 @@
     <main class="main-content">
         <div class="filter-bar z-10 mb-2 max-w-4xl mx-auto">
             <div class="flex items-center justify-between gap-3">
-                 <!-- Search input (initially hidden) -->
-                <div id="search-wrapper" class="hidden w-full flex-grow items-center gap-2">
+                 <div id="search-wrapper" class="hidden w-full flex-grow items-center gap-2">
                     <input type="search" id="search-input" placeholder="Buscar por nome..." class="search-input w-full p-2 rounded-lg text-sm">
                     <button id="close-search-btn" class="text-gray-400 hover:text-white text-2xl leading-none px-2">&times;</button>
                 </div>
 
-                <!-- Filter buttons and search toggle (initially visible) -->
                 <div id="filters-wrapper" class="flex w-full items-center justify-between gap-2">
                     <div id="filter-buttons" class="flex items-center justify-center gap-2">
                         <button class="filter-btn active" data-filter="all">Todos</button>
@@ -163,7 +161,6 @@
         </div>
     </main>
 
-    <!-- Menu de Contexto -->
     <div id="options-modal-overlay" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center opacity-0 pointer-events-none p-4">
         <div id="options-modal" class="modal-box rounded-lg w-full max-w-xs transform opacity-0 scale-95 -translate-y-4" style="width: 280px;">
             <div id="modal-header" class="p-2 border-b border-gray-700/50 flex justify-between items-center">
@@ -174,7 +171,6 @@
         </div>
     </div>
 
-    <!-- Barra de Navegação Inferior -->
     <footer class="bottom-nav">
         <div class="w-full h-full max-w-4xl mx-auto flex items-center justify-around relative" id="nav-container"></div>
     </footer>
@@ -269,7 +265,7 @@
                 const isMain = agent.isMainCharacter;
                 
                 const agentElement = document.createElement('div');
-                agentElement.className = `agent-card p-3 rounded-lg flex items-center gap-4 ${isMain ? 'main' : ''}`;
+                agentElement.className = `agent-card p-3 rounded-lg flex items-center gap-4 ${isMain && isOwner ? 'main' : ''}`;
                 
                 const thumbnailUrl = agent.profilePic || `https://placehold.co/64x64/2d2d2d/f5f5f5?text=BPRD`;
                 const ownerUsername = agent.userId ? agent.userId.username : 'Anônimo';
@@ -404,4 +400,3 @@
     </script>
 </body>
 </html>
-
