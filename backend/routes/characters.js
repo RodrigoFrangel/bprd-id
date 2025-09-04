@@ -144,36 +144,6 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
-// --- ATUALIZAR POSIÇÃO DO PERSONAGEM ---
-// @route   PUT api/characters/:id/position
-// @desc    Atualiza a posição de um personagem no mapa
-// @access  Privado
-router.put('/:id/position', auth, async (req, res) => {
-  try {
-    const { positionX, positionY } = req.body;
 
-    let character = await Character.findById(req.params.id);
-
-    if (!character) {
-      return res.status(404).json({ msg: 'Personagem não encontrado.' });
-    }
-
-    // Apenas o dono do personagem pode mover
-    if (character.userId.toString() !== req.user.id) {
-      return res.status(401).json({ msg: 'Não autorizado.' });
-    }
-
-    character = await Character.findByIdAndUpdate(
-      req.params.id,
-      { $set: { positionX, positionY } },
-      { new: true }
-    );
-
-    res.json(character);
-  } catch (err) {
-    console.error('Erro ao atualizar posição:', err.message);
-    res.status(500).send('Erro no servidor.');
-  }
-});
 
 module.exports = router;

@@ -4,24 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>B.P.R.D. - Mapa Tático</title>
-    <script src="https://cdn/tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" type="image/png" href="../public/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <style>
         body { 
             background-color: #1a1a1a; 
             font-family: 'Roboto Condensed', sans-serif; 
             color: #f5f5f5;
             overflow: hidden; /* Previne scroll da página inteira */
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23333333' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
         #map-viewport {
             width: 100vw;
             height: 100vh;
             position: relative;
-            overflow: hidden;
             cursor: grab;
         }
         #map-container {
@@ -40,8 +41,12 @@
             background-size: contain;
             background-repeat: no-repeat;
             background-position: center;
-            transform: rotate(90deg);
             pointer-events: none;
+            transition: transform 0.4s ease-in-out; /* Adicionado para suavizar a rotação */
+        }
+        /* Nova classe para o estado de retrato */
+        #map-background.portrait {
+            transform: rotate(90deg);
         }
         .token {
             position: absolute;
@@ -50,18 +55,18 @@
             border-radius: 50%;
             border: 1px solid #fff;
             box-shadow: 0 0 8px rgba(0,0,0,0.7);
-            background-size: contain; /* Garante que a imagem inteira apareça */
-            background-repeat: no-repeat; /* Evita repetição da imagem */
+            background-size: contain; 
+            background-repeat: no-repeat; 
             background-position: center;
             cursor: grab;
             transition: box-shadow 0.2s;
             box-sizing: border-box; 
-            transform: translate(-50%, -50%); /* Centraliza o token */
-            background-color: rgba(0,0,0,0.5); /* Fundo para caso a imagem não seja quadrada */
+            transform: translate(-50%, -50%); 
+            background-color: rgba(0,0,0,0.5);
         }
         .token.draggable {
             cursor: grabbing;
-            transform: translate(-50%, -50%) scale(1.1); /* Combina transforms */
+            transform: translate(-50%, -50%) scale(1.1); 
             box-shadow: 0 0 15px rgba(255, 255, 100, 0.9);
             z-index: 1000;
         }
@@ -71,7 +76,7 @@
         }
         .token-label {
             position: absolute;
-            bottom: -25px; /* Posição inicial abaixo do token */
+            bottom: -25px; 
             left: 50%;
             background-color: rgba(0,0,0,0.8);
             color: white;
@@ -79,12 +84,11 @@
             border-radius: 5px;
             font-size: 12px;
             white-space: nowrap;
-            opacity: 0; /* Escondido por padrão */
-            pointer-events: none; /* Não interfere com cliques */
+            opacity: 0; 
+            pointer-events: none; 
             transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
-            transform: translateX(-50%) translateY(5px); /* Efeito de subida */
+            transform: translateX(-50%) translateY(5px); 
         }
-        /* Mostra a label no hover em desktops */
         @media (hover: hover) and (pointer: fine) {
             .token:hover .token-label {
                 opacity: 1;
@@ -103,6 +107,32 @@
             padding: 20px;
             border-radius: 10px;
         }
+        /* Botões de controle */
+        .map-controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .control-btn {
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #f5f5f5;
+            border: 1px solid #555;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .control-btn:hover {
+            background-color: rgba(0, 0, 0, 0.9);
+        }
     </style>
 </head>
 <body>
@@ -114,14 +144,36 @@
     </div>
     <div id="loading">Carregando mapa...</div>
 
+    <div class="map-controls">
+        <button id="center-map-btn" class="control-btn" title="Centralizar Mapa">
+            <i class="fas fa-compress-arrows-alt"></i>
+        </button>
+        <!-- Botão de Rotação Adicionado -->
+        <button id="rotate-map-btn" class="control-btn" title="Mudar Orientação">
+            <i class="fas fa-sync-alt"></i>
+        </button>
+        <button id="back-btn" class="control-btn" title="Voltar">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+    </div>
+
+
     <script src="auth.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const viewport = document.getElementById('map-viewport');
             const mapContainer = document.getElementById('map-container');
             const loadingIndicator = document.getElementById('loading');
+            const centerMapBtn = document.getElementById('center-map-btn');
+            const backBtn = document.getElementById('back-btn');
+            // Elementos para a nova funcionalidade
+            const rotateMapBtn = document.getElementById('rotate-map-btn');
+            const mapBackground = document.getElementById('map-background');
+
             const token = localStorage.getItem('bprd_token');
             const loggedInUserId = getLoggedInUserId();
+
+            const socket = io('http://localhost:7000');
 
             // Variáveis de estado do mapa
             let scale = 1;
@@ -129,6 +181,7 @@
             let panY = 0;
             let isPanning = false;
             let startPanX, startPanY;
+            let initialPinchDistance = null;
 
             // Variáveis de estado do token
             let activeToken = null;
@@ -136,6 +189,13 @@
 
             function applyTransform() {
                 mapContainer.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+            }
+
+            function centerMap() {
+                scale = 1;
+                panX = 0;
+                panY = 0;
+                applyTransform();
             }
 
             async function fetchMainCharacters() {
@@ -160,7 +220,6 @@
             }
 
             function renderTokens(characters) {
-                // Limpa apenas os tokens antigos, não o div do background
                 mapContainer.querySelectorAll('.token').forEach(t => t.remove());
                 
                 characters.forEach(char => {
@@ -187,11 +246,19 @@
                     mapContainer.appendChild(tokenElement);
                 });
             }
+
+            function updateTokenPosition(characterId, newX, newY) {
+                const tokenElement = document.getElementById(`token-${characterId}`);
+                if (tokenElement) {
+                    tokenElement.style.left = `${newX}%`;
+                    tokenElement.style.top = `${newY}%`;
+                }
+            }
             
             // --- Lógica de Arrastar Token ---
             function startTokenDrag(e) {
                 if (e.type === 'mousedown' && e.button !== 0) return;
-                e.stopPropagation(); // Impede o início do pan do mapa
+                e.stopPropagation(); 
                 activeToken = e.currentTarget;
                 
                 if (activeToken.classList.contains('not-owned')) {
@@ -223,18 +290,15 @@
                 let x = move.clientX - mapRect.left;
                 let y = move.clientY - mapRect.top;
 
-                // Ajusta a posição do clique dentro do token, considerando a escala do mapa
                 let clientXInMap = (x - tokenOffsetX * scale) / scale;
                 let clientYInMap = (y - tokenOffsetY * scale) / scale;
 
                 let xPercent = (clientXInMap / mapContainer.offsetWidth) * 100;
                 let yPercent = (clientYInMap / mapContainer.offsetHeight) * 100;
                 
-                // Pega as dimensões do token em pixels e converte para porcentagem
                 const tokenWidthPercent = (activeToken.offsetWidth / mapContainer.offsetWidth) * 100;
                 const tokenHeightPercent = (activeToken.offsetHeight / mapContainer.offsetHeight) * 100;
 
-                // Limita a posição para que a borda do token não saia da imagem
                 xPercent = Math.max(tokenWidthPercent / 2, Math.min(xPercent, 100 - (tokenWidthPercent / 2)));
                 yPercent = Math.max(tokenHeightPercent / 2, Math.min(yPercent, 100 - (tokenHeightPercent / 2)));
 
@@ -258,21 +322,18 @@
                     document.removeEventListener('mousemove', dragToken);
                 }
 
-                try {
-                    await fetch(`${API_URL}/characters/${characterId}/position`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json', 'x-auth-token': token },
-                        body: JSON.stringify({ positionX: newX, positionY: newY })
-                    });
-                } catch (error) {
-                    console.error('Erro ao salvar posição:', error);
-                    alert('Não foi possível salvar a nova posição.');
-                }
+                socket.emit('move-token', { characterId, positionX: newX, positionY: newY });
             }
 
-            // --- Lógica de Pan (Arrastar Mapa) ---
+            // --- Lógica de Pan (Arrastar Mapa) e Zoom por Gesto ---
             function startPan(e) {
                 if (e.type === 'mousedown' && e.button !== 0) return;
+                
+                if (e.type === 'touchstart' && e.touches.length === 2) {
+                    initialPinchDistance = getPinchDistance(e.touches);
+                    return;
+                }
+
                 e.preventDefault();
                 isPanning = true;
                 viewport.style.cursor = 'grabbing';
@@ -282,17 +343,25 @@
                 startPanY = start.clientY - panY;
 
                 if (e.type === 'touchstart') {
-                    viewport.addEventListener('touchmove', panMap, { passive: false });
+                    viewport.addEventListener('touchmove', handleMove, { passive: false });
                     viewport.addEventListener('touchend', endPan, { once: true });
                 } else {
                     viewport.addEventListener('mousemove', panMap);
                     viewport.addEventListener('mouseup', endPan, { once: true });
                 }
             }
+            
+            function handleMove(e) {
+                e.preventDefault();
+                if (e.touches.length === 2) {
+                    pinchZoom(e.touches);
+                } else if (e.touches.length === 1 && isPanning) {
+                    panMap(e);
+                }
+            }
 
             function panMap(e) {
                 if (!isPanning) return;
-                e.preventDefault();
                 const move = e.type === 'touchmove' ? e.touches[0] : e;
                 panX = move.clientX - startPanX;
                 panY = move.clientY - startPanY;
@@ -301,9 +370,10 @@
 
             function endPan(e) {
                 isPanning = false;
+                initialPinchDistance = null;
                 viewport.style.cursor = 'grab';
                 if (e.type === 'touchend') {
-                    viewport.removeEventListener('touchmove', panMap);
+                    viewport.removeEventListener('touchmove', handleMove);
                 } else {
                     viewport.removeEventListener('mousemove', panMap);
                 }
@@ -316,23 +386,67 @@
                 const delta = e.deltaY > 0 ? -1 : 1;
                 const oldScale = scale;
                 scale += delta * zoomIntensity;
-                scale = Math.max(0.5, Math.min(scale, 3)); // Limita o zoom
+                scale = Math.max(0.5, Math.min(scale, 3)); 
 
                 const rect = viewport.getBoundingClientRect();
                 const mouseX = e.clientX - rect.left;
                 const mouseY = e.clientY - rect.top;
-
-                // Ajusta o pan para que o zoom seja centrado no cursor do mouse
+                
                 panX = mouseX - (mouseX - panX) * (scale / oldScale);
                 panY = mouseY - (mouseY - panY) * (scale / oldScale);
 
                 applyTransform();
+            }
+            
+            function getPinchDistance(touches) {
+                return Math.hypot(
+                    touches[0].pageX - touches[1].pageX,
+                    touches[0].pageY - touches[1].pageY
+                );
+            }
+            
+            function pinchZoom(touches) {
+                if (initialPinchDistance === null) return;
+                const newPinchDistance = getPinchDistance(touches);
+                const zoomFactor = newPinchDistance / initialPinchDistance;
+                
+                const oldScale = scale;
+                scale = Math.max(0.5, Math.min(oldScale * zoomFactor, 3));
+
+                const rect = viewport.getBoundingClientRect();
+                const centerX = (touches[0].clientX + touches[1].clientX) / 2 - rect.left;
+                const centerY = (touches[0].clientY + touches[1].clientY) / 2 - rect.top;
+
+                panX = centerX - (centerX - panX) * (scale / oldScale);
+                panY = centerY - (centerY - panY) * (scale / oldScale);
+
+                applyTransform();
+                initialPinchDistance = newPinchDistance; // Atualiza para o próximo movimento
             }
 
             // Adiciona os event listeners
             viewport.addEventListener('mousedown', startPan);
             viewport.addEventListener('touchstart', startPan, { passive: false });
             viewport.addEventListener('wheel', zoom);
+            centerMapBtn.addEventListener('click', centerMap);
+            backBtn.addEventListener('click', () => history.back());
+            // Event listener para o novo botão de rotação
+            rotateMapBtn.addEventListener('click', () => {
+                mapBackground.classList.toggle('portrait');
+            });
+
+            // --- Socket.IO Listeners ---
+            socket.on('connect', () => {
+                console.log('Conectado ao servidor Socket.IO');
+            });
+
+            socket.on('disconnect', () => {
+                console.log('Desconectado do servidor Socket.IO');
+            });
+
+            socket.on('update-token', (data) => {
+                updateTokenPosition(data.characterId, data.positionX, data.positionY);
+            });
 
             // Inicia o processo
             fetchMainCharacters();
@@ -340,4 +454,3 @@
     </script>
 </body>
 </html>
-
