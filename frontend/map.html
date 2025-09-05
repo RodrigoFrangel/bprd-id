@@ -58,7 +58,7 @@
             background-repeat: no-repeat; 
             background-position: center;
             cursor: grab;
-            transition: box-shadow 0.2s;
+            transition: box-shadow 0.2s, left 0.1s linear, top 0.1s linear;
             box-sizing: border-box; 
             transform: translate(-50%, -50%); 
             background-color: rgba(0,0,0,0.5);
@@ -298,6 +298,9 @@
 
                 activeToken.style.left = `${xPercent}%`;
                 activeToken.style.top = `${yPercent}%`;
+
+                const characterId = activeToken.id.replace('token-', '');
+                socket.emit('move-token', { characterId, positionX: xPercent, positionY: yPercent });
             }
 
             async function endTokenDrag(e) {
@@ -315,8 +318,6 @@
                 } else {
                     document.removeEventListener('mousemove', dragToken);
                 }
-                
-                socket.emit('move-token', { characterId, positionX: newX, positionY: newY });
                 
                 try {
                     await fetch(`${API_URL}/characters/${characterId}`, {
