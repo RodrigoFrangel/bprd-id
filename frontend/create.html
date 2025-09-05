@@ -542,7 +542,7 @@
                 }
             });
 
-            form.hitPoints.value = agent.hitPoints ?? '';
+            form.maxHitPoints.value = agent.hitPoints ?? '';
             
             for (const attr in agent.attributes) {
                 if (form[attr]) form[attr].value = agent.attributes[attr];
@@ -654,7 +654,7 @@
                 drive: form.drive.value,
                 psych: form.psych.value.split('\n').filter(line => line.trim() !== ''),
                 isPublic: document.getElementById('isPublic').checked,
-                hitPoints: form.hitPoints.value ? parseInt(form.hitPoints.value, 10) : null,
+                hitPoints: form.maxHitPoints.value ? parseInt(form.maxHitPoints.value, 10) : null,
                 features: featuresData.filter(f => f.name || f.description),
                 attacks: attacksData.filter(a => a.name || a.bonus || a.damage),
                 skills: skillsData,

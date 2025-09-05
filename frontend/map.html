@@ -17,7 +17,7 @@
             font-family: 'Roboto Condensed', sans-serif; 
             color: #f5f5f5;
             overflow: hidden; /* Previne scroll da página inteira */
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23333333' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60' viewBox='0 0 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23333333' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
         #map-viewport {
             width: 100vw;
@@ -148,9 +148,12 @@
         <button id="center-map-btn" class="control-btn" title="Centralizar Mapa">
             <i class="fas fa-compress-arrows-alt"></i>
         </button>
-        <!-- Botão de Rotação Adicionado -->
         <button id="rotate-map-btn" class="control-btn" title="Mudar Orientação">
             <i class="fas fa-sync-alt"></i>
+        </button>
+        <!-- Botão para Resetar a Posição do Token -->
+        <button id="reset-token-btn" class="control-btn" title="Resetar Posição do Token">
+            <i class="fas fa-map-marker-alt"></i>
         </button>
         <button id="back-btn" class="control-btn" title="Voltar">
             <i class="fas fa-arrow-left"></i>
@@ -166,26 +169,20 @@
             const loadingIndicator = document.getElementById('loading');
             const centerMapBtn = document.getElementById('center-map-btn');
             const backBtn = document.getElementById('back-btn');
-            // Elementos para a nova funcionalidade
             const rotateMapBtn = document.getElementById('rotate-map-btn');
             const mapBackground = document.getElementById('map-background');
+            // Botão de reset
+            const resetTokenBtn = document.getElementById('reset-token-btn');
 
             const token = localStorage.getItem('bprd_token');
             const loggedInUserId = getLoggedInUserId();
 
             const socket = io('http://localhost:7000');
 
-            // Variáveis de estado do mapa
-            let scale = 1;
-            let panX = 0;
-            let panY = 0;
-            let isPanning = false;
-            let startPanX, startPanY;
-            let initialPinchDistance = null;
-
-            // Variáveis de estado do token
-            let activeToken = null;
-            let tokenOffsetX, tokenOffsetY;
+            // Variáveis de estado
+            let scale = 1, panX = 0, panY = 0, isPanning = false, startPanX, startPanY, initialPinchDistance = null;
+            let activeToken = null, tokenOffsetX, tokenOffsetY;
+            let ownedCharacterId = null; // Guarda o ID do personagem do usuário logado
 
             function applyTransform() {
                 mapContainer.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
@@ -221,6 +218,7 @@
 
             function renderTokens(characters) {
                 mapContainer.querySelectorAll('.token').forEach(t => t.remove());
+                ownedCharacterId = null;
                 
                 characters.forEach(char => {
                     const tokenElement = document.createElement('div');
@@ -237,6 +235,7 @@
                     tokenElement.appendChild(labelElement);
 
                     if (loggedInUserId === char.userId._id) {
+                        ownedCharacterId = char._id; // Salva o ID para uso posterior
                         tokenElement.addEventListener('mousedown', startTokenDrag);
                         tokenElement.addEventListener('touchstart', startTokenDrag, { passive: false });
                     } else {
@@ -322,10 +321,57 @@
                     document.removeEventListener('mousemove', dragToken);
                 }
 
+                // Envia a posição para o socket para atualizar outros jogadores
                 socket.emit('move-token', { characterId, positionX: newX, positionY: newY });
+
+                // Salva a nova posição no banco de dados
+                try {
+                    await fetch(`${API_URL}/characters/${characterId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-auth-token': token
+                        },
+                        body: JSON.stringify({ positionX: newX, positionY: newY })
+                    });
+                } catch (error) {
+                    console.error("Falha ao salvar posição do token:", error);
+                }
+            }
+            
+            // --- Função para Resetar Posição do Token ---
+            async function resetTokenPosition() {
+                if (!ownedCharacterId) {
+                    alert("Você não tem um token no mapa para resetar.");
+                    return;
+                }
+                const defaultPos = { x: 50, y: 50 };
+
+                try {
+                    const response = await fetch(`${API_URL}/characters/${ownedCharacterId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-auth-token': token
+                        },
+                        body: JSON.stringify({ positionX: defaultPos.x, positionY: defaultPos.y })
+                    });
+                    if (!response.ok) throw new Error('Falha ao resetar a posição.');
+                    
+                    // Atualiza a posição localmente
+                    updateTokenPosition(ownedCharacterId, defaultPos.x, defaultPos.y);
+                    
+                    // Notifica outros jogadores via socket
+                    socket.emit('move-token', { characterId: ownedCharacterId, positionX: defaultPos.x, positionY: defaultPos.y });
+
+                } catch (error) {
+                    console.error("Erro ao resetar posição:", error);
+                    alert(error.message);
+                }
             }
 
-            // --- Lógica de Pan (Arrastar Mapa) e Zoom por Gesto ---
+
+            // --- Lógica de Pan (Arrastar Mapa) e Zoom ---
             function startPan(e) {
                 if (e.type === 'mousedown' && e.button !== 0) return;
                 
@@ -379,7 +425,6 @@
                 }
             }
 
-            // --- Lógica de Zoom ---
             function zoom(e) {
                 e.preventDefault();
                 const zoomIntensity = 0.1;
@@ -421,19 +466,19 @@
                 panY = centerY - (centerY - panY) * (scale / oldScale);
 
                 applyTransform();
-                initialPinchDistance = newPinchDistance; // Atualiza para o próximo movimento
+                initialPinchDistance = newPinchDistance;
             }
 
-            // Adiciona os event listeners
+            // --- Adiciona os event listeners ---
             viewport.addEventListener('mousedown', startPan);
             viewport.addEventListener('touchstart', startPan, { passive: false });
             viewport.addEventListener('wheel', zoom);
             centerMapBtn.addEventListener('click', centerMap);
             backBtn.addEventListener('click', () => history.back());
-            // Event listener para o novo botão de rotação
             rotateMapBtn.addEventListener('click', () => {
                 mapBackground.classList.toggle('portrait');
             });
+            resetTokenBtn.addEventListener('click', resetTokenPosition); // Listener para o novo botão
 
             // --- Socket.IO Listeners ---
             socket.on('connect', () => {
