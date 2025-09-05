@@ -55,11 +55,18 @@
 
         if (token) {
             // Se o usuário está logado, verifica a role
-            if (userRole === 'DM') {
-                // Se for DM, mostra o botão de Campanhas
+            if (userRole === 'Admin') {
+                // Se for Admin, mostra um botão para o Painel de Admin
                 primaryButtonHTML = `
-                    <a href="#" class="nav-btn nav-btn-main w-64 text-white font-bold py-3 px-4 rounded">
-                        Minhas Campanhas
+                    <a href="admin-dashboard.html" class="nav-btn nav-btn-main w-64 text-white font-bold py-3 px-4 rounded" title="Acesso administrativo">
+                        Painel de Admin
+                    </a>
+                `;
+            } else if (userRole === 'DM') {
+                // Se for DM, mostra o botão do Painel do Mestre
+                primaryButtonHTML = `
+                    <a href="dm-dashboard.html" class="nav-btn nav-btn-main w-64 text-white font-bold py-3 px-4 rounded">
+                        Painel do Mestre
                     </a>
                 `;
             } else {
@@ -116,3 +123,4 @@
 
 </body>
 </html>
+

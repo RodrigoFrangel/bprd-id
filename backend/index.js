@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const http = require('http');
 const { Server } = require('socket.io');
+const Character = require('./models/Character'); // Importe o modelo de Character aqui
 
 const app = express();
 const server = http.createServer(app);
@@ -16,30 +17,22 @@ const io = new Server(server, {
   }
 });
 
-// --- Middlewares ---
-// Habilita CORS para todas as origens
+// Middlewares...
 app.use(cors()); 
-
-// Adiciona um middleware para lidar com requisições OPTIONS (preflight)
 app.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
-    if (req.method === 'OPTIONS') {
-        return res.sendStatus(200);
-    }
+    if (req.method === 'OPTIONS') return res.sendStatus(200);
     next();
 });
-
 app.use(express.json());
-
-// Middleware para injetar o 'io' nas requisições
 app.use((req, res, next) => {
     req.io = io;
     next();
 });
 
-// --- Rotas da API ---
+// Rotas da API...
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/characters', require('./routes/characters'));
 app.use('/api/combat', require('./routes/combat'));
@@ -54,25 +47,45 @@ io.on('connection', (socket) => {
   });
 
   socket.on('move-token', (data) => {
-    // Salva a posição no banco de dados
-    // (A lógica de salvar foi movida para cá para garantir que a emissão ocorra após o salvamento)
-    const Character = require('./models/Character');
     Character.findByIdAndUpdate(
         data.characterId,
         { $set: { positionX: data.positionX, positionY: data.positionY } },
         { new: true }
-    ).then(updatedCharacter => {
-        // Emite a atualização para todos os outros clientes na mesma sala
+    ).then(() => {
         if (data.room) {
             socket.broadcast.to(data.room).emit('update-token', data);
-        } else {
-            // Fallback para o caso de o cliente não enviar a sala
-            socket.broadcast.emit('update-token', data);
         }
     }).catch(err => {
         console.error('Erro ao salvar posição do token:', err);
     });
   });
+
+  // >>> NOVOS EVENTOS DE MESTRE ADICIONADOS <<<
+
+  // Evento para quando o mestre troca a imagem de fundo do mapa
+  socket.on('dm-change-map', (data) => {
+    // Re-transmite a nova URL para TODOS os clientes (incluindo o mestre) na sala
+    if (data.room && data.mapUrl) {
+      io.in(data.room).emit('map-changed', { mapUrl: data.mapUrl });
+    }
+  });
+
+  // Evento para quando o mestre exibe ou oculta um token
+  socket.on('dm-toggle-token-visibility', async ({ characterId, isVisible, room }) => {
+    try {
+      // 1. Atualiza o status do personagem no banco de dados
+      await Character.findByIdAndUpdate(characterId, { isVisibleOnMap: isVisible });
+      
+      // 2. Avisa todos os clientes na sala sobre a mudança de visibilidade
+      io.in(room).emit('token-visibility-changed', { characterId, isVisible });
+
+    } catch (err) {
+      console.error('Erro ao atualizar visibilidade do token:', err);
+      // Opcional: emitir uma mensagem de erro de volta para o mestre
+      socket.emit('error-message', { message: 'Não foi possível atualizar o token.' });
+    }
+  });
+
 
   socket.on('disconnect', () => {
     console.log('user disconnected');
@@ -84,18 +97,13 @@ const PORT = process.env.PORT || 7000;
 // --- Função para conectar ao DB e iniciar o servidor ---
 const start = async () => {
   try {
-    // 1. Tenta conectar ao MongoDB
     await mongoose.connect(process.env.MONGO_URI);
     console.log("Conectado ao MongoDB com sucesso!");
-
-    // 2. Se a conexão for bem-sucedida, inicia o servidor
     server.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
   } catch (error) {
-    // 3. Se a conexão falhar, mostra o erro
     console.error("Erro ao conectar ao MongoDB:", error);
-    process.exit(1); // Encerra o processo com falha
+    process.exit(1);
   }
 };
 
-// --- Inicia tudo ---
 start();

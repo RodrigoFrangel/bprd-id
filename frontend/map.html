@@ -6,8 +6,6 @@
     <title>B.P.R.D. - Mapa Tático</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="icon" type="image/png" href="public/favicon.ico">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
@@ -16,150 +14,61 @@
             background-color: #1a1a1a; 
             font-family: 'Roboto Condensed', sans-serif; 
             color: #f5f5f5;
-            overflow: hidden; /* Previne scroll da página inteira */
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23333333' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            overflow: hidden;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23333333' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
-        #map-viewport {
-            width: 100vw;
-            height: 100vh;
-            position: relative;
-            cursor: grab;
-        }
-        #map-container {
-            width: 100%;
-            height: 100%;
-            transform-origin: 0 0; /* Ponto de origem para o zoom */
-            position: relative;
-        }
+        #map-viewport { width: 100vw; height: 100vh; position: relative; cursor: grab; }
+        #map-container { width: 100%; height: 100%; transform-origin: 0 0; position: relative; }
         #map-background {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            background-image: url('https://i0.wp.com/2minutetabletop.com/wp-content/uploads/2021/08/BluBerreys-Cyberpunk-Battle-Maps-Bar.jpg?ssl=1');
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            pointer-events: none;
-            transition: transform 0.4s ease-in-out;
+            position: absolute; width: 100%; height: 100%; top: 0; left: 0;
+            background-image: url('https://i.redd.it/y3yy8kfrlpw81.jpg');
+            background-size: contain; background-repeat: no-repeat; background-position: center;
+            pointer-events: none; transition: background-image 0.5s ease-in-out, transform 0.4s ease-in-out;
         }
-        #map-background.portrait {
-            transform: rotate(90deg);
-        }
+        #map-background.portrait { transform: rotate(90deg); }
         .token {
-            position: absolute;
-            width: 15px; 
-            height: 15px;
-            border-radius: 50%;
-            border: 1px solid #fff;
-            box-shadow: 0 0 8px rgba(0,0,0,0.7);
-            background-size: contain; 
-            background-repeat: no-repeat; 
-            background-position: center;
-            cursor: grab;
-            transition: box-shadow 0.2s, left 0.1s linear, top 0.1s linear;
-            box-sizing: border-box; 
-            transform: translate(-50%, -50%); 
-            background-color: rgba(0,0,0,0.5);
+            position: absolute; width: 15px; height: 15px; border-radius: 50%; border: 1px solid #fff;
+            box-shadow: 0 0 8px rgba(0,0,0,0.7); background-size: contain; cursor: grab;
+            transition: box-shadow 0.2s, left 0.1s linear, top 0.1s linear, display 0.3s;
+            transform: translate(-50%, -50%); background-color: rgba(0,0,0,0.5);
         }
-        .token.draggable {
-            cursor: grabbing;
-            transform: translate(-50%, -50%) scale(1.1); 
-            box-shadow: 0 0 15px rgba(255, 255, 100, 0.9);
-            z-index: 1000;
-        }
-        .token.not-owned {
-            cursor: not-allowed;
-            border-color: #888;
-        }
+        .token.draggable { cursor: grabbing; transform: translate(-50%, -50%) scale(1.1); z-index: 1000; }
+        .token.not-owned { cursor: not-allowed; border-color: #888; }
         .token-label {
-            position: absolute;
-            bottom: -25px; 
-            left: 50%;
-            background-color: rgba(0,0,0,0.8);
-            color: white;
-            padding: 2px 8px;
-            border-radius: 5px;
-            font-size: 12px;
-            white-space: nowrap;
-            opacity: 0; 
-            pointer-events: none; 
+            position: absolute; bottom: -25px; left: 50%; background-color: rgba(0,0,0,0.8);
+            color: white; padding: 2px 8px; border-radius: 5px; font-size: 12px;
+            white-space: nowrap; opacity: 0; pointer-events: none; 
             transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
             transform: translateX(-50%) translateY(5px); 
         }
-        @media (hover: hover) and (pointer: fine) {
-            .token:hover .token-label {
-                opacity: 1;
-                transform: translateX(-50%);
-            }
-        }
-        
-        #loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            font-size: 2em;
-            background-color: rgba(0,0,0,0.5);
-            padding: 20px;
-            border-radius: 10px;
-        }
-        .map-controls {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 10;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+        @media (hover: hover) and (pointer: fine) { .token:hover .token-label { opacity: 1; transform: translateX(-50%); } }
+        .map-controls { position: absolute; top: 20px; left: 20px; z-index: 10; display: flex; flex-direction: column; gap: 10px; }
         .control-btn {
-            background-color: rgba(0, 0, 0, 0.7);
-            color: #f5f5f5;
-            border: 1px solid #555;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: background-color 0.2s;
+            background-color: rgba(0, 0, 0, 0.7); color: #f5f5f5; border: 1px solid #555;
+            border-radius: 50%; width: 40px; height: 40px; display: flex;
+            justify-content: center; align-items: center; cursor: pointer; transition: background-color 0.2s;
         }
-        .control-btn:hover {
-            background-color: rgba(0, 0, 0, 0.9);
-        }
+        .control-btn:hover { background-color: rgba(0, 0, 0, 0.9); }
     </style>
 </head>
 <body>
-
     <div id="map-viewport">
         <div id="map-container">
             <div id="map-background"></div>
         </div>
     </div>
-    <div id="loading">Carregando mapa...</div>
-
+    <div id="loading" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-2xl bg-black/50 p-5 rounded-lg">Carregando mapa...</div>
     <div class="map-controls">
-        <button id="center-map-btn" class="control-btn" title="Centralizar Mapa">
-            <i class="fas fa-compress-arrows-alt"></i>
-        </button>
-        <button id="rotate-map-btn" class="control-btn" title="Mudar Orientação">
-            <i class="fas fa-sync-alt"></i>
-        </button>
-        <button id="reset-token-btn" class="control-btn" title="Resetar Posição do Token">
-            <i class="fas fa-map-marker-alt"></i>
-        </button>
-        <button id="back-btn" class="control-btn" title="Voltar">
-            <i class="fas fa-arrow-left"></i>
-        </button>
+        <button id="center-map-btn" class="control-btn" title="Centralizar Mapa"><i class="fas fa-compress-arrows-alt"></i></button>
+        <button id="rotate-map-btn" class="control-btn" title="Mudar Orientação"><i class="fas fa-sync-alt"></i></button>
+        <button id="reset-token-btn" class="control-btn" title="Resetar Posição do Token"><i class="fas fa-map-marker-alt"></i></button>
+        <button id="back-btn" class="control-btn" title="Voltar"><i class="fas fa-arrow-left"></i></button>
     </div>
-
 
     <script src="auth.js"></script>
     <script>
+        // ... (todo o seu código de mapa existente, de 'throttle' até 'fetchCharacters')
+        
         function throttle(func, limit) {
             let inThrottle;
             return function(...args) {
@@ -185,30 +94,14 @@
             const loggedInUserId = getLoggedInUserId();
             const MAP_ROOM_ID = "global_map_session"; 
 
-            let socket = null;
+            let socket;
             try {
-                let socketUrl;
-                // Se API_URL for uma URL absoluta, extrai a origem para o Socket.IO
-                if (typeof API_URL !== 'undefined' && API_URL && API_URL.startsWith('http')) {
-                    socketUrl = new URL(API_URL).origin;
-                } 
-                // Se API_URL for um caminho relativo (ex: '/api'), socketUrl será undefined.
-                // O Socket.IO, quando chamado como io(), se conectará ao host que serviu a página.
-                // Se API_URL não estiver definida, tentará conectar no localhost como fallback.
-                else if (typeof API_URL === 'undefined' || !API_URL) {
-                    socketUrl = 'http://localhost:7000';
-                }
-                
-                socket = io(socketUrl);
-
+                let baseUrl = API_URL.startsWith('http') ? new URL(API_URL).origin : window.location.origin;
+                socket = io(baseUrl);
             } catch (err) {
-                console.error("ERRO: Não foi possível inicializar o Socket.IO. Verifique se a variável API_URL é uma URL válida.", { 
-                    apiUrlValue: typeof API_URL !== 'undefined' ? API_URL : 'Não definida',
-                    error: err 
-                });
-                // Não exibe o erro na tela, apenas no console, para não travar o carregamento
+                 socket = io();
             }
-
+            
             let scale = 1, panX = 0, panY = 0, isPanning = false, startPanX, startPanY, initialPinchDistance = null;
             let activeToken = null, tokenOffsetX, tokenOffsetY;
             let ownedCharacterId = null;
@@ -232,7 +125,7 @@
                     return;
                 }
                 try {
-                    const response = await fetch(`${API_URL}/characters/main`, {
+                    const response = await fetch(`${API_URL}/combat/main-characters`, {
                          headers: { 'x-auth-token': token }
                     });
                     if (!response.ok) throw new Error('Não foi possível carregar personagens.');
@@ -258,6 +151,8 @@
                     tokenElement.style.backgroundImage = `url(${char.profilePic || 'https://placehold.co/50x50/2d2d2d/f5f5f5?text=BPRD'})`;
                     tokenElement.style.left = `${char.positionX || 50}%`;
                     tokenElement.style.top = `${char.positionY || 50}%`;
+                    // A visibilidade inicial é definida aqui
+                    tokenElement.style.display = char.isVisibleOnMap ? 'block' : 'none';
 
                     const labelElement = document.createElement('div');
                     labelElement.className = 'token-label';
@@ -304,20 +199,23 @@
                 e.preventDefault();
                 const move = e.type === 'touchmove' ? e.touches[0] : e;
                 const mapRect = mapContainer.getBoundingClientRect();
-                let x = (move.clientX - mapRect.left - tokenOffsetX * scale) / scale;
-                let y = (move.clientY - mapRect.top - tokenOffsetY * scale) / scale;
-                let xPercent = (x / mapContainer.offsetWidth) * 100;
-                let yPercent = (y / mapContainer.offsetHeight) * 100;
+                let x = (move.clientX - mapRect.left) / scale - (tokenOffsetX / scale) * scale;
+                let y = (move.clientY - mapRect.top) / scale - (tokenOffsetY / scale) * scale;
+
+                let xPercent = (x / mapContainer.offsetWidth) * 100 + (tokenOffsetX / mapContainer.offsetWidth * 100);
+                let yPercent = (y / mapContainer.offsetHeight) * 100 + (tokenOffsetY / mapContainer.offsetHeight * 100);
+
                 const tokenWidthPercent = (activeToken.offsetWidth / mapContainer.offsetWidth) * 100;
                 const tokenHeightPercent = (activeToken.offsetHeight / mapContainer.offsetHeight) * 100;
                 xPercent = Math.max(tokenWidthPercent / 2, Math.min(xPercent, 100 - (tokenWidthPercent / 2)));
                 yPercent = Math.max(tokenHeightPercent / 2, Math.min(yPercent, 100 - (tokenHeightPercent / 2)));
+
                 activeToken.style.left = `${xPercent}%`;
                 activeToken.style.top = `${yPercent}%`;
                 const characterId = activeToken.id.replace('token-', '');
                 emitMovementThrottled({ characterId, positionX: xPercent, positionY: yPercent });
             }
-
+            
             async function endTokenDrag(e) {
                 if (!activeToken) return;
                 const characterId = activeToken.id.replace('token-', '');
@@ -336,84 +234,8 @@
                     console.error("Falha ao salvar posição do token:", error);
                 }
             }
-            
-            async function resetTokenPosition() {
-                if (!ownedCharacterId) { alert("Você não tem um token no mapa para resetar."); return; }
-                const defaultPos = { x: 50, y: 50 };
-                try {
-                    await fetch(`${API_URL}/characters/${ownedCharacterId}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json', 'x-auth-token': token },
-                        body: JSON.stringify({ positionX: defaultPos.x, positionY: defaultPos.y })
-                    });
-                    updateTokenPosition(ownedCharacterId, defaultPos.x, defaultPos.y);
-                    if (socket) socket.emit('move-token', { characterId: ownedCharacterId, positionX: defaultPos.x, positionY: defaultPos.y, room: MAP_ROOM_ID });
-                } catch (error) {
-                    console.error("Erro ao resetar posição:", error);
-                    alert(error.message);
-                }
-            }
 
-            function startPan(e) {
-                if (e.type === 'mousedown' && e.button !== 0) return;
-                if (e.type === 'touchstart' && e.touches.length === 2) { initialPinchDistance = getPinchDistance(e.touches); return; }
-                e.preventDefault();
-                isPanning = true;
-                viewport.style.cursor = 'grabbing';
-                const start = e.type === 'touchstart' ? e.touches[0] : e;
-                startPanX = start.clientX - panX;
-                startPanY = start.clientY - panY;
-                
-                if (e.type === 'touchstart') {
-                    viewport.addEventListener('touchmove', handleMove, { passive: false });
-                    viewport.addEventListener('touchend', endPan, { once: true });
-                } else {
-                    viewport.addEventListener('mousemove', panMap);
-                    viewport.addEventListener('mouseup', endPan, { once: true });
-                }
-            }
-            
-            function handleMove(e) {
-                e.preventDefault();
-                if (e.touches && e.touches.length === 2) { 
-                    pinchZoom(e.touches); 
-                } else if (isPanning) { 
-                    panMap(e); 
-                }
-            }
-
-            function panMap(e) {
-                if (!isPanning) return;
-                const move = e.type === 'touchmove' ? e.touches[0] : e;
-                panX = move.clientX - startPanX;
-                panY = move.clientY - startPanY;
-                applyTransform();
-            }
-
-            function endPan(e) {
-                isPanning = false; initialPinchDistance = null;
-                viewport.style.cursor = 'grab';
-                
-                if (e.type === 'touchend') {
-                    viewport.removeEventListener('touchmove', handleMove);
-                } else {
-                    viewport.removeEventListener('mousemove', panMap);
-                }
-            }
-
-            function zoom(e) {
-                e.preventDefault();
-                const zoomIntensity = 0.1;
-                const delta = e.deltaY > 0 ? -1 : 1;
-                const oldScale = scale;
-                scale = Math.max(0.5, Math.min(scale + (delta * zoomIntensity), 3)); 
-                const rect = viewport.getBoundingClientRect();
-                const mouseX = e.clientX - rect.left;
-                const mouseY = e.clientY - rect.top;
-                panX = mouseX - (mouseX - panX) * (scale / oldScale);
-                panY = mouseY - (mouseY - panY) * (scale / oldScale);
-                applyTransform();
-            }
+            // ... (resto das suas funções de pan, zoom, etc.)
             
             function getPinchDistance(touches) { return Math.hypot(touches[0].pageX - touches[1].pageX, touches[0].pageY - touches[1].pageY); }
             
@@ -431,6 +253,12 @@
                 applyTransform();
                 initialPinchDistance = newPinchDistance;
             }
+            function startPan(e) { if (e.type === 'mousedown' && e.button !== 0) return; if (e.type === 'touchstart' && e.touches.length === 2) { initialPinchDistance = getPinchDistance(e.touches); return; } e.preventDefault(); isPanning = true; viewport.style.cursor = 'grabbing'; const start = e.type === 'touchstart' ? e.touches[0] : e; startPanX = start.clientX - panX; startPanY = start.clientY - panY; if (e.type === 'touchstart') { viewport.addEventListener('touchmove', handleMove, { passive: false }); viewport.addEventListener('touchend', endPan, { once: true }); } else { viewport.addEventListener('mousemove', panMap); viewport.addEventListener('mouseup', endPan, { once: true }); } }
+            function handleMove(e) { e.preventDefault(); if (e.touches && e.touches.length === 2) { pinchZoom(e.touches); } else if (isPanning) { panMap(e); } }
+            function panMap(e) { if (!isPanning) return; const move = e.type === 'touchmove' ? e.touches[0] : e; panX = move.clientX - startPanX; panY = move.clientY - startPanY; applyTransform(); }
+            function endPan(e) { isPanning = false; initialPinchDistance = null; viewport.style.cursor = 'grab'; if (e.type === 'touchend') { viewport.removeEventListener('touchmove', handleMove); } else { viewport.removeEventListener('mousemove', panMap); } }
+            function zoom(e) { e.preventDefault(); const zoomIntensity = 0.1; const delta = e.deltaY > 0 ? -1 : 1; const oldScale = scale; scale = Math.max(0.5, Math.min(scale + (delta * zoomIntensity), 3)); const rect = viewport.getBoundingClientRect(); const mouseX = e.clientX - rect.left; const mouseY = e.clientY - rect.top; panX = mouseX - (mouseX - panX) * (scale / oldScale); panY = mouseY - (mouseY - panY) * (scale / oldScale); applyTransform(); }
+            async function resetTokenPosition() { if (!ownedCharacterId) { alert("Você não tem um token no mapa para resetar."); return; } const defaultPos = { x: 50, y: 50 }; try { await fetch(`${API_URL}/characters/${ownedCharacterId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', 'x-auth-token': token }, body: JSON.stringify({ positionX: defaultPos.x, positionY: defaultPos.y }) }); updateTokenPosition(ownedCharacterId, defaultPos.x, defaultPos.y); if (socket) socket.emit('move-token', { characterId: ownedCharacterId, positionX: defaultPos.x, positionY: defaultPos.y, room: MAP_ROOM_ID }); } catch (error) { console.error("Erro ao resetar posição:", error); alert(error.message); } }
 
             viewport.addEventListener('mousedown', startPan);
             viewport.addEventListener('touchstart', startPan, { passive: false });
@@ -447,8 +275,23 @@
                 });
                 socket.on('disconnect', () => { console.log('Desconectado do servidor Socket.IO'); });
                 socket.on('update-token', (data) => {
-                    console.log('Recebido update do token:', data);
                     updateTokenPosition(data.characterId, data.positionX, data.positionY);
+                });
+
+                // >>> NOVOS OUVINTES DE MESTRE ADICIONADOS <<<
+                
+                // Ouve o evento de mudança de mapa enviado pelo mestre
+                socket.on('map-changed', ({ mapUrl }) => {
+                    mapBackground.style.backgroundImage = `url('${mapUrl}')`;
+                    console.log('Mapa atualizado pelo mestre para:', mapUrl);
+                });
+
+                // Ouve o evento de mudança de visibilidade de um token
+                socket.on('token-visibility-changed', ({ characterId, isVisible }) => {
+                    const tokenElement = document.getElementById(`token-${characterId}`);
+                    if (tokenElement) {
+                        tokenElement.style.display = isVisible ? 'block' : 'none';
+                    }
                 });
             }
             
@@ -457,4 +300,3 @@
     </script>
 </body>
 </html>
-

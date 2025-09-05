@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B.P.R.D. - Painel de Administração</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="public/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body { background-color: #1a1a1a; font-family: 'Roboto Condensed', sans-serif; color: #f5f5f5; }
+        .font-special { font-family: 'Special Elite', monospace; }
+        .table-header { background-color: #374151; }
+        .table-row:nth-child(even) { background-color: #1f2937; }
+        .table-row:hover { background-color: #4b5563; }
+        .form-select { background-color: #374151; border-color: #4b5563; }
+    </style>
+</head>
+<body class="p-4 sm:p-6 md:p-8">
+    <div class="container mx-auto max-w-6xl">
+        <header class="flex items-center justify-between mb-8">
+             <a href="index.html" title="Voltar" class="bg-gray-700 hover:bg-gray-600 text-white w-12 h-12 rounded-full flex items-center justify-center transition-colors">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h1 class="font-special text-4xl sm:text-5xl text-red-600 text-center">Administração</h1>
+            <div class="w-12 h-12"></div>
+        </header>
+
+        <main class="bg-gray-800 p-4 sm:p-6 rounded-lg shadow-lg">
+            <h2 class="text-2xl font-bold mb-4 font-special">Gestão de Utilizadores</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm text-left">
+                    <thead class="table-header">
+                        <tr>
+                            <th class="p-3">Nome de Utilizador</th>
+                            <th class="p-3 hidden sm:table-cell">Email</th>
+                            <th class="p-3">Função</th>
+                            <th class="p-3">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-list-body">
+                        <!-- Linhas da tabela serão inseridas aqui -->
+                        <tr><td colspan="4" class="text-center p-4" id="loading-msg">A carregar utilizadores...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const userListBody = document.getElementById('user-list-body');
+            const loadingMsg = document.getElementById('loading-msg');
+            const token = localStorage.getItem('bprd_token');
+            const loggedInUser = getDecodedToken()?.user;
+
+            // Proteção da página
+            if (!loggedInUser || loggedInUser.role !== 'Admin') {
+                alert('Acesso negado.');
+                window.location.href = 'index.html';
+                return;
+            }
+
+            async function fetchUsers() {
+                try {
+                    const response = await fetch(`${API_URL}/admin/users`, {
+                        headers: { 'x-auth-token': token }
+                    });
+                    if (!response.ok) throw new Error('Não foi possível carregar os utilizadores.');
+                    const users = await response.json();
+                    renderUsers(users);
+                } catch (error) {
+                    loadingMsg.textContent = error.message;
+                }
+            }
+            
+            function renderUsers(users) {
+                userListBody.innerHTML = '';
+                if (users.length === 0) {
+                    userListBody.innerHTML = '<tr><td colspan="4" class="text-center p-4">Nenhum utilizador encontrado.</td></tr>';
+                    return;
+                }
+                
+                users.forEach(user => {
+                    const isCurrentUser = user._id === loggedInUser.id;
+                    const row = document.createElement('tr');
+                    row.className = 'table-row border-b border-gray-700';
+
+                    const roleOptions = ['Player', 'DM', 'Admin']
+                        .map(r => `<option value="${r}" ${user.role === r ? 'selected' : ''}>${r}</option>`)
+                        .join('');
+
+                    row.innerHTML = `
+                        <td class="p-3 font-bold">${user.username}</td>
+                        <td class="p-3 hidden sm:table-cell">${user.email}</td>
+                        <td class="p-3">
+                            <select data-userid="${user._id}" class="role-select form-select rounded p-2" ${isCurrentUser ? 'disabled' : ''}>
+                                ${roleOptions}
+                            </select>
+                        </td>
+                        <td class="p-3">
+                            <button data-userid="${user._id}" class="delete-btn text-red-500 hover:text-red-400 disabled:opacity-50 disabled:cursor-not-allowed" ${isCurrentUser ? 'disabled' : ''}>
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    `;
+                    userListBody.appendChild(row);
+                });
+            }
+
+            userListBody.addEventListener('change', async (e) => {
+                if (e.target.classList.contains('role-select')) {
+                    const userId = e.target.dataset.userid;
+                    const newRole = e.target.value;
+                    try {
+                        const response = await fetch(`${API_URL}/admin/users/${userId}/role`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json', 'x-auth-token': token },
+                            body: JSON.stringify({ role: newRole })
+                        });
+                        if (!response.ok) {
+                             const err = await response.json();
+                             throw new Error(err.msg || 'Falha ao atualizar a função.');
+                        }
+                        alert('Função atualizada com sucesso!');
+                        fetchUsers();
+                    } catch (error) {
+                        alert(`Erro: ${error.message}`);
+                        fetchUsers(); // Recarrega para reverter a alteração visual
+                    }
+                }
+            });
+
+            userListBody.addEventListener('click', async (e) => {
+                if (e.target.closest('.delete-btn')) {
+                    const button = e.target.closest('.delete-btn');
+                    const userId = button.dataset.userid;
+                    if (confirm('Tem a certeza de que quer eliminar este utilizador e todos os seus personagens? Esta ação é irreversível.')) {
+                        try {
+                            const response = await fetch(`${API_URL}/admin/users/${userId}`, {
+                                method: 'DELETE',
+                                headers: { 'x-auth-token': token }
+                            });
+                            if (!response.ok) {
+                                 const err = await response.json();
+                                 throw new Error(err.msg || 'Falha ao eliminar o utilizador.');
+                            }
+                            alert('Utilizador eliminado com sucesso!');
+                            fetchUsers();
+                        } catch (error) {
+                            alert(`Erro: ${error.message}`);
+                        }
+                    }
+                }
+            });
+
+            fetchUsers();
+        });
+    </script>
+</body>
+</html>

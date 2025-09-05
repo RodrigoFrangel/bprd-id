@@ -3,10 +3,27 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const auth = require('../middleware/auth');
+
+
+// @route   GET api/auth
+// @desc    Test route
+// @access  Public
+router.get('/', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('-password');
+        res.json(user);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
 
 // --- ROTA DE REGISTRO ---
 router.post('/register', async (req, res) => {
-  const { username, email, password, role } = req.body;
+  // Usamos 'let' para poder modificar a 'role'
+  let { username, email, password, role } = req.body;
 
   try {
     if (await User.findOne({ email })) {
@@ -14,6 +31,12 @@ router.post('/register', async (req, res) => {
     }
     if (await User.findOne({ username })) {
       return res.status(400).json({ msg: 'Este nome de usuário já está em uso.' });
+    }
+    
+    // >>> LÓGICA DO ADMIN ADICIONADA <<<
+    // Se o email for o do administrador, a 'role' é forçada para 'Admin'
+    if (email.toLowerCase() === 'soumuitorodrigo@gmail.com') {
+      role = 'Admin';
     }
 
     const user = new User({ username, email, password, role });

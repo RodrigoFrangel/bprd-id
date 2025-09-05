@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>B.P.R.D. - Painel do Mestre</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <link rel="icon" type="image/png" href="public/favicon.ico">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body { 
+            background-color: #1a1a1a; 
+            font-family: 'Roboto Condensed', sans-serif; 
+            color: #f5f5f5;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23333333' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        .font-special { font-family: 'Special Elite', monospace; }
+        .btn { transition: all 0.2s ease-in-out; }
+        .btn:hover { filter: brightness(1.15); transform: translateY(-1px); }
+        .form-input { background-color: #2d2d2d; border: 1px solid #555; }
+        .form-input:focus { outline: none; border-color: #b91c1c; box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.5); }
+        .toggle-switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #555; transition: .4s; border-radius: 28px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #16a34a; } /* Verde para "visível" */
+        input:checked + .slider:before { transform: translateX(22px); }
+    </style>
+</head>
+<body class="p-4 sm:p-6">
+    <div class="container mx-auto max-w-4xl">
+        <header class="flex items-center justify-between mb-8">
+             <a href="index.html" title="Voltar" class="btn bg-gray-700 hover:bg-gray-600 text-white w-12 h-12 rounded-full flex items-center justify-center">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h1 class="font-special text-4xl sm:text-5xl text-red-600 text-center">Painel do Mestre</h1>
+            <div class="w-12 h-12"></div>
+        </header>
+
+        <!-- Seção de Controle do Mapa -->
+        <section class="bg-gray-800 p-4 rounded-lg mb-6 shadow-lg">
+            <h2 class="text-xl font-bold mb-3 font-special">Controle do Mapa</h2>
+            <div class="flex flex-col sm:flex-row gap-2">
+                <input type="url" id="map-url-input" placeholder="Cole a URL da imagem do novo mapa aqui" class="form-input w-full p-2 rounded">
+                <button id="update-map-btn" class="btn bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded whitespace-nowrap">
+                    <i class="fas fa-sync-alt"></i> Atualizar Mapa
+                </button>
+            </div>
+        </section>
+
+        <!-- Seção de Gerenciamento de Tokens -->
+        <section class="bg-gray-800 p-4 rounded-lg shadow-lg">
+            <h2 class="text-xl font-bold mb-3 font-special">Gerenciamento de Tokens</h2>
+            <div id="character-list" class="space-y-2">
+                <p id="loading-msg">Carregando personagens...</p>
+            </div>
+        </section>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Proteção da página: só DMs podem ver
+            const userRole = getLoggedInUserRole();
+            if (userRole !== 'DM') {
+                document.body.innerHTML = `<div class="text-center p-10"><h1 class="text-2xl text-red-500">Acesso Negado</h1><p>Esta página é apenas para Mestres.</p><a href="index.html" class="mt-4 inline-block bg-gray-600 p-2 rounded">Voltar</a></div>`;
+                return;
+            }
+
+            const token = localStorage.getItem('bprd_token');
+            const characterList = document.getElementById('character-list');
+            const loadingMsg = document.getElementById('loading-msg');
+            const updateMapBtn = document.getElementById('update-map-btn');
+            const mapUrlInput = document.getElementById('map-url-input');
+            const MAP_ROOM_ID = "global_map_session"; 
+            let socket;
+            
+            try {
+                // Tenta construir a URL base a partir da API_URL para o Socket.IO
+                let baseUrl = API_URL.startsWith('http') ? new URL(API_URL).origin : window.location.origin;
+                socket = io(baseUrl);
+            } catch (err) {
+                 socket = io(); // Fallback para conectar ao mesmo host se a URL falhar
+                 console.error("Não foi possível determinar a URL do Socket.IO a partir da API_URL, usando fallback.", err);
+            }
+
+            socket.on('connect', () => {
+                socket.emit('join-map-room', MAP_ROOM_ID);
+                console.log("Conectado e entrou na sala do mapa.");
+            });
+            
+            // Função para buscar e renderizar personagens
+            async function fetchAndRenderCharacters() {
+                try {
+                    const res = await fetch(`${API_URL}/combat/main-characters`, {
+                        headers: { 'x-auth-token': token }
+                    });
+                    if (!res.ok) throw new Error('Falha ao carregar personagens.');
+                    
+                    const characters = await res.json();
+                    loadingMsg.style.display = 'none';
+                    characterList.innerHTML = ''; // Limpa a lista
+
+                    characters.forEach(char => {
+                        const charElement = document.createElement('div');
+                        charElement.className = 'bg-gray-700 p-3 rounded flex justify-between items-center';
+                        charElement.innerHTML = `
+                            <div class="flex items-center gap-3">
+                                <img src="${char.profilePic || 'https://placehold.co/40x40/2d2d2d/f5f5f5?text=BPRD'}" class="w-10 h-10 rounded-full object-cover">
+                                <span>${char.name}</span>
+                            </div>
+                            <label class="toggle-switch" title="${char.isVisibleOnMap ? 'Visível' : 'Oculto'}">
+                                <input type="checkbox" class="visibility-toggle" data-character-id="${char._id}" ${char.isVisibleOnMap ? 'checked' : ''}>
+                                <span class="slider"></span>
+                            </label>
+                        `;
+                        characterList.appendChild(charElement);
+                    });
+                } catch (err) {
+                    loadingMsg.textContent = `Erro: ${err.message}`;
+                }
+            }
+
+            // Ação de atualizar o mapa
+            updateMapBtn.addEventListener('click', () => {
+                const mapUrl = mapUrlInput.value.trim();
+                if (mapUrl) {
+                    socket.emit('dm-change-map', { mapUrl, room: MAP_ROOM_ID });
+                    mapUrlInput.value = '';
+                    // Feedback visual temporário
+                    updateMapBtn.textContent = 'Mapa Enviado!';
+                    setTimeout(() => {
+                        updateMapBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Atualizar Mapa';
+                    }, 2000);
+                } else {
+                    alert('Por favor, insira uma URL de imagem válida.');
+                }
+            });
+
+            // Ação de ocultar/exibir token
+            characterList.addEventListener('change', (e) => {
+                if (e.target.classList.contains('visibility-toggle')) {
+                    const characterId = e.target.dataset.characterId;
+                    const isVisible = e.target.checked;
+                    e.target.parentElement.setAttribute('title', isVisible ? 'Visível' : 'Oculto');
+                    socket.emit('dm-toggle-token-visibility', { characterId, isVisible, room: MAP_ROOM_ID });
+                }
+            });
+            
+            // Ouvinte para garantir que os toggles fiquem sincronizados se outro DM mexer
+            socket.on('token-visibility-changed', ({ characterId, isVisible }) => {
+                const checkbox = document.querySelector(`.visibility-toggle[data-character-id="${characterId}"]`);
+                if (checkbox) {
+                    checkbox.checked = isVisible;
+                    checkbox.parentElement.setAttribute('title', isVisible ? 'Visível' : 'Oculto');
+                }
+            });
+
+            fetchAndRenderCharacters();
+        });
+    </script>
+</body>
+</html>

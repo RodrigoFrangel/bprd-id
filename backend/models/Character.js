@@ -37,6 +37,13 @@ const CharacterSchema = new mongoose.Schema({
   positionX: { type: Number, default: 50 },
   positionY: { type: Number, default: 50 },
 
+  // >>> NOVO CAMPO ADICIONADO <<<
+  // Controla se o token do personagem é visível no mapa para os jogadores
+  isVisibleOnMap: {
+    type: Boolean,
+    default: true,
+  },
+
   // Classificação
   origin: { type: String, required: true },
   recruitment: { type: String, required: true },
