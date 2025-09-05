@@ -184,14 +184,16 @@
             const token = localStorage.getItem('bprd_token');
             const loggedInUserId = getLoggedInUserId();
             
-            const socket = io(API_URL);
+            const socket = io(API_URL ? new URL(API_URL).origin : 'http://localhost:7000');
+            const MAP_ROOM_ID = "global_map_session"; 
 
             let scale = 1, panX = 0, panY = 0, isPanning = false, startPanX, startPanY, initialPinchDistance = null;
             let activeToken = null, tokenOffsetX, tokenOffsetY;
             let ownedCharacterId = null;
 
             const emitMovementThrottled = throttle((data) => {
-                socket.emit('move-token', data);
+                console.log('Enviando movimento do token:', data);
+                socket.emit('move-token', { ...data, room: MAP_ROOM_ID });
             }, 50); // Envia no máximo a cada 50ms
 
             function applyTransform() {
@@ -367,7 +369,7 @@
                     if (!response.ok) throw new Error('Falha ao resetar a posição.');
                     
                     updateTokenPosition(ownedCharacterId, defaultPos.x, defaultPos.y);
-                    socket.emit('move-token', { characterId: ownedCharacterId, positionX: defaultPos.x, positionY: defaultPos.y });
+                    socket.emit('move-token', { characterId: ownedCharacterId, positionX: defaultPos.x, positionY: defaultPos.y, room: MAP_ROOM_ID });
 
                 } catch (error) {
                     console.error("Erro ao resetar posição:", error);
@@ -483,7 +485,8 @@
             resetTokenBtn.addEventListener('click', resetTokenPosition);
 
             socket.on('connect', () => {
-                console.log('Conectado ao servidor Socket.IO');
+                console.log('Conectado ao servidor Socket.IO. Entrando na sala do mapa...');
+                socket.emit('join-map-room', MAP_ROOM_ID);
             });
 
             socket.on('disconnect', () => {
@@ -491,6 +494,7 @@
             });
 
             socket.on('update-token', (data) => {
+                console.log('Recebido update do token:', data);
                 updateTokenPosition(data.characterId, data.positionX, data.positionY);
             });
             
