@@ -74,13 +74,18 @@ router.put('/set-main/:id', auth, async (req, res) => {
       return res.status(404).json({ msg: 'Personagem não encontrado ou não autorizado.' });
     }
 
+    // 1. Verifica qual o estado atual do personagem (se ele JÁ É o principal)
     const isCurrentlyMain = characterToSet.isMainCharacter;
 
+    // 2. Remove a flag de 'principal' de TODOS os personagens do usuário.
+    // Isso garante que apenas um possa ser o principal por vez.
     await Character.updateMany(
       { userId: req.user.id },
       { $set: { isMainCharacter: false } }
     );
 
+    // 3. Se o personagem clicado NÃO ERA o principal, ele se torna o principal agora.
+    // Se ele JÁ ERA, o passo anterior já o desmarcou, efetivando o 'toggle'.
     if (!isCurrentlyMain) {
       await Character.findByIdAndUpdate(
         req.params.id,

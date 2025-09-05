@@ -215,11 +215,13 @@
             }
         }
         
+        // Esta função envia a requisição para o backend para marcar/desmarcar o personagem
         async function setMainCharacter(id) {
             closeOptionsMenu();
             try {
                 const response = await fetch(`${API_URL}/characters/set-main/${id}`, { method: 'PUT', headers: { 'x-auth-token': token } });
                 if (!response.ok) throw new Error((await response.json()).msg || 'Falha ao definir personagem principal.');
+                // Após a mudança, a lista de personagens é recarregada para refletir o novo estado
                 await loadCharacters();
             } catch (error) {
                 console.error('Erro:', error); alert(error.message);
@@ -264,6 +266,7 @@
                 const isOwner = loggedInUserId && agent.userId && agent.userId._id === loggedInUserId;
                 const isMain = agent.isMainCharacter;
                 
+                // A classe 'main' é adicionada aqui para o destaque visual (borda amarela)
                 const agentElement = document.createElement('div');
                 agentElement.className = `agent-card p-3 rounded-lg flex items-center gap-4 ${isMain && isOwner ? 'main' : ''}`;
                 
@@ -332,6 +335,7 @@
             modalTitle.textContent = agent.name;
             const isMain = agent.isMainCharacter;
 
+            // O texto do botão e a ação são definidos dinamicamente aqui
             const options = [
                  { text: 'Companion App', icon: 'fa-chart-bar', action: () => { window.location.href = `companion-app.html?id=${agent._id}` } },
                  { text: isMain ? 'Desmarcar Principal' : 'Marcar Principal', icon: 'fa-star', action: () => setMainCharacter(agent._id) },
