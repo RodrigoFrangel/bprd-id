@@ -183,27 +183,34 @@
 
             const token = localStorage.getItem('bprd_token');
             const loggedInUserId = getLoggedInUserId();
-            
-            const socket = io(API_URL ? new URL(API_URL).origin : 'http://localhost:7000');
             const MAP_ROOM_ID = "global_map_session"; 
+
+            let socket;
+            try {
+                const socketUrl = typeof API_URL !== 'undefined' && API_URL ? new URL(API_URL).origin : 'http://localhost:7000';
+                socket = io(socketUrl);
+            } catch (err) {
+                console.error("ERRO: Não foi possível inicializar o Socket.IO. Verifique se a variável API_URL é uma URL válida.", { 
+                    apiUrlValue: typeof API_URL !== 'undefined' ? API_URL : 'Não definida',
+                    error: err 
+                });
+                loadingIndicator.innerHTML = 'Erro de conexão em tempo real.';
+            }
 
             let scale = 1, panX = 0, panY = 0, isPanning = false, startPanX, startPanY, initialPinchDistance = null;
             let activeToken = null, tokenOffsetX, tokenOffsetY;
             let ownedCharacterId = null;
 
             const emitMovementThrottled = throttle((data) => {
-                console.log('Enviando movimento do token:', data);
                 socket.emit('move-token', { ...data, room: MAP_ROOM_ID });
-            }, 50); // Envia no máximo a cada 50ms
+            }, 50);
 
             function applyTransform() {
                 mapContainer.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
             }
 
             function centerMap() {
-                scale = 1;
-                panX = 0;
-                panY = 0;
+                scale = 1; panX = 0; panY = 0;
                 applyTransform();
             }
 
@@ -219,12 +226,11 @@
                     if (!response.ok) throw new Error('Não foi possível carregar personagens.');
                     
                     const characters = await response.json();
-                    
                     loadingIndicator.style.display = 'none';
                     renderTokens(characters);
 
                 } catch (error) {
-                    console.error('Erro:', error);
+                    console.error('Erro ao carregar personagens:', error);
                     loadingIndicator.textContent = "Erro ao carregar o mapa.";
                 }
             }
@@ -238,7 +244,6 @@
                     tokenElement.className = 'token';
                     tokenElement.id = `token-${char._id}`;
                     tokenElement.style.backgroundImage = `url(${char.profilePic || 'https://placehold.co/50x50/2d2d2d/f5f5f5?text=BPRD'})`;
-                    
                     tokenElement.style.left = `${char.positionX || 50}%`;
                     tokenElement.style.top = `${char.positionY || 50}%`;
 
@@ -254,7 +259,6 @@
                     } else {
                         tokenElement.classList.add('not-owned');
                     }
-                    
                     mapContainer.appendChild(tokenElement);
                 });
             }
@@ -271,78 +275,49 @@
                 if (e.type === 'mousedown' && e.button !== 0) return;
                 e.stopPropagation(); 
                 activeToken = e.currentTarget;
-                
                 if (activeToken.classList.contains('not-owned')) {
-                    activeToken = null;
-                    return;
+                    activeToken = null; return;
                 }
-                
                 activeToken.classList.add('draggable');
                 const start = e.type === 'touchstart' ? e.touches[0] : e;
                 const rect = activeToken.getBoundingClientRect();
                 tokenOffsetX = start.clientX - rect.left;
                 tokenOffsetY = start.clientY - rect.top;
-
-                if (e.type === 'touchstart') {
-                    document.addEventListener('touchmove', dragToken, { passive: false });
-                    document.addEventListener('touchend', endTokenDrag, { once: true });
-                } else {
-                    document.addEventListener('mousemove', dragToken);
-                    document.addEventListener('mouseup', endTokenDrag, { once: true });
-                }
+                document.addEventListener(e.type === 'touchstart' ? 'touchmove' : 'mousemove', dragToken, { passive: false });
+                document.addEventListener(e.type === 'touchstart' ? 'touchend' : 'mouseup', endTokenDrag, { once: true });
             }
 
             function dragToken(e) {
                 if (!activeToken) return;
                 e.preventDefault();
                 const move = e.type === 'touchmove' ? e.touches[0] : e;
-
                 const mapRect = mapContainer.getBoundingClientRect();
-                let x = move.clientX - mapRect.left;
-                let y = move.clientY - mapRect.top;
-
-                let clientXInMap = (x - tokenOffsetX * scale) / scale;
-                let clientYInMap = (y - tokenOffsetY * scale) / scale;
-
-                let xPercent = (clientXInMap / mapContainer.offsetWidth) * 100;
-                let yPercent = (clientYInMap / mapContainer.offsetHeight) * 100;
-                
+                let x = (move.clientX - mapRect.left - tokenOffsetX * scale) / scale;
+                let y = (move.clientY - mapRect.top - tokenOffsetY * scale) / scale;
+                let xPercent = (x / mapContainer.offsetWidth) * 100;
+                let yPercent = (y / mapContainer.offsetHeight) * 100;
                 const tokenWidthPercent = (activeToken.offsetWidth / mapContainer.offsetWidth) * 100;
                 const tokenHeightPercent = (activeToken.offsetHeight / mapContainer.offsetHeight) * 100;
-
                 xPercent = Math.max(tokenWidthPercent / 2, Math.min(xPercent, 100 - (tokenWidthPercent / 2)));
                 yPercent = Math.max(tokenHeightPercent / 2, Math.min(yPercent, 100 - (tokenHeightPercent / 2)));
-
                 activeToken.style.left = `${xPercent}%`;
                 activeToken.style.top = `${yPercent}%`;
-
                 const characterId = activeToken.id.replace('token-', '');
                 emitMovementThrottled({ characterId, positionX: xPercent, positionY: yPercent });
             }
 
             async function endTokenDrag(e) {
                 if (!activeToken) return;
-                
                 const characterId = activeToken.id.replace('token-', '');
                 const newX = parseFloat(activeToken.style.left);
                 const newY = parseFloat(activeToken.style.top);
-
                 activeToken.classList.remove('draggable');
                 activeToken = null;
-                
-                if (e.type === 'touchend') {
-                    document.removeEventListener('touchmove', dragToken);
-                } else {
-                    document.removeEventListener('mousemove', dragToken);
-                }
-                
+                document.removeEventListener(e.type === 'touchend' ? 'touchmove' : 'mousemove', dragToken);
                 try {
                     await fetch(`${API_URL}/characters/${characterId}`, {
                         method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'x-auth-token': token
-                        },
+                        headers: { 'Content-Type': 'application/json', 'x-auth-token': token },
                         body: JSON.stringify({ positionX: newX, positionY: newY })
                     });
                 } catch (error) {
@@ -351,26 +326,16 @@
             }
             
             async function resetTokenPosition() {
-                if (!ownedCharacterId) {
-                    alert("Você não tem um token no mapa para resetar.");
-                    return;
-                }
+                if (!ownedCharacterId) { alert("Você não tem um token no mapa para resetar."); return; }
                 const defaultPos = { x: 50, y: 50 };
-
                 try {
-                    const response = await fetch(`${API_URL}/characters/${ownedCharacterId}`, {
+                    await fetch(`${API_URL}/characters/${ownedCharacterId}`, {
                         method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'x-auth-token': token
-                        },
+                        headers: { 'Content-Type': 'application/json', 'x-auth-token': token },
                         body: JSON.stringify({ positionX: defaultPos.x, positionY: defaultPos.y })
                     });
-                    if (!response.ok) throw new Error('Falha ao resetar a posição.');
-                    
                     updateTokenPosition(ownedCharacterId, defaultPos.x, defaultPos.y);
                     socket.emit('move-token', { characterId: ownedCharacterId, positionX: defaultPos.x, positionY: defaultPos.y, room: MAP_ROOM_ID });
-
                 } catch (error) {
                     console.error("Erro ao resetar posição:", error);
                     alert(error.message);
@@ -379,36 +344,21 @@
 
             function startPan(e) {
                 if (e.type === 'mousedown' && e.button !== 0) return;
-                
-                if (e.type === 'touchstart' && e.touches.length === 2) {
-                    initialPinchDistance = getPinchDistance(e.touches);
-                    return;
-                }
-
+                if (e.type === 'touchstart' && e.touches.length === 2) { initialPinchDistance = getPinchDistance(e.touches); return; }
                 e.preventDefault();
                 isPanning = true;
                 viewport.style.cursor = 'grabbing';
-
                 const start = e.type === 'touchstart' ? e.touches[0] : e;
                 startPanX = start.clientX - panX;
                 startPanY = start.clientY - panY;
-
-                if (e.type === 'touchstart') {
-                    viewport.addEventListener('touchmove', handleMove, { passive: false });
-                    viewport.addEventListener('touchend', endPan, { once: true });
-                } else {
-                    viewport.addEventListener('mousemove', panMap);
-                    viewport.addEventListener('mouseup', endPan, { once: true });
-                }
+                viewport.addEventListener(e.type === 'touchstart' ? 'touchmove' : 'mousemove', handleMove, { passive: false });
+                viewport.addEventListener(e.type === 'touchstart' ? 'touchend' : 'mouseup', endPan, { once: true });
             }
             
             function handleMove(e) {
                 e.preventDefault();
-                if (e.touches.length === 2) {
-                    pinchZoom(e.touches);
-                } else if (e.touches.length === 1 && isPanning) {
-                    panMap(e);
-                }
+                if (e.touches.length === 2) { pinchZoom(e.touches); }
+                else if (e.touches.length === 1 && isPanning) { panMap(e); }
             }
 
             function panMap(e) {
@@ -420,14 +370,9 @@
             }
 
             function endPan(e) {
-                isPanning = false;
-                initialPinchDistance = null;
+                isPanning = false; initialPinchDistance = null;
                 viewport.style.cursor = 'grab';
-                if (e.type === 'touchend') {
-                    viewport.removeEventListener('touchmove', handleMove);
-                } else {
-                    viewport.removeEventListener('mousemove', panMap);
-                }
+                viewport.removeEventListener(e.type === 'touchend' ? 'touchmove' : 'mousemove', handleMove);
             }
 
             function zoom(e) {
@@ -435,41 +380,28 @@
                 const zoomIntensity = 0.1;
                 const delta = e.deltaY > 0 ? -1 : 1;
                 const oldScale = scale;
-                scale += delta * zoomIntensity;
-                scale = Math.max(0.5, Math.min(scale, 3)); 
-
+                scale = Math.max(0.5, Math.min(scale + (delta * zoomIntensity), 3)); 
                 const rect = viewport.getBoundingClientRect();
                 const mouseX = e.clientX - rect.left;
                 const mouseY = e.clientY - rect.top;
-                
                 panX = mouseX - (mouseX - panX) * (scale / oldScale);
                 panY = mouseY - (mouseY - panY) * (scale / oldScale);
-
                 applyTransform();
             }
             
-            function getPinchDistance(touches) {
-                return Math.hypot(
-                    touches[0].pageX - touches[1].pageX,
-                    touches[0].pageY - touches[1].pageY
-                );
-            }
+            function getPinchDistance(touches) { return Math.hypot(touches[0].pageX - touches[1].pageX, touches[0].pageY - touches[1].pageY); }
             
             function pinchZoom(touches) {
                 if (initialPinchDistance === null) return;
                 const newPinchDistance = getPinchDistance(touches);
                 const zoomFactor = newPinchDistance / initialPinchDistance;
-                
                 const oldScale = scale;
                 scale = Math.max(0.5, Math.min(oldScale * zoomFactor, 3));
-
                 const rect = viewport.getBoundingClientRect();
                 const centerX = (touches[0].clientX + touches[1].clientX) / 2 - rect.left;
                 const centerY = (touches[0].clientY + touches[1].clientY) / 2 - rect.top;
-
                 panX = centerX - (centerX - panX) * (scale / oldScale);
                 panY = centerY - (centerY - panY) * (scale / oldScale);
-
                 applyTransform();
                 initialPinchDistance = newPinchDistance;
             }
@@ -479,24 +411,20 @@
             viewport.addEventListener('wheel', zoom);
             centerMapBtn.addEventListener('click', centerMap);
             backBtn.addEventListener('click', () => history.back());
-            rotateMapBtn.addEventListener('click', () => {
-                mapBackground.classList.toggle('portrait');
-            });
+            rotateMapBtn.addEventListener('click', () => { mapBackground.classList.toggle('portrait'); });
             resetTokenBtn.addEventListener('click', resetTokenPosition);
 
-            socket.on('connect', () => {
-                console.log('Conectado ao servidor Socket.IO. Entrando na sala do mapa...');
-                socket.emit('join-map-room', MAP_ROOM_ID);
-            });
-
-            socket.on('disconnect', () => {
-                console.log('Desconectado do servidor Socket.IO');
-            });
-
-            socket.on('update-token', (data) => {
-                console.log('Recebido update do token:', data);
-                updateTokenPosition(data.characterId, data.positionX, data.positionY);
-            });
+            if (socket) {
+                socket.on('connect', () => {
+                    console.log('Conectado ao servidor Socket.IO. Entrando na sala do mapa...');
+                    socket.emit('join-map-room', MAP_ROOM_ID);
+                });
+                socket.on('disconnect', () => { console.log('Desconectado do servidor Socket.IO'); });
+                socket.on('update-token', (data) => {
+                    console.log('Recebido update do token:', data);
+                    updateTokenPosition(data.characterId, data.positionX, data.positionY);
+                });
+            }
             
             fetchCharacters();
         });
