@@ -28,7 +28,10 @@ const CharacterSchema = new mongoose.Schema({
   department: { type: String, required: true },
   level: { type: String, required: true },
   profilePic: { type: String },
-  hitPoints: { type: String }, // Ex: "12/12"
+  hitPoints: { type: Number }, // Ex: 12
+  currentHP: { type: Number, default: 12 },
+  initiative: { type: Number, default: 0 },
+  isTurn: { type: Boolean, default: false },
   
   // Posição no mapa
   positionX: { type: Number, default: 50 },

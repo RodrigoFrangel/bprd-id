@@ -9,8 +9,16 @@ const Character = require('../models/Character');
 // @access  Privado (precisa de token)
 router.post('/', auth, async (req, res) => {
   try {
+    const characterData = { ...req.body };
+
+    // Calcula a iniciativa com base na Destreza antes de salvar
+    if (characterData.attributes && typeof characterData.attributes.dex === 'number') {
+      const dexModifier = Math.floor((characterData.attributes.dex - 10) / 2);
+      characterData.initiative = 10 + dexModifier;
+    }
+
     const newCharacter = new Character({
-      ...req.body,
+      ...characterData,
       userId: req.user.id,
     });
 
@@ -62,27 +70,23 @@ router.put('/set-main/:id', auth, async (req, res) => {
   try {
     const characterToSet = await Character.findById(req.params.id);
 
-    // Verifica se o personagem existe e pertence ao usuário
     if (!characterToSet || characterToSet.userId.toString() !== req.user.id) {
       return res.status(404).json({ msg: 'Personagem não encontrado ou não autorizado.' });
     }
 
     const isCurrentlyMain = characterToSet.isMainCharacter;
 
-    // Primeiro, reseta o status de 'main' para todos os personagens do usuário
     await Character.updateMany(
       { userId: req.user.id },
       { $set: { isMainCharacter: false } }
     );
 
-    // Se o personagem clicado NÃO era o principal, ele se torna o principal
     if (!isCurrentlyMain) {
       await Character.findByIdAndUpdate(
         req.params.id,
         { $set: { isMainCharacter: true } }
       );
     }
-    // Se ele JÁ ERA o principal, a ação acima já o desmarcou.
 
     res.json({ msg: 'Personagem principal atualizado com sucesso.' });
   } catch (err) {
@@ -102,14 +106,21 @@ router.put('/:id', auth, async (req, res) => {
 
     if (!character) return res.status(404).json({ msg: 'Personagem não encontrado.' });
 
-    // Garante que o usuário só pode editar o próprio personagem
     if (character.userId.toString() !== req.user.id) {
       return res.status(401).json({ msg: 'Não autorizado.' });
+    }
+    
+    const updateData = { ...req.body };
+
+    // Se a Destreza (dex) estiver sendo atualizada, recalcula a iniciativa
+    if (updateData.attributes && typeof updateData.attributes.dex === 'number') {
+      const dexModifier = Math.floor((updateData.attributes.dex - 10) / 2);
+      updateData.initiative = 10 + dexModifier;
     }
 
     character = await Character.findByIdAndUpdate(
       req.params.id,
-      { $set: req.body },
+      { $set: updateData },
       { new: true }
     );
 
@@ -130,7 +141,6 @@ router.delete('/:id', auth, async (req, res) => {
 
     if (!character) return res.status(404).json({ msg: 'Personagem não encontrado.' });
 
-    // Garante que o usuário só pode deletar o próprio personagem
     if (character.userId.toString() !== req.user.id) {
       return res.status(401).json({ msg: 'Não autorizado.' });
     }
@@ -143,7 +153,5 @@ router.delete('/:id', auth, async (req, res) => {
     res.status(500).send('Erro no servidor.');
   }
 });
-
-
 
 module.exports = router;

@@ -42,6 +42,7 @@ app.use((req, res, next) => {
 // --- Rotas da API ---
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/characters', require('./routes/characters'));
+app.use('/api/combat', require('./routes/combat'));
 
 // --- Socket.IO ---
 io.on('connection', (socket) => {

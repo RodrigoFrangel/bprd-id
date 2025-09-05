@@ -54,8 +54,14 @@
         .feature-header:hover { background-color: #3f3f3f; }
         .chevron-icon { transition: transform 0.3s ease-in-out; }
         .font-special { font-family: 'Special Elite', monospace; }
-        #char-hp:hover { cursor: pointer; background-color: rgba(255,255,255,0.1); border-radius: 4px; }
+        .hp-editable:hover { cursor: pointer; background-color: rgba(255,255,255,0.1); border-radius: 4px; }
         
+        #hp-bar.has-temp-hp { background-color: #3b82f6 !important; }
+        #char-hp.has-temp-hp {
+            color: #60a5fa;
+            text-shadow: 0 0 5px rgba(96, 165, 250, 0.7);
+        }
+
         .tab-container {
             display: flex;
             border: 1px solid #444;
@@ -188,23 +194,22 @@
             justify-content: center;
             align-items: center;
             gap: 0.5rem;
-            transition: margin-bottom 0.3s ease-in-out; /* <-- Adicione esta linha */
+            transition: margin-bottom 0.3s ease-in-out;
         }
         .collapsible-content {
             transition: max-height 0.3s ease-in-out;
             overflow: hidden;
         }
         
-        /* Sticky Bubble */
         .sticky-bubble {
             position: fixed;
-            bottom: 1.5rem; /* 24px */
-            left: 1.5rem; /* 24px */
-            background-color: #b91c1c; /* red-700 */
+            bottom: 1.5rem;
+            left: 1.5rem;
+            background-color: #b91c1c;
             color: white;
-            border-radius: 9999px; /* Full rounded */
-            width: 3.5rem; /* 56px */
-            height: 3.5rem; /* 56px */
+            border-radius: 9999px;
+            width: 3.5rem;
+            height: 3.5rem;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -213,17 +218,16 @@
             z-index: 50;
         }
         .sticky-bubble:hover {
-            background-color: #ef4444; /* red-500 */
+            background-color: #ef4444;
             transform: scale(1.05);
         }
          .sticky-bubble > i {
             font-size: 1.25rem;
         }
 
-        /* Feature filter styles */
         .custom-select-wrapper {
             position: relative;
-            width: 110px; /* Fixed width for the dropdown */
+            width: 110px;
             flex-shrink: 0;
         }
 
@@ -353,7 +357,7 @@
                         <p id="char-hp" class="px-2 py-1 transition-colors duration-200">--</p>
                     </div>
                     <div class="w-full bg-gray-700 rounded-full h-1.5 mt-1">
-                        <div id="hp-bar" class="bg-red-600 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        <div id="hp-bar" class="bg-red-600 h-1.5 rounded-full transition-all duration-300" style="width: 0%; background-color: rgb(40, 167, 69);"></div>
                     </div>
                 </div>
             </div>
@@ -480,22 +484,19 @@
                     const isCurrentlyCollapsed = content.style.maxHeight === '0px' || !content.style.maxHeight;
                     
                     if (isCurrentlyCollapsed) {
-                        // Ação: EXPANDIR
                         content.style.maxHeight = content.scrollHeight + "px";
                         chevron.style.transform = 'rotate(180deg)';
-                        header.classList.add('mb-4'); // Adiciona margem quando expandido
+                        header.classList.add('mb-4');
                     } else {
-                        // Ação: MINIMIZAR
                         content.style.maxHeight = '0px';
                         chevron.style.transform = 'rotate(0deg)';
-                        header.classList.remove('mb-4'); // Remove margem quando minimizado
+                        header.classList.remove('mb-4');
                     }
                 });
 
-                // Define o estado inicial ao carregar a página: EXPANDIDO
                 content.style.maxHeight = content.scrollHeight + "px";
                 chevron.style.transform = 'rotate(180deg)';
-                header.classList.add('mb-4'); // Adiciona a margem no estado inicial
+                header.classList.add('mb-4');
             });
         }
 
@@ -516,19 +517,27 @@
             return bonus >= 0 ? `+${bonus}` : `${bonus}`;
         }
         
-        async function saveCharacterUpdate(characterData) {
+        async function saveCharacterUpdate(updateData) {
             const token = localStorage.getItem('bprd_token');
             if (!token) {
                 console.error("Token de autenticação não encontrado.");
                 return;
             }
             try {
-                const response = await fetch(`${API_URL}/characters/${characterData._id}`, {
+                const characterId = updateData._id || currentCharacter._id;
+                const bodyPayload = { ...updateData };
+                delete bodyPayload._id;
+
+                const response = await fetch(`${API_URL}/characters/${characterId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', 'x-auth-token': token },
-                    body: JSON.stringify(characterData)
+                    body: JSON.stringify(bodyPayload)
                 });
-                if (!response.ok) throw new Error('Falha ao salvar os dados do personagem.');
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Falha ao salvar os dados do personagem: ${errorText}`);
+                }
                 
                 clearTimeout(saveTimeout);
                 saveIndicator.classList.remove('opacity-0');
@@ -589,7 +598,7 @@
 
         function normalizeForClass(text) {
             if (!text) return '';
-            return text.normalize("NFD").replace(/[\]u0300-\]u036f]/g, "").toLowerCase().replace(/\s+/g, '-');
+            return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, '-');
         }
 
         function renderFeature(feature) {
@@ -691,7 +700,7 @@
             const saveAmmo = () => {
                 const newValue = input.value.trim() || '--';
                 currentCharacter.attacks[attackIndex].currentAmmo = newValue;
-                saveCharacterUpdate(currentCharacter);
+                saveCharacterUpdate({ _id: currentCharacter._id, attacks: currentCharacter.attacks });
                 renderAttacks(currentCharacter.attacks);
             };
             input.addEventListener('blur', saveAmmo);
@@ -701,41 +710,91 @@
             });
         }
 
-        function updateHpBar(hpString) {
+        function updateHpBar(current, max) {
             const hpBar = document.getElementById('hp-bar');
-            if (!hpString || !hpString.includes('/')) { hpBar.style.width = '0%'; return; }
-            const [current, max] = hpString.split('/').map(s => parseInt(s.trim(), 10));
-            if (isNaN(current) || isNaN(max) || max === 0) { hpBar.style.width = '0%'; return; }
-            hpBar.style.width = `${Math.max(0, Math.min(100, (current / max) * 100))}%`;
-        }
+            const hpText = document.getElementById('char-hp');
 
+            hpBar.classList.remove('has-temp-hp', 'is-low', 'is-critical');
+            hpText.classList.remove('has-temp-hp');
+            hpBar.style.backgroundColor = '';
+
+            if (isNaN(current) || isNaN(max) || max === 0) {
+                hpBar.style.width = '0%';
+                return;
+            }
+
+            const hasTempHP = current > max;
+            const percentage = (current / max) * 100;
+            hpBar.style.width = `${Math.max(0, Math.min(100, percentage))}%`;
+
+            if (hasTempHP) {
+                hpBar.classList.add('has-temp-hp');
+                hpText.classList.add('has-temp-hp');
+            } else {
+                if (percentage <= 25) {
+                    hpBar.style.backgroundColor = '#dc2626';
+                } else if (percentage <= 50) {
+                    hpBar.style.backgroundColor = '#f59e0b';
+                }
+            }
+        }
+        
         function makeHpEditable() {
-            const hpContainer = document.getElementById('hp-container');
             const hpTextElement = document.getElementById('char-hp');
-            hpTextElement.addEventListener('click', () => {
-                const hpString = hpTextElement.textContent;
-                if (!hpString || !hpString.includes('/')) return;
-                const [currentHp, maxHp] = hpString.split('/');
-                const input = document.createElement('input');
-                input.type = 'text'; input.value = currentHp.trim();
-                input.className = 'bg-gray-700 text-white text-center w-full text-3xl font-bold rounded';
-                hpContainer.replaceChild(input, hpTextElement);
-                input.focus(); input.select();
-                const saveChanges = () => {
-                    let newCurrentHp = parseInt(input.value, 10);
-                    if (isNaN(newCurrentHp)) newCurrentHp = parseInt(currentHp.trim(), 10);
-                    const newHpValue = `${newCurrentHp}/${maxHp.trim()}`;
-                    currentCharacter.hitPoints = newHpValue;
-                    hpTextElement.textContent = newHpValue;
-                    hpContainer.replaceChild(hpTextElement, input);
-                    updateHpBar(newHpValue);
-                    saveCharacterUpdate(currentCharacter);
-                };
-                input.addEventListener('blur', saveChanges);
-                input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') input.blur();
-                    else if (e.key === 'Escape') hpContainer.replaceChild(hpTextElement, input);
-                });
+            const loggedInUserId = getLoggedInUserId();
+            const isOwner = loggedInUserId && currentCharacter.userId && (currentCharacter.userId === loggedInUserId || currentCharacter.userId._id === loggedInUserId);
+
+            // Remove any existing listener to avoid duplicates
+            hpTextElement.removeEventListener('click', handleHpClick);
+
+            if (isOwner) {
+                hpTextElement.classList.add('hp-editable');
+                hpTextElement.addEventListener('click', handleHpClick);
+            } else {
+                hpTextElement.classList.remove('hp-editable');
+            }
+        }
+        
+        function handleHpClick(event) {
+            const hpTextElement = event.currentTarget;
+            if (!currentCharacter || typeof currentCharacter.hitPoints !== 'number') return;
+            
+            hpTextElement.removeEventListener('click', handleHpClick);
+
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.value = currentCharacter.currentHP;
+            input.className = 'bg-gray-700 text-white text-center w-full text-3xl font-bold rounded';
+            
+            hpTextElement.parentElement.replaceChild(input, hpTextElement);
+            input.focus();
+            input.select();
+
+            const saveChanges = () => {
+                let newCurrentHp = parseInt(input.value, 10);
+                if (isNaN(newCurrentHp)) {
+                    newCurrentHp = currentCharacter.currentHP;
+                }
+                newCurrentHp = Math.max(0, newCurrentHp); // Não permite HP negativo
+                
+                currentCharacter.currentHP = newCurrentHp;
+                hpTextElement.textContent = `${currentCharacter.currentHP}/${currentCharacter.hitPoints}`;
+                input.parentElement.replaceChild(hpTextElement, input);
+                updateHpBar(currentCharacter.currentHP, currentCharacter.hitPoints);
+                
+                saveCharacterUpdate({ _id: currentCharacter._id, currentHP: currentCharacter.currentHP });
+                
+                hpTextElement.addEventListener('click', handleHpClick);
+            };
+
+            input.addEventListener('blur', saveChanges);
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    input.blur();
+                } else if (e.key === 'Escape') {
+                    input.parentElement.replaceChild(hpTextElement, input);
+                    hpTextElement.addEventListener('click', handleHpClick);
+                }
             });
         }
         
@@ -794,10 +853,11 @@
             document.getElementById('char-pic').src = agent.profilePic || 'https://placehold.co/80x80/2d2d2d/f5f5f5?text=BPRD';
             const dexModifier = calculateModifier(agent.attributes.dex);
             document.getElementById('char-ac').textContent = 10 + dexModifier;
-            document.getElementById('char-initiative').textContent = formatBonus(dexModifier);
-            const initialHp = agent.hitPoints || '0/10';
-            document.getElementById('char-hp').textContent = initialHp;
-            updateHpBar(initialHp);
+            
+            document.getElementById('char-initiative').textContent = agent.initiative ?? '--';
+            
+            document.getElementById('char-hp').textContent = `${agent.currentHP ?? 'N/A'}/${agent.hitPoints ?? 'N/A'}`;
+            updateHpBar(agent.currentHP, agent.hitPoints);
             makeHpEditable();
             renderAllAttributes();
             renderSavingThrows(agent);
@@ -805,7 +865,7 @@
             if (allFeatures.length > 0) {
                 document.getElementById('feature-filter-controls').style.display = 'flex';
                 setupFeatureTagFilter();
-                applyFeatureFilters(); // Initial render
+                applyFeatureFilters();
             } else {
                 document.getElementById('feature-filter-controls').style.display = 'none';
                 document.getElementById('features-list').innerHTML = '<p class="text-gray-400 text-center py-4">Nenhuma habilidade listada.</p>';
@@ -824,17 +884,17 @@
             const loggedInUserId = getLoggedInUserId();
             const isOwner = loggedInUserId && currentCharacter.userId && (currentCharacter.userId === loggedInUserId || currentCharacter.userId._id === loggedInUserId);
             
+            const combatButton = document.createElement('a');
+            combatButton.className = 'options-menu-item';
+            combatButton.textContent = 'Combate';
+            combatButton.href = `combat.html`;
+            headerOptionsMenu.appendChild(combatButton);
+
             const mapButton = document.createElement('a');
             mapButton.className = 'options-menu-item';
             mapButton.textContent = 'Mapa';
             mapButton.href = `map.html`;
             headerOptionsMenu.appendChild(mapButton);
-
-            const initiativeButton = document.createElement('a');
-            initiativeButton.className = 'options-menu-item';
-            initiativeButton.textContent = 'Iniciativa';
-            initiativeButton.href = `#`;
-            headerOptionsMenu.appendChild(initiativeButton);
 
             const idButton = document.createElement('a');
             idButton.className = 'options-menu-item';
@@ -912,3 +972,4 @@
     </script>
 </body>
 </html>
+

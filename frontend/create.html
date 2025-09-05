@@ -542,7 +542,7 @@
                 }
             });
 
-            form.maxHitPoints.value = agent.hitPoints ? agent.hitPoints.split('/')[1] : '';
+            form.hitPoints.value = agent.hitPoints ?? '';
             
             for (const attr in agent.attributes) {
                 if (form[attr]) form[attr].value = agent.attributes[attr];
@@ -638,10 +638,6 @@
             }));
 
             const savingThrowsData = Array.from(savingThrowsContainer.querySelectorAll('input:checked')).map(input => input.value);
-            
-            const maxHp = form.maxHitPoints.value;
-            const currentHp = agentIdField.value ? document.getElementById('char-hp')?.textContent.split('/')[0] || maxHp : maxHp;
-            const hitPointsValue = maxHp ? `${currentHp}/${maxHp}` : '';
 
             const agentData = {
                 name: form.name.value,
@@ -658,7 +654,7 @@
                 drive: form.drive.value,
                 psych: form.psych.value.split('\n').filter(line => line.trim() !== ''),
                 isPublic: document.getElementById('isPublic').checked,
-                hitPoints: hitPointsValue,
+                hitPoints: form.hitPoints.value ? parseInt(form.hitPoints.value, 10) : null,
                 features: featuresData.filter(f => f.name || f.description),
                 attacks: attacksData.filter(a => a.name || a.bonus || a.damage),
                 skills: skillsData,
@@ -694,4 +690,3 @@
     </script>
 </body>
 </html>
-
