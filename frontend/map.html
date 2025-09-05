@@ -160,6 +160,17 @@
 
     <script src="auth.js"></script>
     <script>
+        function throttle(func, limit) {
+            let inThrottle;
+            return function(...args) {
+                if (!inThrottle) {
+                    func.apply(this, args);
+                    inThrottle = true;
+                    setTimeout(() => inThrottle = false, limit);
+                }
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const viewport = document.getElementById('map-viewport');
             const mapContainer = document.getElementById('map-container');
@@ -172,12 +183,16 @@
 
             const token = localStorage.getItem('bprd_token');
             const loggedInUserId = getLoggedInUserId();
-
-            const socket = io('http://localhost:7000');
+            
+            const socket = io(API_URL);
 
             let scale = 1, panX = 0, panY = 0, isPanning = false, startPanX, startPanY, initialPinchDistance = null;
             let activeToken = null, tokenOffsetX, tokenOffsetY;
             let ownedCharacterId = null;
+
+            const emitMovementThrottled = throttle((data) => {
+                socket.emit('move-token', data);
+            }, 50); // Envia no máximo a cada 50ms
 
             function applyTransform() {
                 mapContainer.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
@@ -300,7 +315,7 @@
                 activeToken.style.top = `${yPercent}%`;
 
                 const characterId = activeToken.id.replace('token-', '');
-                socket.emit('move-token', { characterId, positionX: xPercent, positionY: yPercent });
+                emitMovementThrottled({ characterId, positionX: xPercent, positionY: yPercent });
             }
 
             async function endTokenDrag(e) {
