@@ -48,6 +48,11 @@ app.use('/api/combat', require('./routes/combat'));
 io.on('connection', (socket) => {
   console.log('a user connected');
 
+  socket.on('join-map-room', (room) => {
+    socket.join(room);
+    console.log(`User ${socket.id} joined room ${room}`);
+  });
+
   socket.on('move-token', (data) => {
     // Salva a posição no banco de dados
     // (A lógica de salvar foi movida para cá para garantir que a emissão ocorra após o salvamento)
@@ -57,8 +62,13 @@ io.on('connection', (socket) => {
         { $set: { positionX: data.positionX, positionY: data.positionY } },
         { new: true }
     ).then(updatedCharacter => {
-        // Emite a atualização para todos os outros clientes
-        socket.broadcast.emit('update-token', data);
+        // Emite a atualização para todos os outros clientes na mesma sala
+        if (data.room) {
+            socket.broadcast.to(data.room).emit('update-token', data);
+        } else {
+            // Fallback para o caso de o cliente não enviar a sala
+            socket.broadcast.emit('update-token', data);
+        }
     }).catch(err => {
         console.error('Erro ao salvar posição do token:', err);
     });
