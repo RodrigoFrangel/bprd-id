@@ -149,7 +149,7 @@
 
         async function fetchCharacters() {
             try {
-                const res = await fetch(`${API_URL}/combat/main-characters`, {
+                const res = await fetch(`${API_URL}/characters/main`, {
                     headers: { 'x-auth-token': localStorage.getItem('bprd_token') }
                 });
                 if (!res.ok) {

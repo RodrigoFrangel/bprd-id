@@ -8,7 +8,7 @@
     <link rel="icon" type="image/png" href="../public/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <style>
@@ -17,7 +17,7 @@
             font-family: 'Roboto Condensed', sans-serif; 
             color: #f5f5f5;
             overflow: hidden; /* Previne scroll da página inteira */
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60' viewBox='0 0 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23333333' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23333333' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
         #map-viewport {
             width: 100vw;
@@ -42,9 +42,8 @@
             background-repeat: no-repeat;
             background-position: center;
             pointer-events: none;
-            transition: transform 0.4s ease-in-out; /* Adicionado para suavizar a rotação */
+            transition: transform 0.4s ease-in-out;
         }
-        /* Nova classe para o estado de retrato */
         #map-background.portrait {
             transform: rotate(90deg);
         }
@@ -107,7 +106,6 @@
             padding: 20px;
             border-radius: 10px;
         }
-        /* Botões de controle */
         .map-controls {
             position: absolute;
             top: 20px;
@@ -151,7 +149,6 @@
         <button id="rotate-map-btn" class="control-btn" title="Mudar Orientação">
             <i class="fas fa-sync-alt"></i>
         </button>
-        <!-- Botão para Resetar a Posição do Token -->
         <button id="reset-token-btn" class="control-btn" title="Resetar Posição do Token">
             <i class="fas fa-map-marker-alt"></i>
         </button>
@@ -171,7 +168,6 @@
             const backBtn = document.getElementById('back-btn');
             const rotateMapBtn = document.getElementById('rotate-map-btn');
             const mapBackground = document.getElementById('map-background');
-            // Botão de reset
             const resetTokenBtn = document.getElementById('reset-token-btn');
 
             const token = localStorage.getItem('bprd_token');
@@ -179,10 +175,9 @@
 
             const socket = io('http://localhost:7000');
 
-            // Variáveis de estado
             let scale = 1, panX = 0, panY = 0, isPanning = false, startPanX, startPanY, initialPinchDistance = null;
             let activeToken = null, tokenOffsetX, tokenOffsetY;
-            let ownedCharacterId = null; // Guarda o ID do personagem do usuário logado
+            let ownedCharacterId = null;
 
             function applyTransform() {
                 mapContainer.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
@@ -195,20 +190,21 @@
                 applyTransform();
             }
 
-            async function fetchMainCharacters() {
+            async function fetchCharacters() {
                 if (!token) {
                     loadingIndicator.textContent = "Acesso negado. Faça login.";
                     return;
                 }
                 try {
-                    const response = await fetch(`${API_URL}/characters/public`);
+                    const response = await fetch(`${API_URL}/characters/main`, {
+                         headers: { 'x-auth-token': token }
+                    });
                     if (!response.ok) throw new Error('Não foi possível carregar personagens.');
                     
                     const characters = await response.json();
-                    const mainCharacters = characters.filter(c => c.isMainCharacter);
                     
                     loadingIndicator.style.display = 'none';
-                    renderTokens(mainCharacters);
+                    renderTokens(characters);
 
                 } catch (error) {
                     console.error('Erro:', error);
@@ -234,8 +230,8 @@
                     labelElement.textContent = char.name;
                     tokenElement.appendChild(labelElement);
 
-                    if (loggedInUserId === char.userId._id) {
-                        ownedCharacterId = char._id; // Salva o ID para uso posterior
+                    if (loggedInUserId === (char.userId._id || char.userId) ) {
+                        ownedCharacterId = char._id;
                         tokenElement.addEventListener('mousedown', startTokenDrag);
                         tokenElement.addEventListener('touchstart', startTokenDrag, { passive: false });
                     } else {
@@ -254,7 +250,6 @@
                 }
             }
             
-            // --- Lógica de Arrastar Token ---
             function startTokenDrag(e) {
                 if (e.type === 'mousedown' && e.button !== 0) return;
                 e.stopPropagation(); 
@@ -320,11 +315,9 @@
                 } else {
                     document.removeEventListener('mousemove', dragToken);
                 }
-
-                // Envia a posição para o socket para atualizar outros jogadores
+                
                 socket.emit('move-token', { characterId, positionX: newX, positionY: newY });
-
-                // Salva a nova posição no banco de dados
+                
                 try {
                     await fetch(`${API_URL}/characters/${characterId}`, {
                         method: 'PUT',
@@ -339,7 +332,6 @@
                 }
             }
             
-            // --- Função para Resetar Posição do Token ---
             async function resetTokenPosition() {
                 if (!ownedCharacterId) {
                     alert("Você não tem um token no mapa para resetar.");
@@ -358,10 +350,7 @@
                     });
                     if (!response.ok) throw new Error('Falha ao resetar a posição.');
                     
-                    // Atualiza a posição localmente
                     updateTokenPosition(ownedCharacterId, defaultPos.x, defaultPos.y);
-                    
-                    // Notifica outros jogadores via socket
                     socket.emit('move-token', { characterId: ownedCharacterId, positionX: defaultPos.x, positionY: defaultPos.y });
 
                 } catch (error) {
@@ -370,8 +359,6 @@
                 }
             }
 
-
-            // --- Lógica de Pan (Arrastar Mapa) e Zoom ---
             function startPan(e) {
                 if (e.type === 'mousedown' && e.button !== 0) return;
                 
@@ -469,7 +456,6 @@
                 initialPinchDistance = newPinchDistance;
             }
 
-            // --- Adiciona os event listeners ---
             viewport.addEventListener('mousedown', startPan);
             viewport.addEventListener('touchstart', startPan, { passive: false });
             viewport.addEventListener('wheel', zoom);
@@ -478,9 +464,8 @@
             rotateMapBtn.addEventListener('click', () => {
                 mapBackground.classList.toggle('portrait');
             });
-            resetTokenBtn.addEventListener('click', resetTokenPosition); // Listener para o novo botão
+            resetTokenBtn.addEventListener('click', resetTokenPosition);
 
-            // --- Socket.IO Listeners ---
             socket.on('connect', () => {
                 console.log('Conectado ao servidor Socket.IO');
             });
@@ -492,10 +477,10 @@
             socket.on('update-token', (data) => {
                 updateTokenPosition(data.characterId, data.positionX, data.positionY);
             });
-
-            // Inicia o processo
-            fetchMainCharacters();
+            
+            fetchCharacters();
         });
     </script>
 </body>
 </html>
+
