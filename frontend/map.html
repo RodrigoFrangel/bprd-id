@@ -187,8 +187,20 @@
 
             let socket = null;
             try {
-                const socketUrl = typeof API_URL !== 'undefined' && API_URL ? new URL(API_URL).origin : 'http://localhost:7000';
+                let socketUrl;
+                // Se API_URL for uma URL absoluta, extrai a origem para o Socket.IO
+                if (typeof API_URL !== 'undefined' && API_URL && API_URL.startsWith('http')) {
+                    socketUrl = new URL(API_URL).origin;
+                } 
+                // Se API_URL for um caminho relativo (ex: '/api'), socketUrl será undefined.
+                // O Socket.IO, quando chamado como io(), se conectará ao host que serviu a página.
+                // Se API_URL não estiver definida, tentará conectar no localhost como fallback.
+                else if (typeof API_URL === 'undefined' || !API_URL) {
+                    socketUrl = 'http://localhost:7000';
+                }
+                
                 socket = io(socketUrl);
+
             } catch (err) {
                 console.error("ERRO: Não foi possível inicializar o Socket.IO. Verifique se a variável API_URL é uma URL válida.", { 
                     apiUrlValue: typeof API_URL !== 'undefined' ? API_URL : 'Não definida',
