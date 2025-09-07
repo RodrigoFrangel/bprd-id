@@ -66,12 +66,13 @@
     </style>
 </head>
 <body class="p-4 sm:p-6 md:p-8">
+
     <div class="container mx-auto max-w-4xl">
         <header class="flex items-center justify-between mb-8">
              <a href="index.html" title="Voltar" class="btn bg-gray-700 hover:bg-gray-600 text-white w-12 h-12 rounded-full flex items-center justify-center">
                 <i class="fas fa-arrow-left"></i>
             </a>
-            <h1 class="font-special text-4xl sm:text-5xl text-red-600 text-center">Administração</h1>
+            <h1 class="font-special text-3xl sm:text-5xl text-red-600 text-center">Administração</h1>
             <div class="w-12 h-12"></div>
         </header>
 
@@ -155,15 +156,16 @@
                                 </div>
                                 <i class="fas fa-chevron-down details-arrow text-gray-400"></i>
                             </summary>
-                            <div class="p-4 border-t border-white/10 bg-black/20 flex flex-col sm:flex-row items-center gap-3">
-                                <label for="role-select-${user._id}" class="text-sm text-gray-300 flex-shrink-0">Função:</label>
-                                <select id="role-select-${user._id}" data-userid="${user._id}" class="role-select form-select rounded-lg p-2 w-full sm:w-auto flex-grow text-white" ${isCurrentUser ? 'disabled' : ''}>
-                                    ${roleOptions}
-                                </select>
-                                <button data-userid="${user._id}" class="delete-btn btn bg-red-700 hover:bg-red-600 text-white w-full sm:w-auto h-10 px-4 rounded-lg flex-shrink-0 flex items-center justify-center gap-2 disabled:opacity-50 disabled:bg-gray-600 disabled:cursor-not-allowed" ${isCurrentUser ? 'disabled' : ''}>
-                                    <i class="fas fa-trash-alt"></i>
-                                    <span class="font-semibold">Excluir</span>
-                                </button>
+                            <div class="p-4 border-t border-white/10 bg-black/20 flex flex-col items-start gap-2">
+                                <label for="role-select-${user._id}" class="text-sm text-gray-300">Função:</label>
+                                <div class="w-full flex items-center gap-4">
+                                    <select id="role-select-${user._id}" data-userid="${user._id}" class="role-select form-select rounded-lg p-2 w-full sm:w-auto flex-grow text-white" ${isCurrentUser ? 'disabled' : ''}>
+                                        ${roleOptions}
+                                    </select>
+                                    <button data-userid="${user._id}" class="delete-btn btn bg-red-700 hover:bg-red-600 text-white w-10 h-10 rounded-lg flex-shrink-0 flex items-center justify-center disabled:opacity-50 disabled:bg-gray-600 disabled:cursor-not-allowed" ${isCurrentUser ? 'disabled' : ''}>
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
                             </div>
                         </details>
                     `;
