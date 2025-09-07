@@ -112,6 +112,42 @@ router.put('/set-main/:id', auth, async (req, res) => {
   }
 });
 
+// --- BUSCAR UM PERSONAGEM ESPECÍFICO POR ID ---
+// @route   GET api/characters/:id
+// @desc    Busca um personagem pelo seu ID
+// @access  Privado (dono ou Admin, ou se for público)
+router.get('/:id', auth, async (req, res) => {
+  try {
+    const character = await Character.findById(req.params.id).populate('userId', 'username');
+
+    if (!character) {
+      return res.status(404).json({ msg: 'Personagem não encontrado.' });
+    }
+
+    // Se o personagem não for público, verifica a permissão
+    if (!character.isPublic) {
+      // Assegura que req.user existe antes de prosseguir
+      if (!req.user) {
+        return res.status(401).json({ msg: 'Token de autenticação não encontrado ou inválido.' });
+      }
+      const isOwner = character.userId._id.toString() === req.user.id;
+      const isAdmin = req.user.role === 'Admin';
+
+      if (!isOwner && !isAdmin) {
+        return res.status(401).json({ msg: 'Não autorizado a ver este personagem.' });
+      }
+    }
+    
+    res.json(character);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind === 'ObjectId') {
+        return res.status(404).json({ msg: 'Personagem não encontrado (ID inválido).' });
+    }
+    res.status(500).send('Erro no servidor.');
+  }
+});
+
 
 // --- ATUALIZAR UM PERSONAGEM ---
 // @route   PUT api/characters/:id

@@ -36,6 +36,7 @@ app.use((req, res, next) => {
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/characters', require('./routes/characters'));
 app.use('/api/combat', require('./routes/combat'));
+app.use('/api/admin', require('./routes/admin'));
 
 // --- Socket.IO ---
 io.on('connection', (socket) => {

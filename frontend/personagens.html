@@ -249,6 +249,7 @@
             loader.style.display = 'none';
             agentListContainer.innerHTML = ''; 
             const loggedInUserId = getLoggedInUserId();
+            const loggedInUserRole = getLoggedInUserRole(); // Pega a role do usuário
 
             if (!agents || agents.length === 0) {
                 agentListContainer.innerHTML = `
@@ -264,9 +265,9 @@
 
             agents.forEach(agent => {
                 const isOwner = loggedInUserId && agent.userId && agent.userId._id === loggedInUserId;
+                const isAdmin = loggedInUserRole === 'Admin';
                 const isMain = agent.isMainCharacter;
                 
-                // A classe 'main' é adicionada aqui para o destaque visual (borda amarela)
                 const agentElement = document.createElement('div');
                 agentElement.className = `agent-card p-3 rounded-lg flex items-center gap-4 ${isMain && isOwner ? 'main' : ''}`;
                 
@@ -274,7 +275,8 @@
                 const ownerUsername = agent.userId ? agent.userId.username : 'Anônimo';
 
                 let topControlsHTML = '';
-                if (isOwner) {
+                // Mostra os controles se for o dono OU se for Admin
+                if (isOwner || isAdmin) {
                     const privateBadgeHTML = !agent.isPublic ? '<span class="private-badge">Privado</span>' : '';
                     const optionsButtonHTML = `<button class="options-btn flex-shrink-0" data-agent-id="${agent._id}"><i class="fas fa-ellipsis-v"></i></button>`;
                     topControlsHTML = `<div class="absolute top-2 right-2 flex items-center gap-2 z-10">${privateBadgeHTML}${optionsButtonHTML}</div>`;
@@ -298,15 +300,28 @@
         async function loadCharacters() {
             if (!token) { loader.style.display = 'none'; return; } 
             loader.style.display = 'block';
+            const userRole = getLoggedInUserRole();
 
             let fetchedCharacters = [];
             try {
-                const publicResponse = await fetch(`${API_URL}/characters/public`);
-                if (publicResponse.ok) fetchedCharacters.push(...await publicResponse.json());
+                // Se for Admin, busca todos os personagens de uma vez
+                if (userRole === 'Admin') {
+                    const response = await fetch(`${API_URL}/admin/characters`, { headers: { 'x-auth-token': token } });
+                    if (response.ok) {
+                        fetchedCharacters = await response.json();
+                    } else {
+                        throw new Error('Falha ao carregar personagens como Admin.');
+                    }
+                } else {
+                    // Lógica antiga para não-Admins
+                    const publicResponse = await fetch(`${API_URL}/characters/public`);
+                    if (publicResponse.ok) fetchedCharacters.push(...await publicResponse.json());
 
-                const myResponse = await fetch(`${API_URL}/characters/mine`, { headers: { 'x-auth-token': token } });
-                if (myResponse.ok) fetchedCharacters.push(...await myResponse.json());
+                    const myResponse = await fetch(`${API_URL}/characters/mine`, { headers: { 'x-auth-token': token } });
+                    if (myResponse.ok) fetchedCharacters.push(...await myResponse.json());
+                }
 
+                // Remove duplicados (caso um personagem do admin seja público)
                 allCharacters = Array.from(new Map(fetchedCharacters.map(char => [char._id, char])).values());
                 
                 const mainChar = allCharacters.find(char => char.isMainCharacter && char.userId._id === getLoggedInUserId());

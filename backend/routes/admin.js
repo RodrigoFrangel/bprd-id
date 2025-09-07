@@ -77,5 +77,20 @@ router.delete('/users/:id', [auth, adminAuth], async (req, res) => {
     }
 });
 
+// @route   GET api/admin/characters
+// @desc    Obtém todos os personagens (para o admin)
+// @access  Admin
+router.get('/characters', [auth, adminAuth], async (req, res) => {
+  try {
+    const characters = await Character.find()
+      .populate('userId', 'username')
+      .sort({ name: 1 });
+    res.json(characters);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Erro no servidor.');
+  }
+});
+
 
 module.exports = router;

@@ -9,57 +9,111 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Special+Elite&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
-        body { background-color: #1a1a1a; font-family: 'Roboto Condensed', sans-serif; color: #f5f5f5; }
+        body { 
+            background-color: #1a1a1a; /* Cor de fundo ajustada */
+            font-family: 'Roboto Condensed', sans-serif; 
+            color: #f5f5f5;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23333333' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
         .font-special { font-family: 'Special Elite', monospace; }
-        .table-header { background-color: #374151; }
-        .table-row:nth-child(even) { background-color: #1f2937; }
-        .table-row:hover { background-color: #4b5563; }
-        .form-select { background-color: #374151; border-color: #4b5563; }
+        .form-select { 
+            background-color: #374151; 
+            border-color: #4b5563;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        .btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .btn:hover:not(:disabled) {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+        }
+        .modal-overlay {
+            background-color: rgba(10, 10, 10, 0.7);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-box {
+            transition: all 0.3s ease-in-out;
+        }
+        .form-input {
+             background-color: #1a1a1a; 
+             border: 1px solid #555;
+        }
+        .user-card {
+            background-color: rgba(31, 41, 55, 0.5); /* bg-gray-800 com opacidade */
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .details-arrow {
+            transition: transform 0.2s ease-in-out;
+        }
+        details[open] .details-arrow {
+            transform: rotate(180deg);
+        }
+        summary::-webkit-details-marker {
+            display: none;
+        }
     </style>
 </head>
 <body class="p-4 sm:p-6 md:p-8">
-    <div class="container mx-auto max-w-6xl">
+    <div class="container mx-auto max-w-4xl">
         <header class="flex items-center justify-between mb-8">
-             <a href="index.html" title="Voltar" class="bg-gray-700 hover:bg-gray-600 text-white w-12 h-12 rounded-full flex items-center justify-center transition-colors">
+             <a href="index.html" title="Voltar" class="btn bg-gray-700 hover:bg-gray-600 text-white w-12 h-12 rounded-full flex items-center justify-center">
                 <i class="fas fa-arrow-left"></i>
             </a>
             <h1 class="font-special text-4xl sm:text-5xl text-red-600 text-center">Administração</h1>
             <div class="w-12 h-12"></div>
         </header>
 
-        <main class="bg-gray-800 p-4 sm:p-6 rounded-lg shadow-lg">
-            <h2 class="text-2xl font-bold mb-4 font-special">Gestão de Utilizadores</h2>
-            <div class="overflow-x-auto">
-                <table class="min-w-full text-sm text-left">
-                    <thead class="table-header">
-                        <tr>
-                            <th class="p-3">Nome de Utilizador</th>
-                            <th class="p-3 hidden sm:table-cell">Email</th>
-                            <th class="p-3">Função</th>
-                            <th class="p-3">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="user-list-body">
-                        <!-- Linhas da tabela serão inseridas aqui -->
-                        <tr><td colspan="4" class="text-center p-4" id="loading-msg">A carregar utilizadores...</td></tr>
-                    </tbody>
-                </table>
-            </div>
+        <main id="user-list-container" class="space-y-3">
+            <!-- Os cards dos usuários serão inseridos aqui -->
+            <div id="loading-msg" class="text-center text-gray-400 p-8">A carregar utilizadores...</div>
         </main>
+    </div>
+
+    <!-- Modal de Confirmação -->
+    <div id="delete-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+        <div class="modal-box bg-gray-800 rounded-lg shadow-xl w-full max-w-md p-6 text-center">
+            <h3 class="text-xl font-bold mb-2">Confirmar Exclusão</h3>
+            <p class="text-gray-300 mb-4">Tem a certeza de que quer eliminar este utilizador e todos os seus personagens? Esta ação é irreversível.</p>
+            <div class="my-4 text-left">
+                <label for="delete-confirm-input" class="text-sm text-gray-400 block mb-2">Para confirmar, digite <strong class="text-red-500">DELETE</strong> abaixo:</label>
+                <input type="text" id="delete-confirm-input" class="form-input text-white text-center w-full p-2 rounded-lg tracking-widest font-bold" autocomplete="off">
+            </div>
+            <div class="flex justify-center gap-4">
+                <button id="cancel-delete-btn" class="btn bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg">Cancelar</button>
+                <button id="confirm-delete-btn" class="btn bg-red-700 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-lg disabled:bg-gray-500 disabled:cursor-not-allowed" disabled>Confirmar</button>
+            </div>
+        </div>
     </div>
 
     <script src="auth.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            const userListBody = document.getElementById('user-list-body');
+        document.addEventListener('DOMContentLoaded', () => {
+            const userListContainer = document.getElementById('user-list-container');
             const loadingMsg = document.getElementById('loading-msg');
+            const deleteModal = document.getElementById('delete-modal');
+            const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+            const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+            const deleteConfirmInput = document.getElementById('delete-confirm-input');
+            
             const token = localStorage.getItem('bprd_token');
             const loggedInUser = getDecodedToken()?.user;
+            let userToDeleteId = null;
 
             // Proteção da página
             if (!loggedInUser || loggedInUser.role !== 'Admin') {
-                alert('Acesso negado.');
-                window.location.href = 'index.html';
+                document.body.innerHTML = `<div class="text-center text-red-500 p-10"><h1>Acesso Negado</h1><p>Esta área é restrita para administradores.</p><a href="index.html" class="inline-block mt-4 bg-gray-700 p-2 rounded-lg">Voltar</a></div>`;
                 return;
             }
 
@@ -77,83 +131,113 @@
             }
             
             function renderUsers(users) {
-                userListBody.innerHTML = '';
+                userListContainer.innerHTML = ''; // Limpa antes de renderizar
                 if (users.length === 0) {
-                    userListBody.innerHTML = '<tr><td colspan="4" class="text-center p-4">Nenhum utilizador encontrado.</td></tr>';
+                    userListContainer.innerHTML = '<p class="text-center text-gray-400 p-8">Nenhum utilizador encontrado.</p>';
                     return;
                 }
                 
                 users.forEach(user => {
                     const isCurrentUser = user._id === loggedInUser.id;
-                    const row = document.createElement('tr');
-                    row.className = 'table-row border-b border-gray-700';
+                    const userCard = document.createElement('div');
+                    userCard.className = 'user-card rounded-lg overflow-hidden';
 
                     const roleOptions = ['Player', 'DM', 'Admin']
                         .map(r => `<option value="${r}" ${user.role === r ? 'selected' : ''}>${r}</option>`)
                         .join('');
-
-                    row.innerHTML = `
-                        <td class="p-3 font-bold">${user.username}</td>
-                        <td class="p-3 hidden sm:table-cell">${user.email}</td>
-                        <td class="p-3">
-                            <select data-userid="${user._id}" class="role-select form-select rounded p-2" ${isCurrentUser ? 'disabled' : ''}>
-                                ${roleOptions}
-                            </select>
-                        </td>
-                        <td class="p-3">
-                            <button data-userid="${user._id}" class="delete-btn text-red-500 hover:text-red-400 disabled:opacity-50 disabled:cursor-not-allowed" ${isCurrentUser ? 'disabled' : ''}>
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </td>
+                    
+                    userCard.innerHTML = `
+                        <details>
+                            <summary class="p-4 flex justify-between items-center cursor-pointer list-none hover:bg-white/5 transition-colors duration-200">
+                                <div>
+                                    <h2 class="text-lg font-bold text-white">${user.username}</h2>
+                                    <p class="text-sm text-gray-400">${user.email}</p>
+                                </div>
+                                <i class="fas fa-chevron-down details-arrow text-gray-400"></i>
+                            </summary>
+                            <div class="p-4 border-t border-white/10 bg-black/20 flex flex-col sm:flex-row items-center gap-3">
+                                <label for="role-select-${user._id}" class="text-sm text-gray-300 flex-shrink-0">Função:</label>
+                                <select id="role-select-${user._id}" data-userid="${user._id}" class="role-select form-select rounded-lg p-2 w-full sm:w-auto flex-grow text-white" ${isCurrentUser ? 'disabled' : ''}>
+                                    ${roleOptions}
+                                </select>
+                                <button data-userid="${user._id}" class="delete-btn btn bg-red-700 hover:bg-red-600 text-white w-full sm:w-auto h-10 px-4 rounded-lg flex-shrink-0 flex items-center justify-center gap-2 disabled:opacity-50 disabled:bg-gray-600 disabled:cursor-not-allowed" ${isCurrentUser ? 'disabled' : ''}>
+                                    <i class="fas fa-trash-alt"></i>
+                                    <span class="font-semibold">Excluir</span>
+                                </button>
+                            </div>
+                        </details>
                     `;
-                    userListBody.appendChild(row);
+                    userListContainer.appendChild(userCard);
                 });
             }
 
-            userListBody.addEventListener('change', async (e) => {
+            async function updateUserRole(userId, newRole) {
+                try {
+                    const response = await fetch(`${API_URL}/admin/users/${userId}/role`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json', 'x-auth-token': token },
+                        body: JSON.stringify({ role: newRole })
+                    });
+                    if (!response.ok) {
+                         const err = await response.json();
+                         throw new Error(err.msg || 'Falha ao atualizar a função.');
+                    }
+                } catch (error) {
+                    console.error(`Erro: ${error.message}`);
+                    fetchUsers(); 
+                }
+            }
+
+            async function deleteUser(userId) {
+                try {
+                    const response = await fetch(`${API_URL}/admin/users/${userId}`, {
+                        method: 'DELETE',
+                        headers: { 'x-auth-token': token }
+                    });
+                    if (!response.ok) {
+                         const err = await response.json();
+                         throw new Error(err.msg || 'Falha ao eliminar o utilizador.');
+                    }
+                    fetchUsers();
+                } catch (error) {
+                    console.error(`Erro: ${error.message}`);
+                }
+            }
+            
+            function closeModalAndReset() {
+                userToDeleteId = null;
+                deleteConfirmInput.value = '';
+                confirmDeleteBtn.disabled = true;
+                deleteModal.classList.add('hidden');
+            }
+
+            userListContainer.addEventListener('change', (e) => {
                 if (e.target.classList.contains('role-select')) {
                     const userId = e.target.dataset.userid;
                     const newRole = e.target.value;
-                    try {
-                        const response = await fetch(`${API_URL}/admin/users/${userId}/role`, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json', 'x-auth-token': token },
-                            body: JSON.stringify({ role: newRole })
-                        });
-                        if (!response.ok) {
-                             const err = await response.json();
-                             throw new Error(err.msg || 'Falha ao atualizar a função.');
-                        }
-                        alert('Função atualizada com sucesso!');
-                        fetchUsers();
-                    } catch (error) {
-                        alert(`Erro: ${error.message}`);
-                        fetchUsers(); // Recarrega para reverter a alteração visual
-                    }
+                    updateUserRole(userId, newRole);
                 }
             });
 
-            userListBody.addEventListener('click', async (e) => {
-                if (e.target.closest('.delete-btn')) {
-                    const button = e.target.closest('.delete-btn');
-                    const userId = button.dataset.userid;
-                    if (confirm('Tem a certeza de que quer eliminar este utilizador e todos os seus personagens? Esta ação é irreversível.')) {
-                        try {
-                            const response = await fetch(`${API_URL}/admin/users/${userId}`, {
-                                method: 'DELETE',
-                                headers: { 'x-auth-token': token }
-                            });
-                            if (!response.ok) {
-                                 const err = await response.json();
-                                 throw new Error(err.msg || 'Falha ao eliminar o utilizador.');
-                            }
-                            alert('Utilizador eliminado com sucesso!');
-                            fetchUsers();
-                        } catch (error) {
-                            alert(`Erro: ${error.message}`);
-                        }
-                    }
+            userListContainer.addEventListener('click', (e) => {
+                const deleteButton = e.target.closest('.delete-btn');
+                if (deleteButton) {
+                    userToDeleteId = deleteButton.dataset.userid;
+                    deleteModal.classList.remove('hidden');
                 }
+            });
+
+            cancelDeleteBtn.addEventListener('click', closeModalAndReset);
+
+            confirmDeleteBtn.addEventListener('click', () => {
+                if (userToDeleteId) {
+                    deleteUser(userToDeleteId);
+                }
+                closeModalAndReset();
+            });
+
+            deleteConfirmInput.addEventListener('input', () => {
+                confirmDeleteBtn.disabled = deleteConfirmInput.value !== 'DELETE';
             });
 
             fetchUsers();

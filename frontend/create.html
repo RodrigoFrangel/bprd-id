@@ -595,15 +595,22 @@
 
             if (editId) {
                 try {
-                    const response = await fetch(`${API_URL}/characters/mine`, { headers: { 'x-auth-token': token } });
-                    if (!response.ok) throw new Error('Falha ao buscar dados do personagem.');
-                    const myCharacters = await response.json();
-                    const agentToEdit = myCharacters.find(agent => agent._id === editId);
-                    if (agentToEdit) populateForm(agentToEdit);
-                    else throw new Error('Personagem para edição não encontrado.');
+                    const response = await fetch(`${API_URL}/characters/${editId}`, { headers: { 'x-auth-token': token } });
+                    if (!response.ok) {
+                         const err = await response.json();
+                         throw new Error(err.msg || 'Falha ao buscar dados do personagem.');
+                    }
+                    const agentToEdit = await response.json();
+                    
+                    if (agentToEdit) {
+                        populateForm(agentToEdit);
+                    } else {
+                        throw new Error('Personagem para edição não encontrado.');
+                    }
                 } catch(err) {
                     console.error("Erro ao buscar dados para edição:", err);
                     alert(err.message);
+                    window.location.href = 'personagens.html';
                 }
             } else {
                  addFeatureInput();

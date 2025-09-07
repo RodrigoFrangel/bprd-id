@@ -41,9 +41,8 @@ router.put('/initiative/:id', auth, async (req, res) => {
       return res.status(404).json({ msg: 'Character not found' });
     }
 
-    // Apenas o dono ou um DM podem alterar a iniciativa (futura melhoria)
-    // Por enquanto, mantemos a lógica original
-    if (character.userId.toString() !== req.user.id) {
+    // Apenas o dono, um Admin ou um DM podem alterar a iniciativa
+    if (character.userId.toString() !== req.user.id && req.user.role !== 'Admin' && req.user.role !== 'DM') {
         return res.status(401).json({ msg: 'User not authorized' });
     }
 
@@ -68,7 +67,8 @@ router.put('/hp/:id', auth, async (req, res) => {
             return res.status(404).json({ msg: 'Character not found' });
         }
 
-        if (character.userId.toString() !== req.user.id) {
+        // Apenas o dono, um Admin ou um DM podem alterar o HP
+        if (character.userId.toString() !== req.user.id && req.user.role !== 'Admin' && req.user.role !== 'DM') {
             return res.status(401).json({ msg: 'User not authorized' });
         }
 
