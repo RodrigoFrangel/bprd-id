@@ -1,5 +1,5 @@
-// const API_URL = '/api'; // Ajustado para funcionar na Vercel
-const API_URL = 'https://bprd-backend.onrender.com/api'; // URL da Render
+const API_URL = '/api'; // Ajustado para funcionar na Vercel
+// const API_URL = 'https://bprd-backend.onrender.com/api'; // URL da Render
 // const API_URL = 'http://localhost:7000/api'; // pra testar localmente
 
 // Array com as páginas que são públicas
