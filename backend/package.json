@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "start:render": "node combat-server.js",
     "dev": "nodemon index.js",
     "seed": "node seeder.js",
     "seed:destroy": "node seeder.js -d"
