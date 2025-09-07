@@ -123,7 +123,8 @@ router.put('/:id', auth, async (req, res) => {
 
     if (!character) return res.status(404).json({ msg: 'Personagem não encontrado.' });
 
-    if (character.userId.toString() !== req.user.id) {
+    // Apenas o dono do personagem ou um Admin pode editar
+    if (character.userId.toString() !== req.user.id && req.user.role !== 'Admin') {
       return res.status(401).json({ msg: 'Não autorizado.' });
     }
     
@@ -158,7 +159,8 @@ router.delete('/:id', auth, async (req, res) => {
 
     if (!character) return res.status(404).json({ msg: 'Personagem não encontrado.' });
 
-    if (character.userId.toString() !== req.user.id) {
+    // Apenas o dono do personagem ou um Admin pode deletar
+    if (character.userId.toString() !== req.user.id && req.user.role !== 'Admin') {
       return res.status(401).json({ msg: 'Não autorizado.' });
     }
 
@@ -172,4 +174,3 @@ router.delete('/:id', auth, async (req, res) => {
 });
 
 module.exports = router;
-
