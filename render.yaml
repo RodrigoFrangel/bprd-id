@@ -1,0 +1,18 @@
+# render.yaml
+# This file configures the services for your project on Render.
+# See https://render.com/docs/blueprint-spec for more details.
+
+services:
+  - type: web
+    # A unique name for this service
+    name: bprd-backend
+    # The runtime environment for this service
+    env: node
+    # The root directory of the service, relative to the repository root
+    rootDir: backend
+    # The plan for this service (e.g., free, standard)
+    plan: free
+    # The command to build the service
+    buildCommand: npm install
+    # The command to start the service
+    startCommand: npm run start:render
